@@ -40,6 +40,8 @@
         <div class="text-center mt-4">
             <a href="index.html" class="btn btn-primary">返回添加受试者信息</a>
             <a href="schedule.html" class="btn btn-secondary">查看今日访视安排</a>
+            <a href="landing.html" class="btn btn-info">返回首页</a>
+            <button id="deleteAllBtn" class="btn btn-danger">删除全部</button>
         </div>
     </div>
 
@@ -165,6 +167,24 @@
                 };
             }
         }
+
+        // 添加删除全部功能
+        document.getElementById('deleteAllBtn').addEventListener('click', function() {
+            if (confirm("确定要删除所有记录吗？此操作不可撤销。")) {
+                const transaction = db.transaction(["subjects"], "readwrite");
+                const objectStore = transaction.objectStore("subjects");
+                const request = objectStore.clear();
+
+                request.onsuccess = function() {
+                    console.log("所有数据已删除");
+                    loadSubjects(); // 重新加载（现在应该是空的）表格
+                };
+
+                request.onerror = function(event) {
+                    console.error("删除所有数据时出错:", event.target.error);
+                };
+            }
+        });
     </script>
 </body>
 </html>

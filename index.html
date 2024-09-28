@@ -47,6 +47,22 @@
         <div class="text-center mt-4">
             <a href="view.html" class="btn btn-secondary">查看已保存的受试者信息</a>
             <a href="schedule.html" class="btn btn-secondary">查看今日访视安排</a>
+            <a href="landing.html" class="btn btn-info">返回首页</a>
+        </div>
+        <h2 class="mt-5 mb-4 text-center">批量导入受试者信息</h2>
+        <div class="card">
+            <div class="card-body">
+                <form id="batchImportForm">
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">选择Excel文件：</label>
+                        <input type="file" class="form-control" id="excelFile" accept=".xlsx, .xls" required>
+                    </div>
+                    <div id="columnMapping" class="mb-3">
+                        <!-- 字段映射将在这里动态生成 -->
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">批量导入</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -59,6 +75,7 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/zh.js"></script>
     <!-- 引入自定义 JS -->
     <script src="index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script>
         // 初始化 Flatpickr
         flatpickr("#firstDate", {
@@ -69,6 +86,207 @@
             altFormat: "Y年m月d日",
             disableMobile: true
         });
+
+        // 添加表单提交事件监听器
+        document.getElementById('subjectForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止表单默认提交行为
+
+            // 获取表单数据
+            const formData = new FormData(this);
+            const subjectData = {
+                name: formData.get('name'),
+                firstDate: formData.get('firstDate'),
+                frequency: formData.get('frequency'),
+                totalVisits: formData.get('totalVisits')
+            };
+
+            // 打开数据库连接
+            const request = indexedDB.open("SubjectsDB", 1);
+
+            request.onerror = function(event) {
+                console.error("数据库错误: " + event.target.error);
+            };
+
+            request.onsuccess = function(event) {
+                const db = event.target.result;
+                const transaction = db.transaction(["subjects"], "readwrite");
+                const objectStore = transaction.objectStore("subjects");
+                const addRequest = objectStore.add(subjectData);
+
+                addRequest.onsuccess = function() {
+                    console.log("数据保存成功");
+                    // 数据保存成功后跳转到view页面
+                    window.location.href = 'view.html';
+                };
+
+                addRequest.onerror = function() {
+                    console.error("保存数据时出错");
+                };
+            };
+
+            request.onupgradeneeded = function(event) {
+                const db = event.target.result;
+                const objectStore = db.createObjectStore("subjects", { keyPath: "id", autoIncrement: true });
+                objectStore.createIndex("name", "name", { unique: false });
+                objectStore.createIndex("firstDate", "firstDate", { unique: false });
+            };
+        });
+
+        // 处理Excel文件上传
+        document.getElementById('excelFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const headers = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0];
+
+                // 生成字段映射选择
+                const mappingHtml = headers.map((header, index) => `
+                    <div class="mb-2">
+                        <label class="form-label">Excel列 "${header}" 对应：</label>
+                        <select class="form-select" data-excel-column="${index}">
+                            <option value="">请选择</option>
+                            <option value="name">受试者名称</option>
+                            <option value="firstDate">首次受试日期</option>
+                            <option value="frequency">访视频率</option>
+                            <option value="totalVisits">总访视次数</option>
+                        </select>
+                    </div>
+                `).join('');
+
+                document.getElementById('columnMapping').innerHTML = mappingHtml;
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+
+        // 处理批量导入
+        document.getElementById('batchImportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const file = document.getElementById('excelFile').files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array', cellDates: true});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1, raw: false});
+
+                // 获取用户定义的字段映射
+                const mapping = {};
+                document.querySelectorAll('#columnMapping select').forEach(select => {
+                    const field = select.value;
+                    const columnIndex = parseInt(select.dataset.excelColumn);
+                    mapping[field] = columnIndex;
+                });
+
+                // 转换数据
+                const headers = jsonData[0];
+                const subjectsData = jsonData.slice(1).map(row => {
+                    const subject = {};
+                    Object.keys(mapping).forEach(field => {
+                        const columnIndex = mapping[field];
+                        if (columnIndex !== undefined && columnIndex < row.length) {
+                            if (field === 'firstDate') {
+                                // 处理日期
+                                const dateValue = row[columnIndex];
+                                const parsedDate = parseExcelDate(dateValue);
+                                subject[field] = parsedDate ? parsedDate.toISOString().split('T')[0] : null;
+                            } else {
+                                subject[field] = row[columnIndex];
+                            }
+                        }
+                    });
+                    return subject;
+                });
+
+                console.log("解析后的数据:", subjectsData);
+
+                // 批量导入数据
+                const request = indexedDB.open("SubjectsDB", 1);
+
+                request.onsuccess = function(event) {
+                    const db = event.target.result;
+                    const transaction = db.transaction(["subjects"], "readwrite");
+                    const objectStore = transaction.objectStore("subjects");
+
+                    let successCount = 0;
+                    subjectsData.forEach(subject => {
+                        const addRequest = objectStore.add(subject);
+                        addRequest.onsuccess = function() {
+                            successCount++;
+                            if (successCount === subjectsData.length) {
+                                alert(`成功导入 ${successCount} 条记录`);
+                                window.location.href = 'view.html';
+                            }
+                        };
+                        addRequest.onerror = function(event) {
+                            console.error("添加记录时出错:", event.target.error);
+                        };
+                    });
+                };
+
+                request.onerror = function(event) {
+                    console.error("数据库错误: " + event.target.error);
+                };
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+
+        // 修改后的日期解析函数
+        function parseExcelDate(dateValue) {
+            console.log("Original date value:", dateValue);
+            
+            if (dateValue instanceof Date) {
+                return new Date(Date.UTC(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate()));
+            }
+            
+            if (typeof dateValue === 'number') {
+                // Excel的日期数字是从1900年1月1日开始的天数
+                const date = new Date((dateValue - 25569) * 86400 * 1000);
+                return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            }
+            
+            if (typeof dateValue === 'string') {
+                // 处理 "MMDD" 格式
+                if (/^\d{4}$/.test(dateValue)) {
+                    const month = parseInt(dateValue.substr(0, 2)) - 1; // JavaScript月份从0开始
+                    const day = parseInt(dateValue.substr(2, 2));
+                    const year = new Date().getFullYear(); // 使用当前年份
+                    return new Date(Date.UTC(year, month, day));
+                }
+                
+                // 处理 "M/D/YY" 格式
+                const parts = dateValue.split('/');
+                if (parts.length === 3) {
+                    const month = parseInt(parts[0]) - 1; // JavaScript月份从0开始
+                    const day = parseInt(parts[1]);
+                    let year = parseInt(parts[2]);
+                    
+                    // 处理两位数年份
+                    if (year < 100) {
+                        year += year < 50 ? 2000 : 1900;
+                    }
+                    
+                    return new Date(Date.UTC(year, month, day));
+                }
+                
+                // 如果上面的方法失败，尝试使用 Date 构造函数
+                const date = new Date(dateValue);
+                if (!isNaN(date.getTime())) {
+                    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+                }
+            }
+            
+            return null;
+        }
     </script>
 </body>
 </html>
