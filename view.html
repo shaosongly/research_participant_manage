@@ -28,6 +28,7 @@
                             <th>首次受试日期</th>
                             <th>访视频率</th>
                             <th>总访视次数</th>
+                            <th>访视窗口(天)</th>
                             <th>操作</th>
                         </tr>
                     </thead>
@@ -73,7 +74,7 @@
 
         function loadSubjects() {
             const tableBody = document.querySelector('#subjectTable tbody');
-            tableBody.innerHTML = ''; // 清空现有内容
+            tableBody.innerHTML = '';
 
             const objectStore = db.transaction("subjects").objectStore("subjects");
 
@@ -87,8 +88,9 @@
                     row.insertCell(1).textContent = data.firstDate;
                     row.insertCell(2).textContent = data.frequency;
                     row.insertCell(3).textContent = data.totalVisits;
+                    row.insertCell(4).textContent = data.visitWindow || '默认窗口0';
                     
-                    const actionCell = row.insertCell(4);
+                    const actionCell = row.insertCell(5);
                     actionCell.innerHTML = `
                         <div class="btn-group" role="group">
                             <button onclick="editRow(${data.id})" class="btn btn-sm btn-outline-primary">编辑</button>
@@ -108,12 +110,13 @@
             row.classList.add('table-warning');
             const cells = row.cells;
             
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 5; i++) {
                 const content = cells[i].textContent;
-                cells[i].innerHTML = `<input type="text" class="form-control form-control-sm" value="${content}">`;
+                const placeholder = i === 4 ? "用逗号分隔，如: 1,2,3,4" : "";
+                cells[i].innerHTML = `<input type="text" class="form-control form-control-sm" value="${content === '默认窗口0' ? '' : content}" placeholder="${placeholder}">`;
             }
             
-            const actionCell = cells[4];
+            const actionCell = cells[5];
             actionCell.innerHTML = `
                 <div class="btn-group" role="group">
                     <button onclick="saveRow(${id})" class="btn btn-sm btn-success">保存</button>
@@ -130,8 +133,14 @@
                 name: cells[0].querySelector('input').value,
                 firstDate: cells[1].querySelector('input').value,
                 frequency: cells[2].querySelector('input').value,
-                totalVisits: cells[3].querySelector('input').value
+                totalVisits: cells[3].querySelector('input').value,
+                visitWindow: cells[4].querySelector('input').value.trim()
             };
+
+            if (updatedData.visitWindow !== '' && !/^\d+(?:,\d+)*$/.test(updatedData.visitWindow)) {
+                alert('访视窗口格式不正确，请使用逗号分隔的数字，如: 1,2,3,4');
+                return;
+            }
 
             const transaction = db.transaction(["subjects"], "readwrite");
             const objectStore = transaction.objectStore("subjects");
@@ -139,7 +148,7 @@
 
             request.onsuccess = function() {
                 console.log("数据更新成功");
-                loadSubjects(); // 重新加载数据
+                loadSubjects();
             };
 
             request.onerror = function() {
@@ -148,7 +157,7 @@
         }
 
         function cancelEdit(id) {
-            loadSubjects(); // 重新加载数据，取消编辑
+            loadSubjects();
         }
 
         function deleteRow(id) {
@@ -159,7 +168,7 @@
 
                 request.onsuccess = function() {
                     console.log("数据删除成功");
-                    loadSubjects(); // 重新加载数据
+                    loadSubjects();
                 };
 
                 request.onerror = function() {
@@ -177,7 +186,7 @@
 
                 request.onsuccess = function() {
                     console.log("所有数据已删除");
-                    loadSubjects(); // 重新加载（现在应该是空的）表格
+                    loadSubjects();
                 };
 
                 request.onerror = function(event) {

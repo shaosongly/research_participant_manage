@@ -40,6 +40,12 @@
                         <label for="totalVisits" class="form-label">总访视次数:</label>
                         <input type="number" class="form-control" id="totalVisits" name="totalVisits" required>
                     </div>
+                    <div class="mb-3">
+                        <label for="visitWindow" class="form-label">访视窗口(天):</label>
+                        <input type="text" class="form-control" id="visitWindow" name="visitWindow" 
+                               placeholder="用逗号分隔每次访视的窗口天数，如: 1,2,3,4">
+                        <div class="form-text">不填写则表示无访视窗口限制。每个数字代表对应次序访视的窗口天数。</div>
+                    </div>
                     <button type="submit" class="btn btn-primary w-100">提交</button>
                 </form>
             </div>
@@ -93,11 +99,20 @@
 
             // 获取表单数据
             const formData = new FormData(this);
+            const visitWindow = formData.get('visitWindow').trim();
+            
+            // 验证访视窗口格式
+            if (visitWindow !== '' && !/^\d+(?:,\d+)*$/.test(visitWindow)) {
+                alert('访视窗口格式不正确，请使用逗号分隔的数字，如: 1,2,3,4');
+                return;
+            }
+
             const subjectData = {
                 name: formData.get('name'),
                 firstDate: formData.get('firstDate'),
                 frequency: formData.get('frequency'),
-                totalVisits: formData.get('totalVisits')
+                totalVisits: formData.get('totalVisits'),
+                visitWindow: visitWindow // 如果为空字符串则表示无窗口限制
             };
 
             const dbRequest = indexedDB.open("SubjectsDB");
@@ -149,6 +164,7 @@
                             <option value="firstDate">首次受试日期</option>
                             <option value="frequency">访视频率</option>
                             <option value="totalVisits">总访视次数</option>
+                            <option value="visitWindow">访视窗口</option>
                         </select>
                     </div>
                 `).join('');
@@ -193,6 +209,11 @@
                                 const dateValue = row[columnIndex];
                                 const parsedDate = parseExcelDate(dateValue);
                                 subject[field] = parsedDate ? parsedDate.toISOString().split('T')[0] : null;
+                            } else if (field === 'visitWindow') {
+                                // 处理访视窗口数据
+                                const windowValue = row[columnIndex];
+                                // 如果Excel中的值为空，则设置为空字符串
+                                subject[field] = windowValue ? String(windowValue).trim() : '';
                             } else {
                                 subject[field] = row[columnIndex];
                             }

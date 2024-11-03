@@ -28,6 +28,34 @@
         .flatpickr-calendar {
             font-size: 14px;
         }
+        /* 修改访视次数交替背景色为更明显的对比色 */
+        .visit-group-even {
+            background-color: #e3f2fd !important; /* 浅蓝色 */
+        }
+        
+        .visit-group-odd {
+            background-color: #fff3e0 !important; /* 浅橙色 */
+        }
+        
+        /* 修改鼠标悬停效果 */
+        .visit-group-even:hover {
+            background-color: #bbdefb !important; /* 深一点的蓝色 */
+        }
+        
+        .visit-group-odd:hover {
+            background-color: #ffe0b2 !important; /* 深一点的橙色 */
+        }
+        
+        /* 调整表格样式 */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        /* 移除 Bootstrap 的 table-striped 类的默认样式 */
+        .table-visits > tbody > tr:nth-of-type(odd) {
+            background-color: inherit;
+        }
     </style>
 </head>
 <body>
@@ -72,6 +100,9 @@
                     <div class="col-md-4">
                         <p><strong>总访视次数：</strong><span id="totalVisits"></span></p>
                     </div>
+                    <div class="col-md-8">
+                        <p><strong>访视窗口：</strong><span id="visitWindow"></span></p>
+                    </div>
                 </div>
 
                 <!-- 新增计划调整部分 -->
@@ -99,7 +130,7 @@
                 <h5 class="card-title mb-0">访视计划详情</h5>
             </div>
             <div class="card-body">
-                <table class="table table-striped">
+                <table class="table table-visits">
                     <thead>
                         <tr>
                             <th>访视次数</th>
@@ -203,6 +234,12 @@
             document.getElementById('firstVisitDate').textContent = formatDate(subject.firstDate);
             document.getElementById('visitFrequency').textContent = `${subject.frequency}天`;
             document.getElementById('totalVisits').textContent = subject.totalVisits;
+            
+            // 添加访视窗口信息显示
+            const visitWindowText = subject.visitWindow && subject.visitWindow.trim() !== '' 
+                ? subject.visitWindow 
+                : '默认窗口0';
+            document.getElementById('visitWindow').textContent = visitWindowText;
 
             // 更新 Flatpickr 日期
             flatpickr('#adjustDate', {
@@ -259,31 +296,66 @@
             const firstDate = new Date(subject.firstDate);
             const frequency = parseInt(subject.frequency);
             const totalVisits = parseInt(subject.totalVisits);
+            
+            // 解析访视窗口
+            let visitWindows = [];
+            if (subject.visitWindow && subject.visitWindow.trim() !== '') {
+                visitWindows = subject.visitWindow.split(',').map(Number);
+            } else {
+                // 如果未设置访视窗口，则所有访视的窗口期都是0
+                visitWindows = Array(totalVisits).fill(0);
+            }
 
-            // 添加调试信息
-            console.log('Generating visit plan:', {
-                firstDate,
-                frequency,
-                totalVisits
-            });
+            // 遍历每次访视
+            for (let visitNum = 0; visitNum < totalVisits; visitNum++) {
+                // 计算基准日期
+                const baseDate = new Date(firstDate.getTime() + visitNum * frequency * 24 * 60 * 60 * 1000);
+                const window = visitWindows[visitNum] || 0;
+                
+                // 确定当前访视次数的背景色类名
+                const groupClass = visitNum % 2 === 0 ? 'visit-group-even' : 'visit-group-odd';
 
-            for (let i = 0; i < totalVisits; i++) {
-                const visitDate = new Date(firstDate.getTime() + i * frequency * 24 * 60 * 60 * 1000);
-                const row = tableBody.insertRow();
-                
-                // 访视次数
-                row.insertCell(0).textContent = `第 ${i + 1} 次访视`;
-                
-                // 计划访视日期
-                row.insertCell(1).textContent = formatDate(visitDate);
-                
-                // 节假日信息
-                const holidayInfo = getHolidayInfo(visitDate);
-                const holidayCell = row.insertCell(2);
-                holidayCell.textContent = holidayInfo;
-                if (holidayInfo !== '非节假日') {
-                    holidayCell.style.color = 'red';
+                // 第一次访视或窗口为0时，只显示基准日期
+                if (visitNum === 0 || window === 0) {
+                    addVisitRow(tableBody, visitNum + 1, baseDate, '基准日期', groupClass);
+                    continue;
                 }
+
+                // 非第一次访视且有窗口期时，显示窗口期内的所有日期
+                for (let offset = -window; offset <= window; offset++) {
+                    const visitDate = new Date(baseDate.getTime() + offset * 24 * 60 * 60 * 1000);
+                    let dateType = '基准日期';
+                    if (offset < 0) {
+                        dateType = `提前${Math.abs(offset)}天`;
+                    } else if (offset > 0) {
+                        dateType = `延后${offset}天`;
+                    }
+                    addVisitRow(tableBody, visitNum + 1, visitDate, dateType, groupClass);
+                }
+            }
+        }
+
+        // 添加访视行的辅助函数
+        function addVisitRow(tableBody, visitNumber, date, dateType, groupClass) {
+            const row = tableBody.insertRow();
+            row.className = groupClass; // 添加背景色类
+            
+            // 访视次数
+            row.insertCell(0).textContent = `第 ${visitNumber} 次访视`;
+            
+            // 计划访视日期
+            const dateCell = row.insertCell(1);
+            dateCell.textContent = `${formatDate(date)} (${dateType})`;
+            if (dateType !== '基准日期') {
+                dateCell.style.color = 'blue';
+            }
+            
+            // 节假日信息
+            const holidayInfo = getHolidayInfo(date);
+            const holidayCell = row.insertCell(2);
+            holidayCell.textContent = holidayInfo;
+            if (holidayInfo !== '非节假日') {
+                holidayCell.style.color = 'red';
             }
         }
 
@@ -305,7 +377,7 @@
                     return holiday.getName();
                 }
                 
-                // 如果不是法定节假日，检查是否为普通周末
+                // 如果不是法定节假日��检查是否为普通周末
                 const weekDay = date.getDay();
                 if (weekDay === 0 || weekDay === 6) {
                     return weekDay === 0 ? '周日' : '周六';

@@ -16,6 +16,28 @@
             max-width: 800px;
             margin-top: 30px;
         }
+        /* 添加访视组的背景色样式 */
+        .visit-group-even {
+            background-color: #e3f2fd !important; /* 浅蓝色 */
+        }
+        
+        .visit-group-odd {
+            background-color: #fff3e0 !important; /* 浅橙色 */
+        }
+        
+        /* 修改鼠标悬停效果 */
+        .visit-group-even:hover {
+            background-color: #bbdefb !important; /* 深一点的蓝色 */
+        }
+        
+        .visit-group-odd:hover {
+            background-color: #ffe0b2 !important; /* 深一点的橙色 */
+        }
+        
+        /* 移除 Bootstrap 的默认条纹样式 */
+        .table-visits > tbody > tr:nth-of-type(odd) {
+            background-color: inherit;
+        }
     </style>
 </head>
 <body>
@@ -24,11 +46,11 @@
         <div class="card mb-4">
             <div class="card-body">
                 <div class="row align-items-end">
-                    <div class="col-md-6 mb-3 mb-md-0">
-                        <label for="selectedDate" class="form-label">选择日期:</label>
-                        <input type="text" class="form-control" id="selectedDate">
+                    <div class="col-md-8 mb-3 mb-md-0">
+                        <label for="dateRange" class="form-label">选择日期范围:</label>
+                        <input type="text" class="form-control" id="dateRange">
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <button id="refreshButton" class="btn btn-primary w-100">刷新访视安排</button>
                     </div>
                 </div>
@@ -36,11 +58,12 @@
         </div>
         <div class="card">
             <div class="card-body">
-                <table id="scheduleTable" class="table table-striped table-hover">
+                <table id="scheduleTable" class="table table-visits table-hover">
                     <thead>
                         <tr>
                             <th>受试者名称</th>
                             <th>访视次数</th>
+                            <th>访视日期</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -67,15 +90,18 @@
         let db;
         const dbName = "SubjectsDB";
 
-        // 初始化 Flatpickr
-        const datePicker = flatpickr("#selectedDate", {
+        // 初始化 Flatpickr 为日期范围选择器
+        const datePicker = flatpickr("#dateRange", {
+            mode: "range",
             dateFormat: "Y-m-d",
             locale: "zh",
-            defaultDate: "today",
+            defaultDate: [new Date(), new Date()],
             altInput: true,
             altFormat: "Y年m月d日",
             onChange: function(selectedDates, dateStr, instance) {
-                loadSchedule(dateStr);
+                if (selectedDates.length === 2) {
+                    loadSchedule(selectedDates[0], selectedDates[1]);
+                }
             }
         });
 
@@ -98,48 +124,141 @@
             objectStore.createIndex("firstDate", "firstDate", { unique: false });
         };
 
-        function loadSchedule(selectedDate) {
+        function loadSchedule(startDate, endDate) {
             const tableBody = document.querySelector('#scheduleTable tbody');
-            tableBody.innerHTML = ''; // 清空现有内容
+            tableBody.innerHTML = '';
 
             const objectStore = db.transaction("subjects").objectStore("subjects");
 
             objectStore.getAll().onsuccess = function(event) {
                 const subjects = event.target.result;
-                const scheduleForToday = subjects.filter(subject => {
+                let scheduleItems = [];
+
+                subjects.forEach(subject => {
                     const firstDate = new Date(subject.firstDate);
                     const frequency = parseInt(subject.frequency);
                     const totalVisits = parseInt(subject.totalVisits);
                     
-                    for (let i = 0; i < totalVisits; i++) {
-                        const visitDate = new Date(firstDate.getTime() + i * frequency * 24 * 60 * 60 * 1000);
-                        if (visitDate.toISOString().split('T')[0] === selectedDate) {
-                            subject.visitNumber = i + 1;
-                            return true;
+                    // 解析访视窗口
+                    let visitWindows = [];
+                    if (subject.visitWindow && subject.visitWindow.trim() !== '') {
+                        visitWindows = subject.visitWindow.split(',').map(Number);
+                    } else {
+                        visitWindows = Array(totalVisits).fill(0);
+                    }
+                    
+                    for (let visitNum = 0; visitNum < totalVisits; visitNum++) {
+                        // 计算基准日期
+                        const baseDate = new Date(firstDate.getTime() + visitNum * frequency * 24 * 60 * 60 * 1000);
+                        const window = visitWindows[visitNum] || 0;
+                        
+                        // 第一次访视或窗口为0时，只添加基准日期
+                        if (visitNum === 0 || window === 0) {
+                            if (baseDate >= startDate && baseDate <= endDate) {
+                                scheduleItems.push({
+                                    name: subject.name,
+                                    visitNumber: visitNum + 1,
+                                    visitDate: baseDate,
+                                    dateType: '基准日期'
+                                });
+                            }
+                            continue;
+                        }
+
+                        // 对于其他访视，添加窗口期内的所有日期
+                        for (let offset = -window; offset <= window; offset++) {
+                            const visitDate = new Date(baseDate.getTime() + offset * 24 * 60 * 60 * 1000);
+                            
+                            if (visitDate >= startDate && visitDate <= endDate) {
+                                let dateType = '基准日期';
+                                if (offset < 0) {
+                                    dateType = `提前${Math.abs(offset)}天`;
+                                } else if (offset > 0) {
+                                    dateType = `延后${offset}天`;
+                                }
+                                
+                                scheduleItems.push({
+                                    name: subject.name,
+                                    visitNumber: visitNum + 1,
+                                    visitDate: visitDate,
+                                    dateType: dateType
+                                });
+                            }
                         }
                     }
-                    return false;
                 });
 
-                scheduleForToday.forEach(subject => {
+                // 按日期排序
+                scheduleItems.sort((a, b) => {
+                    // 首先按日期排序
+                    const dateCompare = a.visitDate - b.visitDate;
+                    if (dateCompare !== 0) return dateCompare;
+                    
+                    // 日期相同时，按受试者名称排序
+                    if (a.name !== b.name) return a.name.localeCompare(b.name);
+                    
+                    // 最后按访视次数排序
+                    return a.visitNumber - b.visitNumber;
+                });
+
+                // 用于跟踪上一个访视组
+                let lastVisitGroup = null;
+                let isEvenGroup = true;
+
+                // 显示排序后的访视安排
+                scheduleItems.forEach(item => {
                     const row = tableBody.insertRow();
-                    row.insertCell(0).textContent = subject.name;
-                    row.insertCell(1).textContent = `第 ${subject.visitNumber} 次访视`;
+                    
+                    // 确定当前访视组（受试者名称+访视次数的组合）
+                    const currentVisitGroup = `${item.name}-${item.visitNumber}`;
+                    
+                    // 如果是新的访视组，切换奇偶标记
+                    if (currentVisitGroup !== lastVisitGroup) {
+                        isEvenGroup = !isEvenGroup;
+                        lastVisitGroup = currentVisitGroup;
+                    }
+                    
+                    // 添加对应的背景色类
+                    row.className = isEvenGroup ? 'visit-group-even' : 'visit-group-odd';
+                    
+                    // 填充单元格内容
+                    row.insertCell(0).textContent = item.name;
+                    row.insertCell(1).textContent = `第 ${item.visitNumber} 次访视`;
+                    const dateCell = row.insertCell(2);
+                    dateCell.textContent = `${formatDate(item.visitDate)} (${item.dateType})`;
+                    if (item.dateType !== '基准日期') {
+                        dateCell.style.color = 'blue';
+                    }
                 });
 
-                if (scheduleForToday.length === 0) {
+                if (scheduleItems.length === 0) {
                     const row = tableBody.insertRow();
                     const cell = row.insertCell(0);
-                    cell.colSpan = 2;
-                    cell.textContent = "今日无访视安排";
+                    cell.colSpan = 3;
+                    cell.textContent = "所选日期范围内无访视安排";
                     cell.classList.add("text-center");
                 }
             };
         }
 
+        function formatDate(date) {
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+        }
+
+        // 修改刷新按钮事件监听
         document.getElementById('refreshButton').addEventListener('click', function() {
-            const selectedDate = document.getElementById('selectedDate').value;
-            loadSchedule(selectedDate);
+            const dates = datePicker.selectedDates;
+            if (dates.length === 2) {
+                loadSchedule(dates[0], dates[1]);
+            } else {
+                alert('请选择完整的日期范围');
+            }
+        });
+
+        // 页面加载时初始化今天的数据
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            loadSchedule(today, today);
         });
     </script>
 </body>
