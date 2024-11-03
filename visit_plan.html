@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>访视计划</title>
+    <!-- 引入 Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入 Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- 引入 Flatpickr 中文主题 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <!-- 引入 Lunar.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 30px;
+        }
+        /* Flatpickr 自定义样式 */
+        .flatpickr-input {
+            font-size: 16px;
+            padding: 8px 12px;
+        }
+        .flatpickr-calendar {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4 text-center">访视计划</h1>
+        
+        <!-- 搜索卡片 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-md-8 mb-3 mb-md-0">
+                        <label for="subjectSelect" class="form-label">选择受试者:</label>
+                        <select class="form-select" id="subjectSelect">
+                            <option value="">请选择受试者</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button id="searchButton" class="btn btn-primary w-100">查询</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 受试者信息卡片 -->
+        <div class="card mb-4" id="subjectInfo" style="display: none;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">受试者基本信息</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>姓名：</strong><span id="subjectName"></span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>首次访视日期：</strong><span id="firstVisitDate"></span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>访视频率：</strong><span id="visitFrequency"></span></p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>总访视次数：</strong><span id="totalVisits"></span></p>
+                    </div>
+                </div>
+
+                <!-- 新增计划调整部分 -->
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="mb-3">计划调整</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="adjustDate" class="form-label">调整首次访视日期：</label>
+                            <input type="text" class="form-control" id="adjustDate" placeholder="选择日期">
+                        </div>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button class="btn btn-primary mb-3" id="adjustButton">更新访视计划</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 访视计划表格 -->
+        <div class="card" id="visitPlanTable" style="display: none;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">访视计划详情</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>访视次数</th>
+                            <th>计划访视日期</th>
+                            <th>节假日信息</th>
+                        </tr>
+                    </thead>
+                    <tbody id="visitTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 导航按钮 -->
+        <div class="text-center mt-4">
+            <a href="schedule.html" class="btn btn-primary">返回今日访视安排</a>
+            <a href="landing.html" class="btn btn-info">返回首页</a>
+        </div>
+    </div>
+
+    <!-- 引入 Bootstrap JS 和 Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+
+    <!-- 引入 Flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+
+    <script>
+        let db;
+        const dbName = "SubjectsDB";
+
+        const request = indexedDB.open(dbName);
+
+        request.onerror = function(event) {
+            console.error("数据库错误: " + event.target.error);
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            console.log("数据库打开成功");
+            loadSubjects(); // 页面加载时获取所有受试者
+        };
+
+        // 新增：加载所有受试者到下拉列表
+        function loadSubjects() {
+            const transaction = db.transaction(["subjects"], "readonly");
+            const objectStore = transaction.objectStore("subjects");
+            const request = objectStore.getAll();
+
+            request.onsuccess = function(event) {
+                const subjects = event.target.result;
+                const select = document.getElementById('subjectSelect');
+                
+                // 按姓名排序
+                subjects.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+                
+                // 添加选项
+                subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject.name;
+                    option.textContent = subject.name;
+                    select.appendChild(option);
+                });
+            };
+        }
+
+        function searchSubject() {
+            const selectedName = document.getElementById('subjectSelect').value;
+            if (!selectedName) {
+                alert("请选择受试者");
+                return;
+            }
+
+            const transaction = db.transaction(["subjects"], "readonly");
+            const objectStore = transaction.objectStore("subjects");
+            const nameIndex = objectStore.index("name");
+
+            const request = nameIndex.getAll(selectedName);
+
+            request.onsuccess = function(event) {
+                const results = event.target.result;
+                if (results.length > 0) {
+                    const subject = results[0];
+                    displaySubjectInfo(subject);
+                    generateVisitPlan(subject);
+                } else {
+                    alert("未找到该受试者");
+                    document.getElementById('subjectInfo').style.display = 'none';
+                    document.getElementById('visitPlanTable').style.display = 'none';
+                }
+            };
+        }
+
+        let currentSubject = null; // 用于存储当前选中的受试者数据
+
+        function displaySubjectInfo(subject) {
+            currentSubject = subject; // 保存当前受试者数据
+            document.getElementById('subjectInfo').style.display = 'block';
+            document.getElementById('subjectName').textContent = subject.name;
+            document.getElementById('firstVisitDate').textContent = formatDate(subject.firstDate);
+            document.getElementById('visitFrequency').textContent = `${subject.frequency}天`;
+            document.getElementById('totalVisits').textContent = subject.totalVisits;
+
+            // 更新 Flatpickr 日期
+            flatpickr('#adjustDate', {
+                defaultDate: new Date(subject.firstDate),
+                dateFormat: "Y-m-d",
+                locale: "zh",
+                enableTime: false,
+                altInput: true,
+                altFormat: "Y年m月d日",
+                theme: "material_blue",
+                allowInput: true,
+                clickOpens: true,
+                disableMobile: false,
+                onChange: function(selectedDates, dateStr) {
+                    console.log('选择的日期:', dateStr);
+                }
+            });
+        }
+
+        // 添加日期格式化函数（用于input type="date"）
+        function formatDateForInput(date) {
+            const d = new Date(date);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        // 添加计划调整按钮的事件处理
+        document.getElementById('adjustButton').addEventListener('click', function() {
+            if (!currentSubject) {
+                alert('请先选择受试者');
+                return;
+            }
+
+            const newDate = document.getElementById('adjustDate').value;
+            if (!newDate) {
+                alert('请选择新的访视日期');
+                return;
+            }
+
+            // 创建新的访视计划
+            const adjustedSubject = {
+                ...currentSubject,
+                firstDate: new Date(newDate)
+            };
+
+            // 更新显示
+            generateVisitPlan(adjustedSubject);
+        });
+
+        function generateVisitPlan(subject) {
+            document.getElementById('visitPlanTable').style.display = 'block';
+            const tableBody = document.getElementById('visitTableBody');
+            tableBody.innerHTML = '';
+
+            const firstDate = new Date(subject.firstDate);
+            const frequency = parseInt(subject.frequency);
+            const totalVisits = parseInt(subject.totalVisits);
+
+            // 添加调试信息
+            console.log('Generating visit plan:', {
+                firstDate,
+                frequency,
+                totalVisits
+            });
+
+            for (let i = 0; i < totalVisits; i++) {
+                const visitDate = new Date(firstDate.getTime() + i * frequency * 24 * 60 * 60 * 1000);
+                const row = tableBody.insertRow();
+                
+                // 访视次数
+                row.insertCell(0).textContent = `第 ${i + 1} 次访视`;
+                
+                // 计划访视日期
+                row.insertCell(1).textContent = formatDate(visitDate);
+                
+                // 节假日信息
+                const holidayInfo = getHolidayInfo(visitDate);
+                const holidayCell = row.insertCell(2);
+                holidayCell.textContent = holidayInfo;
+                if (holidayInfo !== '非节假日') {
+                    holidayCell.style.color = 'red';
+                }
+            }
+        }
+
+        function getHolidayInfo(date) {
+            try {
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                
+                // 使用 HolidayUtil 获取节假日信息
+                const holiday = HolidayUtil.getHoliday(year, month, day);
+                
+                if (holiday) {
+                    // 如果是调休工作日，返回调休信息
+                    if (holiday.isWork()) {
+                        return `${holiday.getName()}调休`;
+                    }
+                    // 如果是节假日，返回节日名称
+                    return holiday.getName();
+                }
+                
+                // 如果不是法定节假日，检查是否为普通周末
+                const weekDay = date.getDay();
+                if (weekDay === 0 || weekDay === 6) {
+                    return weekDay === 0 ? '周日' : '周六';
+                }
+                
+                return '非节假日';
+            } catch (error) {
+                console.error('Error in getHolidayInfo:', error);
+                return '非节假日';
+            }
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+        }
+
+        // 添加搜索按钮事件监听
+        document.getElementById('searchButton').addEventListener('click', searchSubject);
+        document.getElementById('subjectSelect').addEventListener('change', searchSubject);
+    </script>
+</body>

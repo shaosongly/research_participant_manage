@@ -100,35 +100,30 @@
                 totalVisits: formData.get('totalVisits')
             };
 
-            // 打开数据库连接
-            const request = indexedDB.open("SubjectsDB", 1);
+            const dbRequest = indexedDB.open("SubjectsDB");
 
-            request.onerror = function(event) {
+            dbRequest.onerror = function(event) {
                 console.error("数据库错误: " + event.target.error);
             };
 
-            request.onsuccess = function(event) {
+            dbRequest.onsuccess = function(event) {
                 const db = event.target.result;
-                const transaction = db.transaction(["subjects"], "readwrite");
-                const objectStore = transaction.objectStore("subjects");
-                const addRequest = objectStore.add(subjectData);
+                try {
+                    const transaction = db.transaction(["subjects"], "readwrite");
+                    const objectStore = transaction.objectStore("subjects");
+                    const addRequest = objectStore.add(subjectData);
 
-                addRequest.onsuccess = function() {
-                    console.log("数据保存成功");
-                    // 数据保存成功后跳转到view页面
-                    window.location.href = 'view.html';
-                };
+                    addRequest.onsuccess = function() {
+                        console.log("数据保存成功");
+                        window.location.href = 'view.html';
+                    };
 
-                addRequest.onerror = function() {
-                    console.error("保存数据时出错");
-                };
-            };
-
-            request.onupgradeneeded = function(event) {
-                const db = event.target.result;
-                const objectStore = db.createObjectStore("subjects", { keyPath: "id", autoIncrement: true });
-                objectStore.createIndex("name", "name", { unique: false });
-                objectStore.createIndex("firstDate", "firstDate", { unique: false });
+                    addRequest.onerror = function(event) {
+                        console.error("保存数据时出错:", event.target.error);
+                    };
+                } catch (error) {
+                    console.error("执行事务时出错:", error);
+                }
             };
         });
 
@@ -209,7 +204,7 @@
                 console.log("解析后的数据:", subjectsData);
 
                 // 批量导入数据
-                const request = indexedDB.open("SubjectsDB", 1);
+                const request = indexedDB.open("SubjectsDB");
 
                 request.onsuccess = function(event) {
                     const db = event.target.result;
