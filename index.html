@@ -33,26 +33,61 @@
                         <input type="text" class="form-control" id="firstDate" name="firstDate" required>
                     </div>
                     <div class="mb-3">
-                        <label for="frequency" class="form-label">访视间隔(天):</label>
-                        <input type="text" class="form-control" id="frequency" name="frequency" 
-                               placeholder="用逗号分隔每次访视的间隔天数，如: 1,2,3" required>
-                        <div class="form-text">
-                            请输入每次访视的间隔天数，用逗号分隔。例如：
-                            <ul class="mb-0">
-                                <li>输入3表示固定每3天访视一次，比如1号，4号，7号</li>
-                                <li>输入1,2,3表示三次访视日期分别为前一次访视日期+1天，+2天，+3天</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="mb-3">
                         <label for="totalVisits" class="form-label">总访视次数(包含首次访视):</label>
                         <input type="number" class="form-control" id="totalVisits" name="totalVisits" required>
                     </div>
                     <div class="mb-3">
-                        <label for="visitWindow" class="form-label">访视窗口(天):</label>
-                        <input type="text" class="form-control" id="visitWindow" name="visitWindow" 
-                               placeholder="用逗号分隔每次访视的窗口天数，如: 1,2,3">
-                        <div class="form-text">不填写表示无访视窗口。每个数字代表对应次序访视的窗口天数（不包含首次访视）</div>
+                        <label class="form-label">访视设置:</label>
+                        <div class="card">
+                            <div class="card-body">
+                                <!-- 访视类型选择 -->
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="frequencyType" id="fixedFrequency" value="fixed" checked>
+                                        <label class="form-check-label" for="fixedFrequency">
+                                            固定间隔
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="frequencyType" id="variableFrequency" value="variable">
+                                        <label class="form-check-label" for="variableFrequency">
+                                            变化间隔
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- 固定间隔输入区域 -->
+                                <div id="fixedFrequencyInput">
+                                    <div class="mb-3">
+                                        <label for="fixedDays" class="form-label">固定访视间隔(天):</label>
+                                        <input type="number" class="form-control" id="fixedDays" min="1" value="1">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="fixedWindow" class="form-label">固定访视窗口(±天数):</label>
+                                        <input type="number" class="form-control" id="fixedWindow" min="0" value="0">
+                                        <div class="form-text">0表示无访视窗口</div>
+                                    </div>
+                                </div>
+
+                                <!-- 变化间隔表格 -->
+                                <div id="variableFrequencyInput" style="display: none;">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" id="visitTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>访视次数</th>
+                                                    <th>间隔天数</th>
+                                                    <th>访视窗口(±天数)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="visitTableBody">
+                                                <!-- 动态生成的行 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">提交</button>
                 </form>
@@ -102,31 +137,60 @@
 
         // 添加表单提交事件监听器
         document.getElementById('subjectForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // 阻止表单默认提交行为
-
-            // 获取表单数据
-            const formData = new FormData(this);
-            const frequency = formData.get('frequency').trim();
-            const visitWindow = formData.get('visitWindow').trim();
+            e.preventDefault();
             
-            // 验证访视频率格式
-            if (!/^\d+(?:,\d+)*$/.test(frequency)) {
-                alert('访视频率格式不正确，请使用逗号分隔的数字，如: 1,2,3');
-                return;
+            const isFixed = document.querySelector('input[name="frequencyType"]:checked').value === 'fixed';
+            let frequency, visitWindow;
+
+            if (isFixed) {
+                const fixedDays = document.getElementById('fixedDays').value;
+                const fixedWindow = document.getElementById('fixedWindow').value;
+                
+                // 验证固定间隔
+                if (!fixedDays || fixedDays < 1) {
+                    alert('请输入有效的固定访视间隔天数');
+                    return;
+                }
+                
+                // 验证固定窗口
+                if (fixedWindow < 0) {
+                    alert('访视窗口天数不能为负数');
+                    return;
+                }
+                
+                frequency = fixedDays;
+                visitWindow = fixedWindow;
+            } else {
+                const frequencies = Array.from(document.querySelectorAll('.visit-frequency'))
+                    .map(input => input.value);
+                
+                // 验证变化间隔
+                if (frequencies.some(f => !f || f < 1)) {
+                    alert('请为每次访视输入有效的间隔天数');
+                    return;
+                }
+                
+                const windows = Array.from(document.querySelectorAll('.visit-window'))
+                    .map(input => input.value);
+                    
+                // 验证变化窗口
+                if (windows.some(w => w < 0)) {
+                    alert('访视窗口天数不能为负数');
+                    return;
+                }
+                
+                frequency = frequencies.join(',');
+                visitWindow = windows.join(',');
             }
 
-            // 验证访视窗口格式
-            if (visitWindow !== '' && !/^\d+(?:,\d+)*$/.test(visitWindow)) {
-                alert('访视窗口格式不正确，请使用逗号分隔的数字，如: 1,2,3,4');
-                return;
-            }
-
+            // 构建提交数据
+            const formData = new FormData(this);
             const subjectData = {
                 name: formData.get('name'),
                 firstDate: formData.get('firstDate'),
                 frequency: frequency,
                 totalVisits: formData.get('totalVisits'),
-                visitWindow: visitWindow // 如果为空字符串则表示无窗口限制
+                visitWindow: visitWindow
             };
 
             const dbRequest = indexedDB.open("SubjectsDB");
@@ -316,6 +380,45 @@
             }
             
             return null;
+        }
+
+        // 监听访视次数变化
+        document.getElementById('totalVisits').addEventListener('change', function() {
+            updateVisitTable();
+        });
+
+        // 监听间隔类型切换
+        document.querySelectorAll('input[name="frequencyType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const isFixed = this.value === 'fixed';
+                document.getElementById('fixedFrequencyInput').style.display = isFixed ? 'block' : 'none';
+                document.getElementById('variableFrequencyInput').style.display = isFixed ? 'none' : 'block';
+                if (!isFixed) {
+                    updateVisitTable();
+                }
+            });
+        });
+
+        function updateVisitTable() {
+            const totalVisits = parseInt(document.getElementById('totalVisits').value) || 0;
+            const tbody = document.getElementById('visitTableBody');
+            tbody.innerHTML = '';
+
+            // 从第二次访视开始（跳过首次访视）
+            for (let i = 2; i <= totalVisits; i++) {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>第 ${i} 次访视</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm visit-frequency" 
+                               min="1" value="1" data-visit="${i}">
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm visit-window" 
+                               min="0" value="0" data-visit="${i}">
+                    </td>
+                `;
+            }
         }
     </script>
 </body>

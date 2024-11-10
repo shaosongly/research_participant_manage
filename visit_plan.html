@@ -28,33 +28,54 @@
         .flatpickr-calendar {
             font-size: 14px;
         }
-        /* 修改访视次数交替背景色为更明显的对比色 */
+        /* 修改访视次数交替背景色为更高对比度的颜色 */
         .visit-group-even {
-            background-color: #e3f2fd !important; /* 浅蓝色 */
+            background-color: #dcedc8 !important; /* 更深的浅绿色 */
+            border-top: 2px solid #81c784 !important; /* 添加上边框 */
         }
         
         .visit-group-odd {
-            background-color: #fff3e0 !important; /* 浅橙色 */
+            background-color: #ffecb3 !important; /* 更深的浅橙色 */
+            border-top: 2px solid #ffd54f !important; /* 添加上边框 */
         }
         
-        /* 修改鼠标悬停效果 */
+        /* 修改鼠标悬停效果，使用更深的颜色 */
         .visit-group-even:hover {
-            background-color: #bbdefb !important; /* 深一点的蓝色 */
+            background-color: #aed581 !important; /* 明显的绿色 */
         }
         
         .visit-group-odd:hover {
-            background-color: #ffe0b2 !important; /* 深一点的橙色 */
+            background-color: #ffd54f !important; /* 明显的橙色 */
         }
         
+        /* 修改访视组样式 */
+        .visit-group-start {
+            border-top: 2px solid #666 !important;
+            margin-top: 1rem !important;  /* 添加上方间距 */
+        }
+        
+        /* 访视组的最后一行添加底部边框 */
+        .visit-group-end {
+            border-bottom: 1px solid #666 !important;
+            margin-bottom: 1rem !important;  /* 添加下方间距 */
+        }
+
         /* 调整表格样式 */
         .table {
             border-collapse: separate;
             border-spacing: 0;
         }
         
-        /* 移除 Bootstrap 的 table-striped 类的默认样式 */
-        .table-visits > tbody > tr:nth-of-type(odd) {
-            background-color: inherit;
+        /* 表格单元格样式 */
+        .table-visits td {
+            padding: 0.75rem !important;  /* 增加单元格内边距 */
+        }
+
+        /* 表头样式加强 */
+        .table-visits th {
+            background-color: #e9ecef !important;
+            border-bottom: 2px solid #666 !important;
+            padding: 1rem !important;
         }
     </style>
 </head>
@@ -175,7 +196,7 @@
             loadSubjects(); // 页面加载时获取所有受试者
         };
 
-        // 新增：加载所有受试者到下拉列表
+        // 新增：加载所有受试者���下拉列表
         function loadSubjects() {
             const transaction = db.transaction(["subjects"], "readonly");
             const objectStore = transaction.objectStore("subjects");
@@ -235,13 +256,13 @@
             document.getElementById('visitFrequency').textContent = `${subject.frequency}`;
             document.getElementById('totalVisits').textContent = subject.totalVisits;
             
-            // 添加访视窗口信息显示
+            // 添加访视口信息显示
             const visitWindowText = subject.visitWindow && subject.visitWindow.trim() !== '' 
                 ? subject.visitWindow 
                 : '默认窗口0';
             document.getElementById('visitWindow').textContent = visitWindowText;
 
-            // 更新 Flatpickr 日期
+            // 更 Flatpickr 日期
             flatpickr('#adjustDate', {
                 defaultDate: new Date(subject.firstDate),
                 dateFormat: "Y-m-d",
@@ -314,10 +335,28 @@
             // 解析访视窗口
             let visitWindows = [];
             if (subject.visitWindow && subject.visitWindow.trim() !== '') {
-                visitWindows = subject.visitWindow.split(',').map(Number);
-                if (visitWindows.length !== totalVisits - 1) {
-                    alert('访视窗口数量应该等于总访视次数-1');
-                    return;
+                const windowValue = subject.visitWindow.trim();
+                
+                if (windowValue.includes(',')) {
+                    // 如果是逗号分隔的格式
+                    visitWindows = windowValue.split(',').map(Number);
+                    if (visitWindows.length !== totalVisits - 1) {
+                        alert('访视窗口数量应该等于总访视次数-1');
+                        return;
+                    }
+                    // 验证所有窗口值是否为非负数
+                    if (visitWindows.some(w => w < 0)) {
+                        alert('访视窗口不能为负数');
+                        return;
+                    }
+                } else {
+                    // 如果是单个数字，表示固定窗口大小
+                    const fixedWindow = parseInt(windowValue);
+                    if (isNaN(fixedWindow) || fixedWindow < 0) {
+                        alert('请输入有效的访视窗口天数');
+                        return;
+                    }
+                    visitWindows = Array(totalVisits - 1).fill(fixedWindow);
                 }
             } else {
                 // 如果未设置访视窗口，则所有访视的窗口期都是0
@@ -336,34 +375,46 @@
 
             // 遍历每次访视生成计划
             visitDates.forEach((baseDate, visitNum) => {
-                // 确定当前访视次数的背景色类名
                 const groupClass = visitNum % 2 === 0 ? 'visit-group-even' : 'visit-group-odd';
+                let rows = [];  // 存储当前访视组的所有行
                 
-                // 首次访视或无窗口期时只显示基准日期
                 if (visitNum === 0 || visitWindows[visitNum - 1] === 0) {
-                    addVisitRow(tableBody, visitNum + 1, baseDate, '基准日期', groupClass);
-                    return;
-                }
-
-                // 非首次访视且有窗口期时，显示窗口期内的所有日期
-                const window = visitWindows[visitNum - 1];
-                for (let offset = -window; offset <= window; offset++) {
-                    const visitDate = new Date(baseDate.getTime() + offset * 24 * 60 * 60 * 1000);
-                    let dateType = '基准日期';
-                    if (offset < 0) {
-                        dateType = `提前${Math.abs(offset)}天`;
-                    } else if (offset > 0) {
-                        dateType = `延后${offset}天`;
+                    // 单行访视
+                    addVisitRow(tableBody, visitNum + 1, baseDate, '基准日期', groupClass, true, true);
+                } else {
+                    // 多行访视
+                    const window = visitWindows[visitNum - 1];
+                    for (let offset = -window; offset <= window; offset++) {
+                        const visitDate = new Date(baseDate.getTime() + offset * 24 * 60 * 60 * 1000);
+                        let dateType = '基准日期';
+                        if (offset < 0) {
+                            dateType = `提前${Math.abs(offset)}天`;
+                        } else if (offset > 0) {
+                            dateType = `延后${offset}天`;
+                        }
+                        
+                        // 是否是访视组的第一行或最后一行
+                        const isFirst = offset === -window;
+                        const isLast = offset === window;
+                        
+                        addVisitRow(tableBody, visitNum + 1, visitDate, dateType, groupClass, isFirst, isLast);
                     }
-                    addVisitRow(tableBody, visitNum + 1, visitDate, dateType, groupClass);
                 }
             });
         }
 
         // 添加访视行的辅助函数
-        function addVisitRow(tableBody, visitNumber, date, dateType, groupClass) {
+        function addVisitRow(tableBody, visitNumber, date, dateType, groupClass, isGroupStart, isGroupEnd) {
             const row = tableBody.insertRow();
-            row.className = groupClass; // 添加背景色类
+            row.className = groupClass;
+            
+            // 添加访视组开始和结束的标记
+            if (isGroupStart) {
+                row.classList.add('visit-group-start');
+            }
+            if (isGroupEnd) {
+                row.classList.add('visit-group-end');
+            }
             
             // 访视次数
             row.insertCell(0).textContent = `第 ${visitNumber} 次访视`;

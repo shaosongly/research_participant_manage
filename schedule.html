@@ -155,12 +155,32 @@
                     // 解析访视窗口
                     let visitWindows = [];
                     if (subject.visitWindow && subject.visitWindow.trim() !== '') {
-                        visitWindows = subject.visitWindow.split(',').map(Number);
-                        if (visitWindows.length !== totalVisits - 1) {
-                            console.error('访视窗口数量不正确');
-                            return;
+                        const windowValue = subject.visitWindow.trim();
+                        
+                        if (windowValue.includes(',')) {
+                            // 如果是逗号分隔的格式
+                            visitWindows = windowValue.split(',').map(Number);
+                            if (visitWindows.length !== totalVisits - 1) {
+                                console.error('访视窗口数量不正确');
+                                return;
+                            }
+                            // 验证所有窗口值是否为非负数
+                            if (visitWindows.some(w => isNaN(w) || w < 0)) {
+                                console.error('存在无效的访视窗口值');
+                                return;
+                            }
+                        } else {
+                            // 如果是单个数字，表示固定窗口大小
+                            const fixedWindow = parseInt(windowValue);
+                            if (isNaN(fixedWindow) || fixedWindow < 0) {
+                                console.error('无效的固定访视窗口值');
+                                return;
+                            }
+                            // 创建相同窗口大小的数组
+                            visitWindows = Array(totalVisits - 1).fill(fixedWindow);
                         }
                     } else {
+                        // 如果未设置访视窗口，则所有访视的窗口期都是0
                         visitWindows = Array(totalVisits - 1).fill(0);
                     }
 
