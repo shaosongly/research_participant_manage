@@ -30,12 +30,12 @@
         }
         /* 修改访视次数交替背景色为更高对比度的颜色 */
         .visit-group-even {
-            background-color: #dcedc8 !important; /* 更深的浅绿色 */
+            background-color: #dcedc8 !important; /* 绿色背景 */
             border-top: 2px solid #81c784 !important; /* 添加上边框 */
         }
         
         .visit-group-odd {
-            background-color: #ffecb3 !important; /* 更深的浅橙色 */
+            background-color: #ffecb3 !important; /* 橙色背景 */
             border-top: 2px solid #ffd54f !important; /* 添加上边框 */
         }
         
@@ -76,6 +76,37 @@
             background-color: #e9ecef !important;
             border-bottom: 2px solid #666 !important;
             padding: 1rem !important;
+        }
+
+        /* 基准日期行样式 */
+        .visit-base-date {
+            font-weight: bold !important;
+            border-top: 1px solid rgba(0, 0, 0, 0.2) !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* 窗口期日期行样式 - 使用半透明的相同色系 */
+        .visit-group-even .visit-window-date {
+            background-color: rgba(220, 237, 200, 0.4) !important; /* 浅绿色，更透明 */
+            color: #666 !important;
+            font-size: 0.95em;
+        }
+        
+        .visit-group-odd .visit-window-date {
+            background-color: rgba(255, 236, 179, 0.4) !important; /* 浅橙色，更透明 */
+            color: #666 !important;
+            font-size: 0.95em;
+        }
+
+        /* 移除之前的通用窗口期背景色 */
+        .visit-window-date {
+            color: #666 !important;
+            font-size: 0.95em;
+        }
+
+        /* 基准日期行的特殊悬停效果 */
+        .visit-base-date:hover {
+            background-color: rgba(0, 0, 0, 0.05) !important;
         }
     </style>
 </head>
@@ -196,7 +227,7 @@
             loadSubjects(); // 页面加载时获取所有受试者
         };
 
-        // 新增：加载所有受试者���下拉列表
+        // 新增：加载所有受试者下拉列表
         function loadSubjects() {
             const transaction = db.transaction(["subjects"], "readonly");
             const objectStore = transaction.objectStore("subjects");
@@ -415,15 +446,23 @@
             if (isGroupEnd) {
                 row.classList.add('visit-group-end');
             }
+
+            // 添加基准日期或窗口期的样式
+            if (dateType === '基准日期') {
+                row.classList.add('visit-base-date');
+            } else {
+                row.classList.add('visit-window-date');
+            }
             
             // 访视次数
-            row.insertCell(0).textContent = `第 ${visitNumber} 次访视`;
+            const visitCell = row.insertCell(0);
+            visitCell.textContent = `第 ${visitNumber} 次访视`;
             
             // 计划访视日期
             const dateCell = row.insertCell(1);
             dateCell.textContent = `${formatDate(date)} (${dateType})`;
             if (dateType !== '基准日期') {
-                dateCell.style.color = 'blue';
+                dateCell.style.color = '#666'; // 窗口期日期使用灰色
             }
             
             // 节假日信息
@@ -431,7 +470,7 @@
             const holidayCell = row.insertCell(2);
             holidayCell.textContent = holidayInfo;
             if (holidayInfo !== '非节假日') {
-                holidayCell.style.color = 'red';
+                holidayCell.style.color = dateType === '基准日期' ? 'red' : '#d32f2f'; // 基准日期的节假日更醒目
             }
         }
 
