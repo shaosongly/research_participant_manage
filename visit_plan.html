@@ -93,7 +93,7 @@
                         <p><strong>首次访视日期：</strong><span id="firstVisitDate"></span></p>
                     </div>
                     <div class="col-md-4">
-                        <p><strong>访视频率：</strong><span id="visitFrequency"></span></p>
+                        <p><strong>访视间隔(天)：</strong><span id="visitFrequency"></span></p>
                     </div>
                 </div>
                 <div class="row">
@@ -101,7 +101,7 @@
                         <p><strong>总访视次数：</strong><span id="totalVisits"></span></p>
                     </div>
                     <div class="col-md-8">
-                        <p><strong>访视窗口：</strong><span id="visitWindow"></span></p>
+                        <p><strong>访视窗口(天)：</strong><span id="visitWindow"></span></p>
                     </div>
                 </div>
 
@@ -232,7 +232,7 @@
             document.getElementById('subjectInfo').style.display = 'block';
             document.getElementById('subjectName').textContent = subject.name;
             document.getElementById('firstVisitDate').textContent = formatDate(subject.firstDate);
-            document.getElementById('visitFrequency').textContent = `${subject.frequency}天`;
+            document.getElementById('visitFrequency').textContent = `${subject.frequency}`;
             document.getElementById('totalVisits').textContent = subject.totalVisits;
             
             // 添加访视窗口信息显示
@@ -294,34 +294,59 @@
             tableBody.innerHTML = '';
 
             const firstDate = new Date(subject.firstDate);
-            const frequency = parseInt(subject.frequency);
             const totalVisits = parseInt(subject.totalVisits);
+            
+            // 解析访视间隔
+            let frequencies = [];
+            if (subject.frequency.includes(',')) {
+                // 如果是逗号分隔的格式
+                frequencies = subject.frequency.split(',').map(Number);
+                if (frequencies.length !== totalVisits - 1) {
+                    alert('访视间隔数量应该等于总访视次数-1');
+                    return;
+                }
+            } else {
+                // 如果是单个数字，创建相同间隔的数组
+                const fixedFrequency = parseInt(subject.frequency);
+                frequencies = Array(totalVisits - 1).fill(fixedFrequency);
+            }
             
             // 解析访视窗口
             let visitWindows = [];
             if (subject.visitWindow && subject.visitWindow.trim() !== '') {
                 visitWindows = subject.visitWindow.split(',').map(Number);
+                if (visitWindows.length !== totalVisits - 1) {
+                    alert('访视窗口数量应该等于总访视次数-1');
+                    return;
+                }
             } else {
                 // 如果未设置访视窗口，则所有访视的窗口期都是0
-                visitWindows = Array(totalVisits).fill(0);
+                visitWindows = Array(totalVisits - 1).fill(0);
             }
 
-            // 遍历每次访视
-            for (let visitNum = 0; visitNum < totalVisits; visitNum++) {
-                // 计算基准日期
-                const baseDate = new Date(firstDate.getTime() + visitNum * frequency * 24 * 60 * 60 * 1000);
-                const window = visitWindows[visitNum] || 0;
-                
+            // 计算每次访视的基准日期
+            let visitDates = [firstDate];  // 存储每次访视的基准日期
+            let currentDate = new Date(firstDate);
+            
+            // 计算后续访视的基准日期
+            for (let i = 0; i < frequencies.length; i++) {
+                currentDate = new Date(currentDate.getTime() + frequencies[i] * 24 * 60 * 60 * 1000);
+                visitDates.push(currentDate);
+            }
+
+            // 遍历每次访视生成计划
+            visitDates.forEach((baseDate, visitNum) => {
                 // 确定当前访视次数的背景色类名
                 const groupClass = visitNum % 2 === 0 ? 'visit-group-even' : 'visit-group-odd';
-
-                // 第一次访视或窗口为0时，只显示基准日期
-                if (visitNum === 0 || window === 0) {
+                
+                // 首次访视或无窗口期时只显示基准日期
+                if (visitNum === 0 || visitWindows[visitNum - 1] === 0) {
                     addVisitRow(tableBody, visitNum + 1, baseDate, '基准日期', groupClass);
-                    continue;
+                    return;
                 }
 
-                // 非第一次访视且有窗口期时，显示窗口期内的所有日期
+                // 非首次访视且有窗口期时，显示窗口期内的所有日期
+                const window = visitWindows[visitNum - 1];
                 for (let offset = -window; offset <= window; offset++) {
                     const visitDate = new Date(baseDate.getTime() + offset * 24 * 60 * 60 * 1000);
                     let dateType = '基准日期';
@@ -332,7 +357,7 @@
                     }
                     addVisitRow(tableBody, visitNum + 1, visitDate, dateType, groupClass);
                 }
-            }
+            });
         }
 
         // 添加访视行的辅助函数
@@ -377,7 +402,7 @@
                     return holiday.getName();
                 }
                 
-                // 如果不是法定节假日��检查是否为普通周末
+                // 如果不是法定节假日检查是否为普通周末
                 const weekDay = date.getDay();
                 if (weekDay === 0 || weekDay === 6) {
                     return weekDay === 0 ? '周日' : '周六';

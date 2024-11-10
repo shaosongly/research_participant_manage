@@ -26,7 +26,7 @@
                         <tr>
                             <th>受试者名称</th>
                             <th>首次受试日期</th>
-                            <th>访视频率</th>
+                            <th>访视间隔(天)</th>
                             <th>总访视次数</th>
                             <th>访视窗口(天)</th>
                             <th>操作</th>
@@ -110,10 +110,22 @@
             row.classList.add('table-warning');
             const cells = row.cells;
             
+            const placeholders = [
+                "", // 受试者名称
+                "", // 首次受试日期
+                "单个数字或逗号分隔的多个数字，如: 3 或 1,2,3", // 访视间隔
+                "", // 总访视次数
+                "用逗号分隔，如: 1,2,3，不填写默认无访视窗口" // 访视窗口
+            ];
+            
             for (let i = 0; i < 5; i++) {
                 const content = cells[i].textContent;
-                const placeholder = i === 4 ? "用逗号分隔，如: 1,2,3,4" : "";
-                cells[i].innerHTML = `<input type="text" class="form-control form-control-sm" value="${content === '默认窗口0' ? '' : content}" placeholder="${placeholder}">`;
+                cells[i].innerHTML = `
+                    <input type="text" class="form-control form-control-sm" 
+                           value="${content === '默认窗口0' ? '' : content}" 
+                           placeholder="${placeholders[i]}">
+                    ${i === 2 ? '<div class="form-text small">例如：3表示每3天访视一次，1,2,3表示每次访视间隔分别为1天、2天、3天</div>' : ''}
+                `;
             }
             
             const actionCell = cells[5];
@@ -128,17 +140,30 @@
         function saveRow(id) {
             const row = document.querySelector(`tr[data-id="${id}"]`);
             const cells = row.cells;
+            const frequency = cells[2].querySelector('input').value.trim();
+            
+            if (!/^\d+(?:,\d+)*$/.test(frequency)) {
+                alert('访视频率格式不正确，请输入单个数字或用逗号分隔的多个数字，如: 3 或 1,2,3');
+                return;
+            }
+
+            const visitWindow = cells[4].querySelector('input').value.trim();
+            if (visitWindow !== '' && !/^\d+(?:,\d+)*$/.test(visitWindow)) {
+                alert('访视窗口格式不正确，请使用逗号分隔的数字，如: 1,2,3');
+                return;
+            }
+
             const updatedData = {
                 id: id,
-                name: cells[0].querySelector('input').value,
-                firstDate: cells[1].querySelector('input').value,
-                frequency: cells[2].querySelector('input').value,
-                totalVisits: cells[3].querySelector('input').value,
-                visitWindow: cells[4].querySelector('input').value.trim()
+                name: cells[0].querySelector('input').value.trim(),
+                firstDate: cells[1].querySelector('input').value.trim(),
+                frequency: frequency,
+                totalVisits: cells[3].querySelector('input').value.trim(),
+                visitWindow: visitWindow
             };
 
-            if (updatedData.visitWindow !== '' && !/^\d+(?:,\d+)*$/.test(updatedData.visitWindow)) {
-                alert('访视窗口格式不正确，请使用逗号分隔的数字，如: 1,2,3,4');
+            if (!updatedData.name || !updatedData.firstDate || !updatedData.frequency || !updatedData.totalVisits) {
+                alert('请填写所有必填字段');
                 return;
             }
 

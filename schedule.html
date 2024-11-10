@@ -136,24 +136,48 @@
 
                 subjects.forEach(subject => {
                     const firstDate = new Date(subject.firstDate);
-                    const frequency = parseInt(subject.frequency);
                     const totalVisits = parseInt(subject.totalVisits);
+                    
+                    // 解析访视间隔
+                    let frequencies = [];
+                    if (subject.frequency.includes(',')) {
+                        frequencies = subject.frequency.split(',').map(Number);
+                        if (frequencies.length !== totalVisits - 1) {
+                            console.error('访视间隔数量不正确');
+                            return;
+                        }
+                    } else {
+                        // 如果是单个数字，创建相同间隔的数组
+                        const fixedFrequency = parseInt(subject.frequency);
+                        frequencies = Array(totalVisits - 1).fill(fixedFrequency);
+                    }
                     
                     // 解析访视窗口
                     let visitWindows = [];
                     if (subject.visitWindow && subject.visitWindow.trim() !== '') {
                         visitWindows = subject.visitWindow.split(',').map(Number);
+                        if (visitWindows.length !== totalVisits - 1) {
+                            console.error('访视窗口数量不正确');
+                            return;
+                        }
                     } else {
-                        visitWindows = Array(totalVisits).fill(0);
+                        visitWindows = Array(totalVisits - 1).fill(0);
                     }
+
+                    // 计算每次访视的基准日期
+                    let visitDates = [firstDate];  // 存储每次访视的基准日期
+                    let currentDate = new Date(firstDate);
                     
-                    for (let visitNum = 0; visitNum < totalVisits; visitNum++) {
-                        // 计算基准日期
-                        const baseDate = new Date(firstDate.getTime() + visitNum * frequency * 24 * 60 * 60 * 1000);
-                        const window = visitWindows[visitNum] || 0;
-                        
-                        // 第一次访视或窗口为0时，只添加基准日期
-                        if (visitNum === 0 || window === 0) {
+                    // 计算后续访视的基准日期
+                    for (let i = 0; i < frequencies.length; i++) {
+                        currentDate = new Date(currentDate.getTime() + frequencies[i] * 24 * 60 * 60 * 1000);
+                        visitDates.push(currentDate);
+                    }
+
+                    // 遍历每次访视生成计划
+                    visitDates.forEach((baseDate, visitNum) => {
+                        // 首次访视或无窗口期时只显示基准日期
+                        if (visitNum === 0 || (visitNum > 0 && visitWindows[visitNum - 1] === 0)) {
                             if (baseDate >= startDate && baseDate <= endDate) {
                                 scheduleItems.push({
                                     name: subject.name,
@@ -162,10 +186,11 @@
                                     dateType: '基准日期'
                                 });
                             }
-                            continue;
+                            return;
                         }
 
-                        // 对于其他访视，添加窗口期内的所有日期
+                        // 非首次访视且有窗口期时，显示窗口期内的所有日期
+                        const window = visitWindows[visitNum - 1];
                         for (let offset = -window; offset <= window; offset++) {
                             const visitDate = new Date(baseDate.getTime() + offset * 24 * 60 * 60 * 1000);
                             
@@ -185,7 +210,7 @@
                                 });
                             }
                         }
-                    }
+                    });
                 });
 
                 // 按日期排序

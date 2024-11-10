@@ -33,18 +33,26 @@
                         <input type="text" class="form-control" id="firstDate" name="firstDate" required>
                     </div>
                     <div class="mb-3">
-                        <label for="frequency" class="form-label">访视频率:</label>
-                        <input type="text" class="form-control" id="frequency" name="frequency" required>
+                        <label for="frequency" class="form-label">访视间隔(天):</label>
+                        <input type="text" class="form-control" id="frequency" name="frequency" 
+                               placeholder="用逗号分隔每次访视的间隔天数，如: 1,2,3" required>
+                        <div class="form-text">
+                            请输入每次访视的间隔天数，用逗号分隔。例如：
+                            <ul class="mb-0">
+                                <li>输入3表示固定每3天访视一次，比如1号，4号，7号</li>
+                                <li>输入1,2,3表示三次访视日期分别为前一次访视日期+1天，+2天，+3天</li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label for="totalVisits" class="form-label">总访视次数:</label>
+                        <label for="totalVisits" class="form-label">总访视次数(包含首次访视):</label>
                         <input type="number" class="form-control" id="totalVisits" name="totalVisits" required>
                     </div>
                     <div class="mb-3">
                         <label for="visitWindow" class="form-label">访视窗口(天):</label>
                         <input type="text" class="form-control" id="visitWindow" name="visitWindow" 
-                               placeholder="用逗号分隔每次访视的窗口天数，如: 1,2,3,4">
-                        <div class="form-text">不填写则表示无访视窗口限制。每个数字代表对应次序访视的窗口天数。</div>
+                               placeholder="用逗号分隔每次访视的窗口天数，如: 1,2,3">
+                        <div class="form-text">不填写表示无访视窗口。每个数字代表对应次序访视的窗口天数（不包含首次访视）</div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">提交</button>
                 </form>
@@ -80,7 +88,6 @@
     <!-- 引入 Flatpickr 中文语言包 -->
     <script src="https://npmcdn.com/flatpickr/dist/l10n/zh.js"></script>
     <!-- 引入自定义 JS -->
-    <script src="index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script>
         // 初始化 Flatpickr
@@ -99,8 +106,15 @@
 
             // 获取表单数据
             const formData = new FormData(this);
+            const frequency = formData.get('frequency').trim();
             const visitWindow = formData.get('visitWindow').trim();
             
+            // 验证访视频率格式
+            if (!/^\d+(?:,\d+)*$/.test(frequency)) {
+                alert('访视频率格式不正确，请使用逗号分隔的数字，如: 1,2,3');
+                return;
+            }
+
             // 验证访视窗口格式
             if (visitWindow !== '' && !/^\d+(?:,\d+)*$/.test(visitWindow)) {
                 alert('访视窗口格式不正确，请使用逗号分隔的数字，如: 1,2,3,4');
@@ -110,7 +124,7 @@
             const subjectData = {
                 name: formData.get('name'),
                 firstDate: formData.get('firstDate'),
-                frequency: formData.get('frequency'),
+                frequency: frequency,
                 totalVisits: formData.get('totalVisits'),
                 visitWindow: visitWindow // 如果为空字符串则表示无窗口限制
             };
@@ -162,7 +176,7 @@
                             <option value="">请选择</option>
                             <option value="name">受试者名称</option>
                             <option value="firstDate">首次受试日期</option>
-                            <option value="frequency">访视频率</option>
+                            <option value="frequency">访视间隔</option>
                             <option value="totalVisits">总访视次数</option>
                             <option value="visitWindow">访视窗口</option>
                         </select>
