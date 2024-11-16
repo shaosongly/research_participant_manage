@@ -108,6 +108,33 @@
         .visit-base-date:hover {
             background-color: rgba(0, 0, 0, 0.05) !important;
         }
+
+        /* 建议列表样式 */
+        .suggestion-list {
+            position: absolute;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .suggestion-item.active {
+            background-color: #e9ecef;
+        }
     </style>
 </head>
 <body>
@@ -119,10 +146,13 @@
             <div class="card-body">
                 <div class="row align-items-end">
                     <div class="col-md-8 mb-3 mb-md-0">
-                        <label for="subjectSelect" class="form-label">选择受试者:</label>
-                        <select class="form-select" id="subjectSelect">
-                            <option value="">请选择受试者</option>
-                        </select>
+                        <label for="subjectInput" class="form-label">选择或输入受试者:</label>
+                        <input class="form-control" 
+                               id="subjectInput" 
+                               type="text"
+                               placeholder="请输入受试者姓名"
+                               autocomplete="off">
+                        <div id="subjectSuggestions" class="suggestion-list"></div>
                     </div>
                     <div class="col-md-4">
                         <button id="searchButton" class="btn btn-primary w-100">查询</button>
@@ -212,6 +242,12 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
 
     <script>
+
+        //节假日修正
+        HolidayUtil.fix('202501010120250101202501261020250129202501281120250129202501291120250129202501301120250129202501311120250129202502011120250129202502021120250129202502031120250129202502041120250129202502081020250129202504042120250404202504052120250404202504062120250404202504273020250501202505013120250501202505023120250501202505033120250501202505043120250501202505053120250501202505314120250531202506014120250531202506024120250531202509287020251001202510017120251001202510027120251001202510037120251001202510047120251001202510057120251001202510067120251001202510077120251001202510087120251001202510117020251001');
+        HolidayUtil.fix('202312300120240101202312310120240101202401010120240101202402041020240210202402101120240210202402111120240210202402121120240210202402131120240210202402141120240210202402151120240210202402161120240210202402171120240210202402181020240210202404042120240404202404052120240404202404062120240404202404072020240404202404283020240501202405013120240501202405023120240501202405033120240501202405043120240501202405053120240501202405113020240501202406084120240610202406094120240610202406104120240610202409145020240917202409155120240917202409165120240917202409175120240917202409296020241001202410016120241001202410026120241001202410036120241001202410046120241001202410056120241001202410066120241001202410076120241001202410126020241001');
+
+
         let db;
         const dbName = "SubjectsDB";
 
@@ -227,33 +263,122 @@
             loadSubjects(); // 页面加载时获取所有受试者
         };
 
-        // 新增：加载所有受试者下拉列表
+        let allSubjects = []; // 存储所有受试者数据
+
+        // 修改加载受试者列表的函数
         function loadSubjects() {
             const transaction = db.transaction(["subjects"], "readonly");
             const objectStore = transaction.objectStore("subjects");
             const request = objectStore.getAll();
 
             request.onsuccess = function(event) {
-                const subjects = event.target.result;
-                const select = document.getElementById('subjectSelect');
-                
+                allSubjects = event.target.result;
                 // 按姓名排序
-                subjects.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
-                
-                // 添加选项
-                subjects.forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject.name;
-                    option.textContent = subject.name;
-                    select.appendChild(option);
-                });
+                allSubjects.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
             };
         }
 
+        // 添加输入处理函数
+        function handleInput(event) {
+            const input = event.target;
+            const value = input.value.trim().toLowerCase();
+            const suggestionList = document.getElementById('subjectSuggestions');
+            
+            if (value === '') {
+                suggestionList.style.display = 'none';
+                return;
+            }
+
+            // 过滤匹配的受试者
+            const matches = allSubjects.filter(subject => 
+                subject.name.toLowerCase().startsWith(value)
+            );
+
+            // 显示建议列表
+            if (matches.length > 0) {
+                suggestionList.innerHTML = '';
+                matches.forEach(subject => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.textContent = subject.name;
+                    div.onclick = () => {
+                        input.value = subject.name;
+                        suggestionList.style.display = 'none';
+                        searchSubject();
+                    };
+                    suggestionList.appendChild(div);
+                });
+                suggestionList.style.display = 'block';
+            } else {
+                suggestionList.style.display = 'none';
+            }
+        }
+
+        // 添加键盘导航功能
+        function handleKeydown(event) {
+            const suggestionList = document.getElementById('subjectSuggestions');
+            const items = suggestionList.getElementsByClassName('suggestion-item');
+            const activeItem = suggestionList.querySelector('.suggestion-item.active');
+            
+            if (suggestionList.style.display === 'none') return;
+
+            switch(event.key) {
+                case 'ArrowDown':
+                    event.preventDefault();
+                    if (!activeItem) {
+                        items[0].classList.add('active');
+                    } else {
+                        const nextItem = activeItem.nextElementSibling;
+                        if (nextItem) {
+                            activeItem.classList.remove('active');
+                            nextItem.classList.add('active');
+                        }
+                    }
+                    break;
+                    
+                case 'ArrowUp':
+                    event.preventDefault();
+                    if (activeItem) {
+                        const prevItem = activeItem.previousElementSibling;
+                        if (prevItem) {
+                            activeItem.classList.remove('active');
+                            prevItem.classList.add('active');
+                        }
+                    }
+                    break;
+                    
+                case 'Enter':
+                    if (activeItem) {
+                        event.preventDefault();
+                        document.getElementById('subjectInput').value = activeItem.textContent;
+                        suggestionList.style.display = 'none';
+                        searchSubject();
+                    }
+                    break;
+                    
+                case 'Escape':
+                    suggestionList.style.display = 'none';
+                    break;
+            }
+        }
+
+        // 点击外部关闭建议列表
+        document.addEventListener('click', function(event) {
+            const suggestionList = document.getElementById('subjectSuggestions');
+            if (!event.target.closest('#subjectInput') && !event.target.closest('#subjectSuggestions')) {
+                suggestionList.style.display = 'none';
+            }
+        });
+
+        // 添加事件监听器
+        document.getElementById('subjectInput').addEventListener('input', handleInput);
+        document.getElementById('subjectInput').addEventListener('keydown', handleKeydown);
+
+        // 修改搜索函数
         function searchSubject() {
-            const selectedName = document.getElementById('subjectSelect').value;
-            if (!selectedName) {
-                alert("请选择受试者");
+            const inputValue = document.getElementById('subjectInput').value.trim();
+            if (!inputValue) {
+                alert("请选择或输入受试者姓名");
                 return;
             }
 
@@ -261,7 +386,7 @@
             const objectStore = transaction.objectStore("subjects");
             const nameIndex = objectStore.index("name");
 
-            const request = nameIndex.getAll(selectedName);
+            const request = nameIndex.getAll(inputValue);
 
             request.onsuccess = function(event) {
                 const results = event.target.result;
@@ -510,8 +635,12 @@
             return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
         }
 
-        // 添加搜索按钮事件监听
+        // 修改事件监听器
         document.getElementById('searchButton').addEventListener('click', searchSubject);
-        document.getElementById('subjectSelect').addEventListener('change', searchSubject);
+        document.getElementById('subjectInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchSubject();
+            }
+        });
     </script>
 </body>
