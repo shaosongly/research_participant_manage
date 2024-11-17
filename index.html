@@ -14,7 +14,7 @@
             padding-top: 66px;
         }
         .container {
-            max-width: 600px;
+            max-width: 1000px;
             margin-top: 30px;
         }
         .navbar {
@@ -22,38 +22,51 @@
             top: 0;
             width: 100%;
             z-index: 1000;
-            padding: 0.2rem 0;
-            /* 减小上下内边距 */
-            min-height: 40px;
-            /* 设置最小高度 */
+            padding: 0.2rem 1rem;
+            min-height: 50px;
         }
 
         .navbar-brand {
             padding: 0;
-            /* 去掉内边距 */
-            font-size: 1rem;
-            /* 保持品牌文字大小 */
+            font-size: 1.1rem;
+            margin-right: 2rem;
         }
 
         .navbar-nav {
             flex-direction: row;
-            /* 确保导航项在一行显示 */
             align-items: center;
-            /* 垂直居中 */
+            gap: 0.5rem;
         }
 
         .nav-item {
-            display: flex;
-            /* 确保每个导航项的内容居中 */
-            align-items: center;
-            /* 垂直居中 */
+            white-space: nowrap;
         }
 
         .nav-link {
-            padding: 0.2rem 0.5rem;
-            /* 减小导航链接的上下内边距 */
-            font-size: 0.9rem;
-            /* 保持导航链接文字大小 */
+            padding: 0.4rem 0.8rem;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 95%;
+            }
+        }
+
+        .card {
+            margin-bottom: 2rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-label {
+            margin-bottom: 0.5rem;
+        }
+
+        .mb-3 {
+            margin-bottom: 1.5rem !important;
         }
     </style>
 </head>
@@ -85,6 +98,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="visit_plan.html">访视计划</a>
+                    </li>
+                    <li class="nav-item"></li>
+                        <a class="nav-link" href="visit_record.html">访视记录</a>
                     </li>
                 </ul>
             </div>

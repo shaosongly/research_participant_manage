@@ -14,7 +14,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin-top: 30px;
         }
 
@@ -586,15 +586,6 @@
                     bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
                     loadProjects();
                 } else if (deleteType === 'center') {
-                    // 首先检查所需的对象存储是否都存在
-                    if (!db.objectStoreNames.contains('centers') || 
-                        !db.objectStoreNames.contains('subjects') || 
-                        !db.objectStoreNames.contains('visitRecords')) {
-                        console.error('Required object stores not found');
-                        alert('数据库结构不完整，请刷新页面重试');
-                        return;
-                    }
-
                     const transaction = db.transaction(['centers', 'subjects', 'visitRecords'], 'readwrite');
                     const centerStore = transaction.objectStore('centers');
                     const subjectStore = transaction.objectStore('subjects');
@@ -608,21 +599,33 @@
 
                         // 删除该中心下的所有受试者
                         const subjects = await new Promise((resolve) => {
-                            subjectStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                            const index = subjectStore.index('projectCenter');
+                            index.getAll([deleteProject, deleteCenter]).onsuccess = (event) => resolve(event.target.result);
                         });
 
                         for (const subject of subjects) {
-                            if (subject.project === deleteProject && subject.center === deleteCenter) {
-                                await new Promise((resolve) => {
-                                    subjectStore.delete([deleteProject, deleteCenter, subject.name]).onsuccess = resolve;
-                                });
-                            }
+                            await new Promise((resolve) => {
+                                subjectStore.delete([deleteProject, deleteCenter, subject.name]).onsuccess = resolve;
+                            });
                         }
 
-                        // 使用索引来获取特定中心的访视记录
-                        const visitIndex = visitStore.index('subjectKey');
+                        // 删除该中心下的所有访视记录
                         const visits = await new Promise((resolve) => {
-                            visitIndex.getAll([deleteProject, deleteCenter]).onsuccess = (event) => resolve(event.target.result);
+                            const index = visitStore.index('center');
+                            const request = index.openCursor(IDBKeyRange.only(deleteCenter));
+                            const results = [];
+                            
+                            request.onsuccess = (event) => {
+                                const cursor = event.target.result;
+                                if (cursor) {
+                                    if (cursor.value.project === deleteProject) {
+                                        results.push(cursor.value);
+                                    }
+                                    cursor.continue();
+                                } else {
+                                    resolve(results);
+                                }
+                            };
                         });
 
                         // 删除访视记录
