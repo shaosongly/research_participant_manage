@@ -24,37 +24,23 @@
             width: 100%;
             z-index: 1000;
             padding: 0.2rem 0;
-            /* 减小上下内边距 */
             min-height: 40px;
-            /* 设置最小高度 */
         }
-
         .navbar-brand {
             padding: 0;
-            /* 去掉内边距 */
             font-size: 1rem;
-            /* 保持品牌文字大小 */
         }
-
         .navbar-nav {
             flex-direction: row;
-            /* 确保导航项在一行显示 */
             align-items: center;
-            /* 垂直居中 */
         }
-
         .nav-item {
             display: flex;
-            /* 确保每个导航项的内容居中 */
             align-items: center;
-            /* 垂直居中 */
         }
-
         .nav-link {
             padding: 0.2rem 0.5rem;
-            /* 减小导航链接的上下内边距 */
             font-size: 0.9rem;
-            /* 保持导航链接文字大小 */
         }
     </style>
 </head>
@@ -69,7 +55,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="landing.html">首页</a>
                     </li>
