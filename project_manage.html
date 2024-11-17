@@ -454,7 +454,7 @@
                     }
 
                     // 删除该项目下的所有受试者
-                    const subjectIndex = subjectStore.index('projectName');
+                    const subjectIndex = subjectStore.index('project');
                     const subjects = await new Promise((resolve) => {
                         subjectIndex.getAll(deleteProject).onsuccess = (event) => resolve(event.target.result);
                     });

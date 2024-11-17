@@ -370,10 +370,15 @@
         }
 
         function deleteRow(id) {
+            const row = document.querySelector(`tr[data-id="${id}"]`);
+            const project = row.cells[1].textContent;
+            const center = row.cells[2].textContent;
+            const name = row.cells[3].textContent;
+
             if (confirm("确定要删除这条记录吗？")) {
                 const transaction = db.transaction(["subjects"], "readwrite");
                 const objectStore = transaction.objectStore("subjects");
-                const request = objectStore.delete(id);
+                const request = objectStore.delete([project, center, name]);
 
                 request.onsuccess = function() {
                     console.log("数据删除成功");
@@ -382,6 +387,7 @@
 
                 request.onerror = function() {
                     console.error("删除数据时出错");
+                    alert("删除失败，请重试");
                 };
             }
         }
@@ -436,8 +442,13 @@
                 
                 try {
                     for (const checkbox of selectedCheckboxes) {
+                        const row = checkbox.closest('tr');
+                        const project = row.cells[1].textContent;
+                        const center = row.cells[2].textContent;
+                        const name = row.cells[3].textContent;
+
                         await new Promise((resolve, reject) => {
-                            const request = objectStore.delete(checkbox.value);
+                            const request = objectStore.delete([project, center, name]);
                             request.onsuccess = resolve;
                             request.onerror = reject;
                         });
