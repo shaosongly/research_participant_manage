@@ -461,15 +461,51 @@
             });
 
             // 筛选条件变化
-            ['filterProject', 'filterCenter', 'filterSubject'].forEach(filterId => {
-                document.getElementById(filterId).addEventListener('change', function() {
-                    const filters = {
-                        project: document.getElementById('filterProject').value,
-                        center: document.getElementById('filterCenter').value,
-                        subject: document.getElementById('filterSubject').value
-                    };
-                    loadVisitRecords(filters);
-                });
+            document.getElementById('filterProject').addEventListener('change', async function() {
+                const projectName = this.value;
+                // 重置中心和受试者选择
+                document.getElementById('filterCenter').innerHTML = '<option value="">全部中心</option>';
+                document.getElementById('filterSubject').innerHTML = '<option value="">全部受试者</option>';
+                
+                if (projectName) {
+                    await loadCentersForProject(projectName);
+                }
+                
+                // 更新访视记录显示
+                const filters = {
+                    project: projectName,
+                    center: '',
+                    subject: ''
+                };
+                loadVisitRecords(filters);
+            });
+
+            document.getElementById('filterCenter').addEventListener('change', async function() {
+                const projectName = document.getElementById('filterProject').value;
+                const centerName = this.value;
+                // 重置受试者选择
+                document.getElementById('filterSubject').innerHTML = '<option value="">全部受试者</option>';
+                
+                if (projectName && centerName) {
+                    await loadSubjectsForCenter(projectName, centerName);
+                }
+                
+                // 更新访视记录显示
+                const filters = {
+                    project: projectName,
+                    center: centerName,
+                    subject: ''
+                };
+                loadVisitRecords(filters);
+            });
+
+            document.getElementById('filterSubject').addEventListener('change', function() {
+                const filters = {
+                    project: document.getElementById('filterProject').value,
+                    center: document.getElementById('filterCenter').value,
+                    subject: this.value
+                };
+                loadVisitRecords(filters);
             });
 
             // 单次访视记录提交
