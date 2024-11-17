@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,17 +10,92 @@
     <style>
         body {
             background-color: #f8f9fa;
+            padding-top: 66px;
         }
+
         .container {
             max-width: 900px;
             margin-top: 30px;
         }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0.2rem 0;
+            /* 减小上下内边距 */
+            min-height: 40px;
+            /* 设置最小高度 */
+        }
+
+        .navbar-brand {
+            padding: 0;
+            /* 去掉内边距 */
+            font-size: 1rem;
+            /* 保持品牌文字大小 */
+        }
+
+        .navbar-nav {
+            flex-direction: row;
+            /* 确保导航项在一行显示 */
+            align-items: center;
+            /* 垂直居中 */
+        }
+
+        .nav-item {
+            display: flex;
+            /* 确保每个导航项的内容居中 */
+            align-items: center;
+            /* 垂直居中 */
+        }
+
+        .nav-link {
+            padding: 0.2rem 0.5rem;
+            /* 减小导航链接的上下内边距 */
+            font-size: 0.9rem;
+            /* 保持导航链接文字大小 */
+        }
     </style>
 </head>
+
 <body>
+    <!-- 添加导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="landing.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="project_manage.html">项目管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">添加受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="view.html">查看受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="schedule.html">访视安排</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="visit_plan.html">访视计划</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <h1 class="mb-4 text-center">受试者信息列表</h1>
-        
+
         <!-- 添加筛选区域 -->
         <div class="card mb-4">
             <div class="card-body">
@@ -86,11 +162,11 @@
 
         const request = indexedDB.open(dbName);
 
-        request.onerror = function(event) {
+        request.onerror = function (event) {
             console.error("数据库错误: " + event.target.error);
         };
 
-        request.onsuccess = function(event) {
+        request.onsuccess = function (event) {
             db = event.target.result;
             console.log("数据库打开成功");
             loadSubjects();
@@ -104,15 +180,15 @@
         async function loadFilterOptions() {
             const transaction = db.transaction(['subjects'], 'readonly');
             const objectStore = transaction.objectStore('subjects');
-            
+
             return new Promise((resolve) => {
-                objectStore.getAll().onsuccess = function(event) {
+                objectStore.getAll().onsuccess = function (event) {
                     allSubjects = event.target.result;
-                    
+
                     // 收集所有项目和中心
                     projectSet.clear();
                     centerMap.clear();
-                    
+
                     allSubjects.forEach(subject => {
                         projectSet.add(subject.project);
                         if (!centerMap.has(subject.project)) {
@@ -120,14 +196,14 @@
                         }
                         centerMap.get(subject.project).add(subject.center);
                     });
-                    
+
                     // 更新项目下拉列表
                     const projectFilter = document.getElementById('projectFilter');
                     projectFilter.innerHTML = '<option value="">全部项目</option>';
                     Array.from(projectSet).sort().forEach(project => {
                         projectFilter.innerHTML += `<option value="${project}">${project}</option>`;
                     });
-                    
+
                     resolve();
                 };
             });
@@ -137,7 +213,7 @@
         function updateCenterFilter(selectedProject) {
             const centerFilter = document.getElementById('centerFilter');
             centerFilter.innerHTML = '<option value="">全部中心</option>';
-            
+
             if (selectedProject && centerMap.has(selectedProject)) {
                 Array.from(centerMap.get(selectedProject)).sort().forEach(center => {
                     centerFilter.innerHTML += `<option value="${center}">${center}</option>`;
@@ -149,13 +225,13 @@
         function applyFilters() {
             const selectedProject = document.getElementById('projectFilter').value;
             const selectedCenter = document.getElementById('centerFilter').value;
-            
+
             const filteredSubjects = allSubjects.filter(subject => {
                 if (selectedProject && subject.project !== selectedProject) return false;
                 if (selectedCenter && subject.center !== selectedCenter) return false;
                 return true;
             });
-            
+
             displaySubjects(filteredSubjects);
         }
 
@@ -170,18 +246,18 @@
         function displaySubjects(subjects) {
             const tableBody = document.querySelector('#subjectTable tbody');
             tableBody.innerHTML = '';
-            
+
             subjects.forEach(data => {
                 const row = tableBody.insertRow();
                 row.dataset.id = data.name;
-                
+
                 // 添加复选框列
                 const checkboxCell = row.insertCell(0);
                 checkboxCell.innerHTML = `
                     <input type="checkbox" class="form-check-input subject-checkbox" 
                            style="display: none;" value="${data.name}">
                 `;
-                
+
                 // 填充数据
                 row.insertCell(1).textContent = data.project;
                 row.insertCell(2).textContent = data.center;
@@ -190,7 +266,7 @@
                 row.insertCell(5).textContent = data.frequency;
                 row.insertCell(6).textContent = data.totalVisits;
                 row.insertCell(7).textContent = data.visitWindow;
-                
+
                 // 操作按钮
                 const actionCell = row.insertCell(8);
                 actionCell.innerHTML = `
@@ -209,7 +285,7 @@
         }
 
         // 添加事件监听器
-        document.getElementById('projectFilter').addEventListener('change', function() {
+        document.getElementById('projectFilter').addEventListener('change', function () {
             updateCenterFilter(this.value);
             applyFilters();
         });
@@ -221,7 +297,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const projectFromUrl = urlParams.get('project');
             const centerFromUrl = urlParams.get('center');
-            
+
             if (projectFromUrl) {
                 setTimeout(() => {
                     document.getElementById('projectFilter').value = projectFromUrl;
@@ -237,7 +313,7 @@
         }
 
         // 在数据库打开成功后调用
-        request.onsuccess = function(event) {
+        request.onsuccess = function (event) {
             db = event.target.result;
             console.log("数据库打开成功");
             loadSubjects();
@@ -248,7 +324,7 @@
             const row = document.querySelector(`tr[data-id="${id}"]`);
             row.classList.add('table-warning');
             const cells = row.cells;
-            
+
             // 定义每个字段的配置
             const fieldConfigs = [
                 { readonly: true },  // 复选框列
@@ -256,13 +332,13 @@
                 { readonly: true },  // 中心
                 { readonly: true },  // 受试者名称 - 改为只读
                 { readonly: false }, // 首次受试日期
-                { 
+                {
                     readonly: false,
                     placeholder: "单个数字或逗号分隔的多个数字，如: 3 或 1,2,3",
                     help: "例如：3表示每3天访视一次，1,2,3表示每次访视间隔分别为1天、2天、3天"
                 }, // 访视间隔
                 { readonly: false }, // 总访视次数
-                { 
+                {
                     readonly: false,
                     placeholder: "单个数字或逗号分隔的多个数字，如: 1 或 1,2,3",
                     help: "不填写默认为0，表示无访视窗口"
@@ -274,7 +350,7 @@
                 const cell = cells[i];
                 const config = fieldConfigs[i];
                 const content = cell.textContent;
-                
+
                 cell.innerHTML = `
                     <div class="d-flex flex-column">
                         <input type="text" class="form-control form-control-sm" 
@@ -285,7 +361,7 @@
                     </div>
                 `;
             }
-            
+
             // 修改操作按钮列
             const actionCell = cells[8];
             actionCell.innerHTML = `
@@ -299,7 +375,7 @@
         function saveRow(id) {
             const row = document.querySelector(`tr[data-id="${id}"]`);
             const cells = row.cells;
-            
+
             // 获取输入值（从第1列开始，跳过复选框列）
             const project = cells[1].querySelector('input').value.trim();
             const center = cells[2].querySelector('input').value.trim();
@@ -354,12 +430,12 @@
             const objectStore = transaction.objectStore("subjects");
             const request = objectStore.put(updatedData);
 
-            request.onsuccess = function() {
+            request.onsuccess = function () {
                 console.log("数据更新成功");
                 loadSubjects();
             };
 
-            request.onerror = function() {
+            request.onerror = function () {
                 console.error("更新数据时出错");
                 alert('更新失败，请重试');
             };
@@ -380,12 +456,12 @@
                 const objectStore = transaction.objectStore("subjects");
                 const request = objectStore.delete([project, center, name]);
 
-                request.onsuccess = function() {
+                request.onsuccess = function () {
                     console.log("数据删除成功");
                     loadSubjects();
                 };
 
-                request.onerror = function() {
+                request.onerror = function () {
                     console.error("删除数据时出错");
                     alert("删除失败，请重试");
                 };
@@ -401,11 +477,11 @@
             const checkboxes = document.querySelectorAll('.subject-checkbox, #selectAll');
             const normalButtons = document.querySelectorAll('#batchDeleteBtn, .btn-outline-primary, .btn-outline-danger');
             const batchButtons = document.querySelectorAll('#confirmBatchDeleteBtn, #cancelBatchDeleteBtn');
-            
+
             checkboxes.forEach(cb => cb.style.display = enabled ? '' : 'none');
             normalButtons.forEach(btn => btn.style.display = enabled ? 'none' : '');
             batchButtons.forEach(btn => btn.style.display = enabled ? '' : 'none');
-            
+
             if (!enabled) {
                 // 退出批量删除模式时，取消所有选择
                 checkboxes.forEach(cb => cb.checked = false);
@@ -413,33 +489,33 @@
         }
 
         // 全选/取消全选
-        document.getElementById('selectAll').addEventListener('change', function() {
+        document.getElementById('selectAll').addEventListener('change', function () {
             const checkboxes = document.querySelectorAll('.subject-checkbox');
             checkboxes.forEach(cb => cb.checked = this.checked);
         });
 
         // 进入批量删除模式
-        document.getElementById('batchDeleteBtn').addEventListener('click', function() {
+        document.getElementById('batchDeleteBtn').addEventListener('click', function () {
             toggleBatchDeleteMode(true);
         });
 
         // 取消批量删除
-        document.getElementById('cancelBatchDeleteBtn').addEventListener('click', function() {
+        document.getElementById('cancelBatchDeleteBtn').addEventListener('click', function () {
             toggleBatchDeleteMode(false);
         });
 
         // 执行批量删除
-        document.getElementById('confirmBatchDeleteBtn').addEventListener('click', async function() {
+        document.getElementById('confirmBatchDeleteBtn').addEventListener('click', async function () {
             const selectedCheckboxes = document.querySelectorAll('.subject-checkbox:checked');
             if (selectedCheckboxes.length === 0) {
                 alert('请至少选择一条记录');
                 return;
             }
-            
+
             if (confirm(`确定要删除选中的 ${selectedCheckboxes.length} 条记录吗？`)) {
                 const transaction = db.transaction(['subjects'], 'readwrite');
                 const objectStore = transaction.objectStore('subjects');
-                
+
                 try {
                     for (const checkbox of selectedCheckboxes) {
                         const row = checkbox.closest('tr');
@@ -453,7 +529,7 @@
                             request.onerror = reject;
                         });
                     }
-                    
+
                     console.log('批量删除成功');
                     toggleBatchDeleteMode(false);
                     loadSubjects();
@@ -465,4 +541,5 @@
         });
     </script>
 </body>
+
 </html>

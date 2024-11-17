@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,17 +10,61 @@
     <style>
         body {
             background-color: #f8f9fa;
+            padding-top: 66px;
         }
+
         .container {
             max-width: 800px;
             margin-top: 30px;
         }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0.2rem 0;
+            /* 减小上下内边距 */
+            min-height: 40px;
+            /* 设置最小高度 */
+        }
+
+        .navbar-brand {
+            padding: 0;
+            /* 去掉内边距 */
+            font-size: 1rem;
+            /* 保持品牌文字大小 */
+        }
+
+        .navbar-nav {
+            flex-direction: row;
+            /* 确保导航项在一行显示 */
+            align-items: center;
+            /* 垂直居中 */
+        }
+
+        .nav-item {
+            display: flex;
+            /* 确保每个导航项的内容居中 */
+            align-items: center;
+            /* 垂直居中 */
+        }
+
+        .nav-link {
+            padding: 0.2rem 0.5rem;
+            /* 减小导航链接的上下内边距 */
+            font-size: 0.9rem;
+            /* 保持导航链接文字大小 */
+        }
+
         .project-card {
             margin-bottom: 20px;
         }
+
         .center-list {
             margin-top: 10px;
         }
+
         .center-item {
             padding: 8px 15px;
             margin-bottom: 5px;
@@ -29,32 +74,72 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .delete-center-btn {
             opacity: 0.7;
             transition: opacity 0.2s;
         }
+
         .delete-center-btn:hover {
             opacity: 1;
         }
+
         .center-item:hover {
             background-color: #f0f0f0;
         }
+
         .card-header .btn {
             margin-left: 8px;
         }
+
         .btn-group .btn {
             margin-left: 12px;
         }
+
         .center-item .btn-group {
             display: flex;
             gap: 12px;
         }
     </style>
 </head>
+
 <body>
+    <!-- 添加导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto"> <!-- 添加 ms-auto 类 -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="landing.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="project_manage.html">项目管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">添加受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="view.html">查看受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="schedule.html">访视安排</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="visit_plan.html">访视计划</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <h1 class="mb-4 text-center">项目管理</h1>
-        
+
         <!-- 新建项目按钮 -->
         <div class="mb-4">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newProjectModal">
@@ -156,7 +241,7 @@
         const request = indexedDB.open(dbName, version);
 
         // 创建/升级数据库结构
-        request.onupgradeneeded = function(event) {
+        request.onupgradeneeded = function (event) {
             const db = event.target.result;
 
             // 创建项目表
@@ -174,8 +259,8 @@
 
             // 修改受试者表结构
             if (!db.objectStoreNames.contains('subjects')) {
-                const subjectStore = db.createObjectStore('subjects', { 
-                    keyPath: ['project', 'center', 'name'] 
+                const subjectStore = db.createObjectStore('subjects', {
+                    keyPath: ['project', 'center', 'name']
                 });
                 // 添加必要的索引
                 subjectStore.createIndex('project', 'project', { unique: false });
@@ -185,7 +270,7 @@
             }
         };
 
-        request.onsuccess = function(event) {
+        request.onsuccess = function (event) {
             db = event.target.result;
             loadProjects();
         };
@@ -258,8 +343,8 @@
                         <div class="card-body">
                             <div class="center-list">
                                 ${Array.from(centers).map(center => {
-                                    const subjectCount = centerSubjectCounts.get(`${project}-${center}`) || 0;
-                                    return `
+                        const subjectCount = centerSubjectCounts.get(`${project}-${center}`) || 0;
+                        return `
                                         <div class="center-item">
                                             <span>${center}</span>
                                             <div class="btn-group">
@@ -282,7 +367,7 @@
                                             </div>
                                         </div>
                                     `;
-                                }).join('')}
+                    }).join('')}
                             </div>
                         </div>
                     `;
@@ -295,7 +380,7 @@
         }
 
         // 保存新项目
-        document.getElementById('saveProjectBtn').addEventListener('click', async function() {
+        document.getElementById('saveProjectBtn').addEventListener('click', async function () {
             const projectName = document.getElementById('projectName').value.trim();
             const centerName = document.getElementById('centerName').value.trim();
 
@@ -346,7 +431,7 @@
         });
 
         // 修改保存新中心的处理函数 (第310-343行)
-        document.getElementById('saveCenterBtn').addEventListener('click', async function() {
+        document.getElementById('saveCenterBtn').addEventListener('click', async function () {
             const projectName = document.getElementById('projectForCenter').value;
             const centerName = document.getElementById('newCenterName').value.trim();
 
@@ -388,7 +473,7 @@
         });
 
         // 设置新增中心按钮的项目信息
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (e.target.classList.contains('add-center-btn')) {
                 const projectName = e.target.getAttribute('data-project');
                 document.getElementById('projectForCenter').value = projectName;
@@ -401,7 +486,7 @@
         let deleteCenter = '';
 
         // 处理删除项目按钮点击
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (e.target.classList.contains('delete-project-btn')) {
                 const project = e.target.getAttribute('data-project');
                 showDeleteConfirm('project', project);
@@ -418,7 +503,7 @@
             deleteProject = project;
             deleteCenter = center;
 
-            const message = type === 'project' 
+            const message = type === 'project'
                 ? `确定要删除项目"${project}"吗？这将删除该项目下的所有中心和受试者数据！`
                 : `确定要删除"${project}"项目下的"${center}"中心吗？这将删除该中心下的所有受试者数据！`;
 
@@ -427,7 +512,7 @@
         }
 
         // 修改删除确认按钮的处理函数 (第391-418行)
-        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function () {
             try {
                 if (deleteType === 'project') {
                     // 删除项目时需要删除三个表中的相关数据
@@ -446,7 +531,7 @@
                     const centers = await new Promise((resolve) => {
                         centerIndex.getAll(deleteProject).onsuccess = (event) => resolve(event.target.result);
                     });
-                    
+
                     for (const center of centers) {
                         await new Promise((resolve) => {
                             centerStore.delete([deleteProject, center.centerName]).onsuccess = resolve;
@@ -458,7 +543,7 @@
                     const subjects = await new Promise((resolve) => {
                         subjectIndex.getAll(deleteProject).onsuccess = (event) => resolve(event.target.result);
                     });
-                    
+
                     for (const subject of subjects) {
                         await new Promise((resolve) => {
                             subjectStore.delete([deleteProject, subject.center, subject.name]).onsuccess = resolve;
@@ -498,4 +583,5 @@
         });
     </script>
 </body>
-</html> 
+
+</html>

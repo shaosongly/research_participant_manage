@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,49 +16,101 @@
     <style>
         body {
             background-color: #f8f9fa;
+            padding-top: 66px;
         }
+
         .container {
             max-width: 800px;
             margin-top: 30px;
         }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0.2rem 0;
+            /* 减小上下内边距 */
+            min-height: 40px;
+            /* 设置最小高度 */
+        }
+
+        .navbar-brand {
+            padding: 0;
+            /* 去掉内边距 */
+            font-size: 1rem;
+            /* 保持品牌文字大小 */
+        }
+
+        .navbar-nav {
+            flex-direction: row;
+            /* 确保导航项在一行显示 */
+            align-items: center;
+            /* 垂直居中 */
+        }
+
+        .nav-item {
+            display: flex;
+            /* 确保每个导航项的内容居中 */
+            align-items: center;
+            /* 垂直居中 */
+        }
+
+        .nav-link {
+            padding: 0.2rem 0.5rem;
+            /* 减小导航链接的上下内边距 */
+            font-size: 0.9rem;
+            /* 保持导航链接文字大小 */
+        }
+
         /* Flatpickr 自定义样式 */
         .flatpickr-input {
             font-size: 16px;
             padding: 8px 12px;
         }
+
         .flatpickr-calendar {
             font-size: 14px;
         }
+
         /* 修改访视次数交替背景色为更高对比度的颜色 */
         .visit-group-even {
-            background-color: #dcedc8 !important; /* 绿色背景 */
-            border-top: 2px solid #81c784 !important; /* 添加上边框 */
+            background-color: #dcedc8 !important;
+            /* 绿色背景 */
+            border-top: 2px solid #81c784 !important;
+            /* 添加上边框 */
         }
-        
+
         .visit-group-odd {
-            background-color: #ffecb3 !important; /* 橙色背景 */
-            border-top: 2px solid #ffd54f !important; /* 添加上边框 */
+            background-color: #ffecb3 !important;
+            /* 橙色背景 */
+            border-top: 2px solid #ffd54f !important;
+            /* 添加上边框 */
         }
-        
+
         /* 修改鼠标悬停效果，使用更深的颜色 */
         .visit-group-even:hover {
-            background-color: #aed581 !important; /* 明显的绿色 */
+            background-color: #aed581 !important;
+            /* 明显的绿色 */
         }
-        
+
         .visit-group-odd:hover {
-            background-color: #ffd54f !important; /* 明显的橙色 */
+            background-color: #ffd54f !important;
+            /* 明显的橙色 */
         }
-        
+
         /* 修改访视组样式 */
         .visit-group-start {
             border-top: 2px solid #666 !important;
-            margin-top: 1rem !important;  /* 添加上方间距 */
+            margin-top: 1rem !important;
+            /* 添加上方间距 */
         }
-        
+
         /* 访视组的最后一行添加底部边框 */
         .visit-group-end {
             border-bottom: 1px solid #666 !important;
-            margin-bottom: 1rem !important;  /* 添加下方间距 */
+            margin-bottom: 1rem !important;
+            /* 添加下方间距 */
         }
 
         /* 调整表格样式 */
@@ -65,10 +118,11 @@
             border-collapse: separate;
             border-spacing: 0;
         }
-        
+
         /* 表格单元格样式 */
         .table-visits td {
-            padding: 0.75rem !important;  /* 增加单元格内边距 */
+            padding: 0.75rem !important;
+            /* 增加单元格内边距 */
         }
 
         /* 表头样式加强 */
@@ -87,13 +141,15 @@
 
         /* 窗口期日期行样式 - 使用半透明的相同色系 */
         .visit-group-even .visit-window-date {
-            background-color: rgba(220, 237, 200, 0.4) !important; /* 浅绿色，更透明 */
+            background-color: rgba(220, 237, 200, 0.4) !important;
+            /* 浅绿色，更透明 */
             color: #666 !important;
             font-size: 0.95em;
         }
-        
+
         .visit-group-odd .visit-window-date {
-            background-color: rgba(255, 236, 179, 0.4) !important; /* 浅橙色，更透明 */
+            background-color: rgba(255, 236, 179, 0.4) !important;
+            /* 浅橙色，更透明 */
             color: #666 !important;
             font-size: 0.95em;
         }
@@ -118,7 +174,7 @@
             background: white;
             border: 1px solid #ddd;
             border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             z-index: 1000;
             display: none;
         }
@@ -137,10 +193,44 @@
         }
     </style>
 </head>
+
 <body>
+    <!-- 添加导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="landing.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="project_manage.html">项目管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">添加受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="view.html">查看受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="schedule.html">访视安排</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="visit_plan.html">访视计划</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <h1 class="mb-4 text-center">访视计划</h1>
-        
+
         <!-- 搜索卡片 -->
         <div class="card mb-4">
             <div class="card-body">
@@ -159,11 +249,8 @@
                     </div>
                     <div class="col-md-4 mb-3 mb-md-0">
                         <label for="subjectInput" class="form-label">输入受试者:</label>
-                        <input class="form-control" 
-                               id="subjectInput" 
-                               type="text"
-                               placeholder="请输入受试者姓名"
-                               autocomplete="off">
+                        <input class="form-control" id="subjectInput" type="text" placeholder="请输入受试者姓名"
+                            autocomplete="off">
                         <div id="subjectSuggestions" class="suggestion-list"></div>
                     </div>
                     <div class="col-md-2">
@@ -265,11 +352,11 @@
 
         const request = indexedDB.open(dbName);
 
-        request.onerror = function(event) {
+        request.onerror = function (event) {
             console.error("数据库错误: " + event.target.error);
         };
 
-        request.onsuccess = function(event) {
+        request.onsuccess = function (event) {
             db = event.target.result;
             console.log("数据库打开成功");
             loadProjects();  // 先加载项目列表
@@ -284,7 +371,7 @@
             const objectStore = transaction.objectStore("subjects");
             const request = objectStore.getAll();
 
-            request.onsuccess = function(event) {
+            request.onsuccess = function (event) {
                 allSubjects = event.target.result;
                 // 按姓名排序
                 allSubjects.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
@@ -297,27 +384,27 @@
             const projectName = document.getElementById('projectSelect').value;
             const centerName = document.getElementById('centerSelect').value;
             const suggestionList = document.getElementById('subjectSuggestions');
-            
+
             if (!projectName || !centerName) {
                 alert('请先选择项目和中心');
                 input.value = '';
                 return;
             }
-            
+
             // 获取当前中心的所有受试者
-            const centerSubjects = allSubjects.filter(subject => 
-                subject.project === projectName && 
+            const centerSubjects = allSubjects.filter(subject =>
+                subject.project === projectName &&
                 subject.center === centerName
             );
-            
+
             // 如果有输入值，进一步过滤匹配的受试者
             const value = input.value.trim().toLowerCase();
-            const matches = value ? 
-                centerSubjects.filter(subject => 
+            const matches = value ?
+                centerSubjects.filter(subject =>
                     subject.name.toLowerCase().startsWith(value)
-                ) : 
+                ) :
                 centerSubjects;
-            
+
             // 显示建议列表
             displaySuggestions(matches, input, suggestionList);
         }
@@ -348,10 +435,10 @@
             const suggestionList = document.getElementById('subjectSuggestions');
             const items = suggestionList.getElementsByClassName('suggestion-item');
             const activeItem = suggestionList.querySelector('.suggestion-item.active');
-            
+
             if (suggestionList.style.display === 'none') return;
 
-            switch(event.key) {
+            switch (event.key) {
                 case 'ArrowDown':
                     event.preventDefault();
                     if (!activeItem) {
@@ -364,7 +451,7 @@
                         }
                     }
                     break;
-                    
+
                 case 'ArrowUp':
                     event.preventDefault();
                     if (activeItem) {
@@ -375,7 +462,7 @@
                         }
                     }
                     break;
-                    
+
                 case 'Enter':
                     if (activeItem) {
                         event.preventDefault();
@@ -384,7 +471,7 @@
                         searchSubject();
                     }
                     break;
-                    
+
                 case 'Escape':
                     suggestionList.style.display = 'none';
                     break;
@@ -392,7 +479,7 @@
         }
 
         // 点击外部关闭建议列表
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const suggestionList = document.getElementById('subjectSuggestions');
             if (!event.target.closest('#subjectInput') && !event.target.closest('#subjectSuggestions')) {
                 suggestionList.style.display = 'none';
@@ -402,7 +489,7 @@
         // 添加事件监听器
         document.getElementById('subjectInput').addEventListener('input', handleInput);
         document.getElementById('subjectInput').addEventListener('keydown', handleKeydown);
-        document.getElementById('subjectInput').addEventListener('focus', function(event) {
+        document.getElementById('subjectInput').addEventListener('focus', function (event) {
             // 当输入框获得焦点时，显示所有当前中心的受试者
             handleInput(event);
         });
@@ -412,12 +499,12 @@
             const projectName = document.getElementById('projectSelect').value;
             const centerName = document.getElementById('centerSelect').value;
             const inputValue = document.getElementById('subjectInput').value.trim();
-            
+
             if (!projectName || !centerName) {
                 alert("请先选择项目和中心");
                 return;
             }
-            
+
             if (!inputValue) {
                 alert("请选择或输入受试者姓名");
                 return;
@@ -425,11 +512,11 @@
 
             const transaction = db.transaction(["subjects"], "readonly");
             const objectStore = transaction.objectStore("subjects");
-            
+
             // 使用复合主键查询
             const request = objectStore.get([projectName, centerName, inputValue]);
 
-            request.onsuccess = function(event) {
+            request.onsuccess = function (event) {
                 const subject = event.target.result;
                 if (subject) {
                     displaySubjectInfo(subject);
@@ -451,10 +538,10 @@
             document.getElementById('firstVisitDate').textContent = formatDate(subject.firstDate);
             document.getElementById('visitFrequency').textContent = `${subject.frequency}`;
             document.getElementById('totalVisits').textContent = subject.totalVisits;
-            
+
             // 添加访视口信息显示
-            const visitWindowText = subject.visitWindow && subject.visitWindow.trim() !== '' 
-                ? subject.visitWindow 
+            const visitWindowText = subject.visitWindow && subject.visitWindow.trim() !== ''
+                ? subject.visitWindow
                 : '默认窗口0';
             document.getElementById('visitWindow').textContent = visitWindowText;
 
@@ -470,7 +557,7 @@
                 allowInput: true,
                 clickOpens: true,
                 disableMobile: false,
-                onChange: function(selectedDates, dateStr) {
+                onChange: function (selectedDates, dateStr) {
                     console.log('选择的日期:', dateStr);
                 }
             });
@@ -483,7 +570,7 @@
         }
 
         // 添加计划调整按钮的事件处理
-        document.getElementById('adjustButton').addEventListener('click', function() {
+        document.getElementById('adjustButton').addEventListener('click', function () {
             if (!currentSubject) {
                 alert('请先选择受试者');
                 return;
@@ -512,7 +599,7 @@
 
             const firstDate = new Date(subject.firstDate);
             const totalVisits = parseInt(subject.totalVisits);
-            
+
             // 解析访视间隔
             let frequencies = [];
             if (subject.frequency.includes(',')) {
@@ -527,12 +614,12 @@
                 const fixedFrequency = parseInt(subject.frequency);
                 frequencies = Array(totalVisits - 1).fill(fixedFrequency);
             }
-            
+
             // 解析访视窗口
             let visitWindows = [];
             if (subject.visitWindow && subject.visitWindow.trim() !== '') {
                 const windowValue = subject.visitWindow.trim();
-                
+
                 if (windowValue.includes(',')) {
                     // 如果是逗号分隔的格式
                     visitWindows = windowValue.split(',').map(Number);
@@ -562,7 +649,7 @@
             // 计算每次访视的基准日期
             let visitDates = [firstDate];  // 存储每次访视的基准日期
             let currentDate = new Date(firstDate);
-            
+
             // 计算后续访视的基准日期
             for (let i = 0; i < frequencies.length; i++) {
                 currentDate = new Date(currentDate.getTime() + frequencies[i] * 24 * 60 * 60 * 1000);
@@ -573,7 +660,7 @@
             visitDates.forEach((baseDate, visitNum) => {
                 const groupClass = visitNum % 2 === 0 ? 'visit-group-even' : 'visit-group-odd';
                 let rows = [];  // 存储当前访视组的所有行
-                
+
                 if (visitNum === 0 || visitWindows[visitNum - 1] === 0) {
                     // 单行访视
                     addVisitRow(tableBody, visitNum + 1, baseDate, '基准日期', groupClass, true, true);
@@ -588,11 +675,11 @@
                         } else if (offset > 0) {
                             dateType = `延后${offset}天`;
                         }
-                        
-                        // 是否是���视组的第一行或最后一行
+
+                        // 是否是视组的第一行或最后一行
                         const isFirst = offset === -window;
                         const isLast = offset === window;
-                        
+
                         addVisitRow(tableBody, visitNum + 1, visitDate, dateType, groupClass, isFirst, isLast);
                     }
                 }
@@ -603,7 +690,7 @@
         function addVisitRow(tableBody, visitNumber, date, dateType, groupClass, isGroupStart, isGroupEnd) {
             const row = tableBody.insertRow();
             row.className = groupClass;
-            
+
             // 添加访视组开始和结束的标记
             if (isGroupStart) {
                 row.classList.add('visit-group-start');
@@ -618,18 +705,18 @@
             } else {
                 row.classList.add('visit-window-date');
             }
-            
+
             // 访视次数
             const visitCell = row.insertCell(0);
             visitCell.textContent = `第 ${visitNumber} 次访视`;
-            
+
             // 计划访视日期
             const dateCell = row.insertCell(1);
             dateCell.textContent = `${formatDate(date)} (${dateType})`;
             if (dateType !== '基准日期') {
                 dateCell.style.color = '#666'; // 窗口期日期使用灰色
             }
-            
+
             // 节假日信息
             const holidayInfo = getHolidayInfo(date);
             const holidayCell = row.insertCell(2);
@@ -644,10 +731,10 @@
                 const year = date.getFullYear();
                 const month = date.getMonth() + 1;
                 const day = date.getDate();
-                
+
                 // 使用 HolidayUtil 获取节假日信息
                 const holiday = HolidayUtil.getHoliday(year, month, day);
-                
+
                 if (holiday) {
                     // 如果是调休工作日，返回调休信息
                     if (holiday.isWork()) {
@@ -656,13 +743,13 @@
                     // 如果是节假日，返回节日名称
                     return holiday.getName();
                 }
-                
+
                 // 如果不是法定节假日检查是否为普通周末
                 const weekDay = date.getDay();
                 if (weekDay === 0 || weekDay === 6) {
                     return weekDay === 0 ? '周日' : '周六';
                 }
-                
+
                 return '非节假日';
             } catch (error) {
                 console.error('Error in getHolidayInfo:', error);
@@ -677,7 +764,7 @@
 
         // 修改事件监听器
         document.getElementById('searchButton').addEventListener('click', searchSubject);
-        document.getElementById('subjectInput').addEventListener('keypress', function(e) {
+        document.getElementById('subjectInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 searchSubject();
             }
@@ -691,15 +778,15 @@
                 const projects = await new Promise((resolve) => {
                     projectStore.getAll().onsuccess = (event) => resolve(event.target.result);
                 });
-                
+
                 const projectSelect = document.getElementById('projectSelect');
                 projectSelect.innerHTML = '<option value="">请选择项目</option>' +
-                    projects.map(project => 
+                    projects.map(project =>
                         `<option value="${project.projectName}">${project.projectName}</option>`
                     ).join('');
-                    
+
                 // 添加项目选择事件监听器
-                projectSelect.addEventListener('change', function() {
+                projectSelect.addEventListener('change', function () {
                     const selectedProject = this.value;
                     document.getElementById('subjectInput').value = '';
                     if (selectedProject) {
@@ -719,19 +806,19 @@
                 const transaction = db.transaction(['centers'], 'readonly');
                 const centerStore = transaction.objectStore('centers');
                 const centerIndex = centerStore.index('projectName');
-                
+
                 const centers = await new Promise((resolve) => {
                     centerIndex.getAll(projectName).onsuccess = (event) => resolve(event.target.result);
                 });
-                
+
                 const centerSelect = document.getElementById('centerSelect');
                 centerSelect.innerHTML = '<option value="">请选择中心</option>' +
-                    centers.map(center => 
+                    centers.map(center =>
                         `<option value="${center.centerName}">${center.centerName}</option>`
                     ).join('');
-                    
+
                 // 添加中心选择事件监听器
-                centerSelect.addEventListener('change', function() {
+                centerSelect.addEventListener('change', function () {
                     document.getElementById('subjectInput').value = '';
                 });
             } catch (error) {

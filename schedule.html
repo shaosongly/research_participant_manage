@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,36 +12,116 @@
     <style>
         body {
             background-color: #f8f9fa;
+            padding-top: 66px;
         }
+
         .container {
             max-width: 800px;
             margin-top: 30px;
         }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0.2rem 0;
+            /* 减小上下内边距 */
+            min-height: 40px;
+            /* 设置最小高度 */
+        }
+
+        .navbar-brand {
+            padding: 0;
+            /* 去掉内边距 */
+            font-size: 1rem;
+            /* 保持品牌文字大小 */
+        }
+
+        .navbar-nav {
+            flex-direction: row;
+            /* 确保导航项在一行显示 */
+            align-items: center;
+            /* 垂直居中 */
+        }
+
+        .nav-item {
+            display: flex;
+            /* 确保每个导航项的内容居中 */
+            align-items: center;
+            /* 垂直居中 */
+        }
+
+        .nav-link {
+            padding: 0.2rem 0.5rem;
+            /* 减小导航链接的上下内边距 */
+            font-size: 0.9rem;
+            /* 保持导航链接文字大小 */
+        }
+
         /* 添加访视组的背景色样式 */
         .visit-group-even {
-            background-color: #e3f2fd !important; /* 浅蓝色 */
+            background-color: #e3f2fd !important;
+            /* 浅蓝色 */
         }
-        
+
         .visit-group-odd {
-            background-color: #fff3e0 !important; /* 浅橙色 */
+            background-color: #fff3e0 !important;
+            /* 浅橙色 */
         }
-        
+
         /* 修改鼠标悬停效果 */
         .visit-group-even:hover {
-            background-color: #bbdefb !important; /* 深一点的蓝色 */
+            background-color: #bbdefb !important;
+            /* 深一点的蓝色 */
         }
-        
+
         .visit-group-odd:hover {
-            background-color: #ffe0b2 !important; /* 深一点的橙色 */
+            background-color: #ffe0b2 !important;
+            /* 深一点的橙色 */
         }
-        
+
         /* 移除 Bootstrap 的默认条纹样式 */
-        .table-visits > tbody > tr:nth-of-type(odd) {
+        .table-visits>tbody>tr:nth-of-type(odd) {
             background-color: inherit;
         }
     </style>
 </head>
+
 <body>
+    <!-- 添加导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="landing.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="project_manage.html">项目管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">添加受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="view.html">查看受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="schedule.html">访视安排</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="visit_plan.html">访视计划</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <h1 class="mb-4 text-center">今日访视安排</h1>
         <div class="card mb-4">
@@ -114,7 +195,7 @@
             defaultDate: [new Date(), new Date()],
             altInput: true,
             altFormat: "Y年m月d日",
-            onChange: function(selectedDates, dateStr, instance) {
+            onChange: function (selectedDates, dateStr, instance) {
                 if (selectedDates.length === 2) {
                     loadSchedule(selectedDates[0], selectedDates[1]);
                 }
@@ -123,11 +204,11 @@
 
         const request = indexedDB.open(dbName);
 
-        request.onerror = function(event) {
+        request.onerror = function (event) {
             console.error("数据库错误: " + event.target.error);
         };
 
-        request.onsuccess = function(event) {
+        request.onsuccess = function (event) {
             db = event.target.result;
             console.log("数据库打开成功");
             loadProjects();
@@ -142,20 +223,20 @@
 
             const objectStore = db.transaction("subjects").objectStore("subjects");
 
-            objectStore.getAll().onsuccess = function(event) {
+            objectStore.getAll().onsuccess = function (event) {
                 const projectFilter = document.getElementById('projectFilter').value;
                 const centerFilter = document.getElementById('centerFilter').value;
-                
+
                 const subjects = event.target.result.filter(subject => {
                     return (!projectFilter || subject.project === projectFilter) &&
-                           (!centerFilter || subject.center === centerFilter);
+                        (!centerFilter || subject.center === centerFilter);
                 });
                 let scheduleItems = [];
 
                 subjects.forEach(subject => {
                     const firstDate = new Date(subject.firstDate);
                     const totalVisits = parseInt(subject.totalVisits);
-                    
+
                     // 解析访视间隔
                     let frequencies = [];
                     if (subject.frequency.includes(',')) {
@@ -169,12 +250,12 @@
                         const fixedFrequency = parseInt(subject.frequency);
                         frequencies = Array(totalVisits - 1).fill(fixedFrequency);
                     }
-                    
+
                     // 解析访视窗口
                     let visitWindows = [];
                     if (subject.visitWindow && subject.visitWindow.trim() !== '') {
                         const windowValue = subject.visitWindow.trim();
-                        
+
                         if (windowValue.includes(',')) {
                             // 如果是逗号分隔的格式
                             visitWindows = windowValue.split(',').map(Number);
@@ -205,7 +286,7 @@
                     // 计算每次访视的基准日期
                     let visitDates = [firstDate];  // 存储每次访视的基准日期
                     let currentDate = new Date(firstDate);
-                    
+
                     // 计算后续访视的基准日期
                     for (let i = 0; i < frequencies.length; i++) {
                         currentDate = new Date(currentDate.getTime() + frequencies[i] * 24 * 60 * 60 * 1000);
@@ -232,7 +313,7 @@
                         }
 
                         // 修改判断逻辑：使用窗口期最早日期或基准日期进行判断
-                        const dateToCheck = (visitNum > 0 && visitWindows[visitNum - 1] > 0) 
+                        const dateToCheck = (visitNum > 0 && visitWindows[visitNum - 1] > 0)
                             ? scheduleItem.earliestDate  // 如果有窗口期，使用最早日期
                             : scheduleItem.baseDate;     // 如果没有窗口期，使用基准日期
 
@@ -263,19 +344,19 @@
                 // 显示排序后的访视安排
                 scheduleItems.forEach(item => {
                     const row = tableBody.insertRow();
-                    
+
                     // 确定当前访视组（项目+中心+受试者名称的组合）
                     const currentVisitGroup = `${item.project}-${item.center}-${item.name}`;
-                    
+
                     // 如果是新的访视组，切换奇偶标记
                     if (currentVisitGroup !== lastVisitGroup) {
                         isEvenGroup = !isEvenGroup;
                         lastVisitGroup = currentVisitGroup;
                     }
-                    
+
                     // 添加对应的背景色类
                     row.className = isEvenGroup ? 'visit-group-even' : 'visit-group-odd';
-                    
+
                     // 填充单元格内容
                     row.insertCell(0).textContent = item.project;
                     row.insertCell(1).textContent = item.center;
@@ -317,7 +398,7 @@
         }
 
         // 修改刷新按钮事件监听
-        document.getElementById('refreshButton').addEventListener('click', function() {
+        document.getElementById('refreshButton').addEventListener('click', function () {
             const dates = datePicker.selectedDates;
             if (dates.length === 2) {
                 loadSchedule(dates[0], dates[1]);
@@ -327,7 +408,7 @@
         });
 
         // 页面加载时初始化今天的数据
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const today = new Date();
             loadSchedule(today, today);
         });
@@ -341,10 +422,10 @@
                 const projects = await new Promise((resolve) => {
                     projectStore.getAll().onsuccess = (event) => resolve(event.target.result);
                 });
-                
+
                 const projectSelect = document.getElementById('projectFilter');
                 projectSelect.innerHTML = '<option value="">全部项目</option>' +
-                    projects.map(project => 
+                    projects.map(project =>
                         `<option value="${project.projectName}">${project.projectName}</option>`
                     ).join('');
             } catch (error) {
@@ -358,7 +439,7 @@
                 const transaction = db.transaction(['centers'], 'readonly');
                 const centerStore = transaction.objectStore('centers');
                 let centers;
-                
+
                 if (projectName) {
                     const centerIndex = centerStore.index('projectName');
                     centers = await new Promise((resolve) => {
@@ -369,10 +450,10 @@
                         centerStore.getAll().onsuccess = (event) => resolve(event.target.result);
                     });
                 }
-                
+
                 const centerSelect = document.getElementById('centerFilter');
                 centerSelect.innerHTML = '<option value="">全部中心</option>' +
-                    centers.map(center => 
+                    centers.map(center =>
                         `<option value="${center.centerName}">${center.centerName}</option>`
                     ).join('');
             } catch (error) {
@@ -382,7 +463,7 @@
 
         // 添加项目选择变化监听 (第308行后)
         // 监听项目选择变化
-        document.getElementById('projectFilter').addEventListener('change', function() {
+        document.getElementById('projectFilter').addEventListener('change', function () {
             const projectName = this.value;
             loadCenters(projectName);
             const dates = datePicker.selectedDates;
@@ -392,7 +473,7 @@
         });
 
         // 监听中心选择变化
-        document.getElementById('centerFilter').addEventListener('change', function() {
+        document.getElementById('centerFilter').addEventListener('change', function () {
             const dates = datePicker.selectedDates;
             if (dates.length === 2) {
                 loadSchedule(dates[0], dates[1]);
@@ -400,4 +481,5 @@
         });
     </script>
 </body>
+
 </html>
