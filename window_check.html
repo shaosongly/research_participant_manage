@@ -108,7 +108,7 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card mb-5">
             <div class="card-body">
                 <table class="table">
                     <thead>
@@ -124,6 +124,54 @@
                         </tr>
                     </thead>
                     <tbody id="checkResultBody">
+                        <!-- 检查结果将通过JavaScript动态插入 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <h2 class="mb-4 text-center">超窗提醒</h2>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="reminderProjectFilter" class="form-label">项目筛选:</label>
+                        <select class="form-select" id="reminderProjectFilter">
+                            <option value="">全部项目</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="reminderCenterFilter" class="form-label">中心筛选:</label>
+                        <select class="form-select" id="reminderCenterFilter">
+                            <option value="">全部中心</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="reminderDate" class="form-label">截止日期:</label>
+                        <input type="date" class="form-control" id="reminderDate">
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button id="reminderButton" class="btn btn-primary w-100">检查</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>项目</th>
+                            <th>中心</th>
+                            <th>受试者</th>
+                            <th>访视序号</th>
+                            <th>窗口最早日期</th>
+                            <th>窗口最晚日期</th>
+                            <th>已超期天数</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reminderResultBody">
                         <!-- 检查结果将通过JavaScript动态插入 -->
                     </tbody>
                 </table>
@@ -155,18 +203,20 @@
                     projectStore.getAll().onsuccess = (event) => resolve(event.target.result);
                 });
 
-                const projectSelect = document.getElementById('projectFilter');
-                projectSelect.innerHTML = '<option value="">全部项目</option>' +
+                const projectOptions = '<option value="">全部项目</option>' +
                     projects.map(project =>
                         `<option value="${project.projectName}">${project.projectName}</option>`
                     ).join('');
+
+                document.getElementById('projectFilter').innerHTML = projectOptions;
+                document.getElementById('reminderProjectFilter').innerHTML = projectOptions;
             } catch (error) {
                 console.error('加载项目列表失败:', error);
             }
         }
 
         // 加载中心列表
-        async function loadCenters(projectName = '') {
+        async function loadCenters(projectName = '', targetId = 'centerFilter') {
             try {
                 const transaction = db.transaction(['centers'], 'readonly');
                 const centerStore = transaction.objectStore('centers');
@@ -183,8 +233,7 @@
                     });
                 }
 
-                const centerSelect = document.getElementById('centerFilter');
-                centerSelect.innerHTML = '<option value="">全部中心</option>' +
+                document.getElementById(targetId).innerHTML = '<option value="">全部中心</option>' +
                     centers.map(center =>
                         `<option value="${center.centerName}">${center.centerName}</option>`
                     ).join('');
@@ -349,6 +398,123 @@
         });
 
         document.getElementById('checkButton').addEventListener('click', checkWindowViolations);
+
+        // 初始化日期选择器为今天
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            document.getElementById('reminderDate').value = dateStr;
+            
+            // 复用项目列表加载
+            loadProjects();
+            loadCenters();
+            
+            // 为提醒模块的项目选择添加事件监听
+            document.getElementById('reminderProjectFilter').addEventListener('change', function() {
+                loadCenters(this.value, 'reminderCenterFilter');
+            });
+        });
+
+        // 添加超窗提醒检查函数
+        async function checkWindowReminders() {
+            const projectFilter = document.getElementById('reminderProjectFilter').value;
+            const centerFilter = document.getElementById('reminderCenterFilter').value;
+            const checkDate = new Date(document.getElementById('reminderDate').value);
+            const tableBody = document.getElementById('reminderResultBody');
+            tableBody.innerHTML = '';
+
+            try {
+                // 1. 获取符合条件的受试者
+                const subjectTx = db.transaction(['subjects'], 'readonly');
+                const subjectStore = subjectTx.objectStore('subjects');
+                const subjects = await new Promise((resolve) => {
+                    subjectStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                });
+
+                // 筛选符合条件的受试者
+                const filteredSubjects = subjects.filter(subject => 
+                    (!projectFilter || subject.project === projectFilter) &&
+                    (!centerFilter || subject.center === centerFilter)
+                );
+
+                // 2. 获取所有访视记录
+                const visitTx = db.transaction(['visitRecords'], 'readonly');
+                const visitStore = visitTx.objectStore('visitRecords');
+                const allVisits = await new Promise((resolve) => {
+                    visitStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                });
+
+                const reminders = [];
+
+                // 3. 检查每个受试者的访视记录
+                for (const subject of filteredSubjects) {
+                    const plannedVisits = calculatePlannedVisits(subject);
+                    
+                    // 获取该受试者的实际访视记录
+                    const subjectVisits = allVisits.filter(visit => 
+                        visit.project === subject.project &&
+                        visit.center === subject.center &&
+                        visit.subjectName === subject.name
+                    );
+
+                    // 检查每次计划访视是否已完成
+                    plannedVisits.forEach((plannedVisit, index) => {
+                        // 跳过首次访视（index === 0）
+                        if (index === 0) return;
+                        
+                        const visitNumber = index + 1;
+                        
+                        // 检查这次访视是否已经完成
+                        const hasVisitRecord = subjectVisits.some(visit => 
+                            visit.visitNumber === visitNumber
+                        );
+
+                        // 如果访视未完成且已超过最晚日期
+                        if (!hasVisitRecord && plannedVisit.latestDate < checkDate) {
+                            const overdueDays = Math.ceil((checkDate - plannedVisit.latestDate) / (1000 * 60 * 60 * 24));
+                            reminders.push({
+                                project: subject.project,
+                                center: subject.center,
+                                subject: subject.name,
+                                visitNumber: visitNumber,
+                                earliestDate: plannedVisit.earliestDate,
+                                latestDate: plannedVisit.latestDate,
+                                overdueDays: overdueDays
+                            });
+                        }
+                    });
+                }
+
+                // 4. 显示提醒记录
+                if (reminders.length === 0) {
+                    const row = tableBody.insertRow();
+                    const cell = row.insertCell();
+                    cell.colSpan = 7;
+                    cell.textContent = "未发现超窗访视";
+                    cell.classList.add("text-center");
+                } else {
+                    reminders.sort((a, b) => b.overdueDays - a.overdueDays);
+                    reminders.forEach(reminder => {
+                        const row = tableBody.insertRow();
+                        row.insertCell().textContent = reminder.project;
+                        row.insertCell().textContent = reminder.center;
+                        row.insertCell().textContent = reminder.subject;
+                        row.insertCell().textContent = `第 ${reminder.visitNumber} 次访视`;
+                        row.insertCell().textContent = formatDate(reminder.earliestDate);
+                        row.insertCell().textContent = formatDate(reminder.latestDate);
+                        const overdueCell = row.insertCell();
+                        overdueCell.textContent = `${reminder.overdueDays} 天`;
+                        overdueCell.classList.add('overdue');
+                    });
+                }
+            } catch (error) {
+                console.error('检查超窗提醒失败:', error);
+                alert('检查失败，请重试');
+            }
+        }
+
+        // 添加提醒按钮事件监听
+        document.getElementById('reminderButton').addEventListener('click', checkWindowReminders);
     </script>
 </body>
 </html> 
