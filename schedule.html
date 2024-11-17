@@ -46,11 +46,23 @@
         <div class="card mb-4">
             <div class="card-body">
                 <div class="row align-items-end">
-                    <div class="col-md-8 mb-3 mb-md-0">
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="projectFilter" class="form-label">项目筛选:</label>
+                        <select class="form-select" id="projectFilter">
+                            <option value="">全部项目</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="centerFilter" class="form-label">中心筛选:</label>
+                        <select class="form-select" id="centerFilter">
+                            <option value="">全部中心</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
                         <label for="dateRange" class="form-label">选择日期范围:</label>
                         <input type="text" class="form-control" id="dateRange">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <button id="refreshButton" class="btn btn-primary w-100">刷新访视安排</button>
                     </div>
                 </div>
@@ -61,6 +73,8 @@
                 <table id="scheduleTable" class="table table-visits table-hover">
                     <thead>
                         <tr>
+                            <th>项目</th>
+                            <th>中心</th>
                             <th>受试者名称</th>
                             <th>访视次数</th>
                             <th>窗口期最早日期</th>
@@ -90,7 +104,7 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/zh.js"></script>
     <script>
         let db;
-        const dbName = "SubjectsDB";
+        const dbName = "ResearchDB";
 
         // 初始化 Flatpickr 为日期范围选择器
         const datePicker = flatpickr("#dateRange", {
@@ -116,7 +130,10 @@
         request.onsuccess = function(event) {
             db = event.target.result;
             console.log("数据库打开成功");
-            loadSchedule(new Date().toISOString().split('T')[0]);
+            loadProjects();
+            loadCenters();
+            const today = new Date();
+            loadSchedule(today, today);
         };
 
         request.onupgradeneeded = function(event) {
@@ -133,7 +150,13 @@
             const objectStore = db.transaction("subjects").objectStore("subjects");
 
             objectStore.getAll().onsuccess = function(event) {
-                const subjects = event.target.result;
+                const projectFilter = document.getElementById('projectFilter').value;
+                const centerFilter = document.getElementById('centerFilter').value;
+                
+                const subjects = event.target.result.filter(subject => {
+                    return (!projectFilter || subject.project === projectFilter) &&
+                           (!centerFilter || subject.center === centerFilter);
+                });
                 let scheduleItems = [];
 
                 subjects.forEach(subject => {
@@ -199,6 +222,8 @@
                     // 遍历每次访视生成计划
                     visitDates.forEach((baseDate, visitNum) => {
                         let scheduleItem = {
+                            project: subject.project,
+                            center: subject.center,
                             name: subject.name,
                             visitNumber: visitNum + 1,
                             baseDate: baseDate,
@@ -246,8 +271,8 @@
                 scheduleItems.forEach(item => {
                     const row = tableBody.insertRow();
                     
-                    // 确定当前访视组（受试者名称的组合）
-                    const currentVisitGroup = item.name;
+                    // 确定当前访视组（项目+中心+受试者名称的组合）
+                    const currentVisitGroup = `${item.project}-${item.center}-${item.name}`;
                     
                     // 如果是新的访视组，切换奇偶标记
                     if (currentVisitGroup !== lastVisitGroup) {
@@ -259,13 +284,15 @@
                     row.className = isEvenGroup ? 'visit-group-even' : 'visit-group-odd';
                     
                     // 填充单元格内容
-                    row.insertCell(0).textContent = item.name;
-                    row.insertCell(1).textContent = `第 ${item.visitNumber} 次访视`;
+                    row.insertCell(0).textContent = item.project;
+                    row.insertCell(1).textContent = item.center;
+                    row.insertCell(2).textContent = item.name;
+                    row.insertCell(3).textContent = `第 ${item.visitNumber} 次访视`;
 
                     // 添加窗口期日期和基准日期
-                    const earliestCell = row.insertCell(2);
-                    const baseDateCell = row.insertCell(3);
-                    const latestCell = row.insertCell(4);
+                    const earliestCell = row.insertCell(4);
+                    const baseDateCell = row.insertCell(5);
+                    const latestCell = row.insertCell(6);
 
                     baseDateCell.textContent = formatDate(item.baseDate);
 
@@ -285,7 +312,7 @@
                 if (scheduleItems.length === 0) {
                     const row = tableBody.insertRow();
                     const cell = row.insertCell(0);
-                    cell.colSpan = 5;  // 修改为5列
+                    cell.colSpan = 7;  // 修改为7列
                     cell.textContent = "所选日期范围内无访视安排";
                     cell.classList.add("text-center");
                 }
@@ -310,6 +337,73 @@
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             loadSchedule(today, today);
+        });
+
+        // 添加项目和中心加载函数 (第117行后)
+        // 加载项目列表
+        async function loadProjects() {
+            try {
+                const transaction = db.transaction(['projects'], 'readonly');
+                const projectStore = transaction.objectStore('projects');
+                const projects = await new Promise((resolve) => {
+                    projectStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                });
+                
+                const projectSelect = document.getElementById('projectFilter');
+                projectSelect.innerHTML = '<option value="">全部项目</option>' +
+                    projects.map(project => 
+                        `<option value="${project.projectName}">${project.projectName}</option>`
+                    ).join('');
+            } catch (error) {
+                console.error('加载项目列表失败:', error);
+            }
+        }
+
+        // 加载中心列表
+        async function loadCenters(projectName = '') {
+            try {
+                const transaction = db.transaction(['centers'], 'readonly');
+                const centerStore = transaction.objectStore('centers');
+                let centers;
+                
+                if (projectName) {
+                    const centerIndex = centerStore.index('projectName');
+                    centers = await new Promise((resolve) => {
+                        centerIndex.getAll(projectName).onsuccess = (event) => resolve(event.target.result);
+                    });
+                } else {
+                    centers = await new Promise((resolve) => {
+                        centerStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                    });
+                }
+                
+                const centerSelect = document.getElementById('centerFilter');
+                centerSelect.innerHTML = '<option value="">全部中心</option>' +
+                    centers.map(center => 
+                        `<option value="${center.centerName}">${center.centerName}</option>`
+                    ).join('');
+            } catch (error) {
+                console.error('加载中心列表失败:', error);
+            }
+        }
+
+        // 添加项目选择变化监听 (第308行后)
+        // 监听项目选择变化
+        document.getElementById('projectFilter').addEventListener('change', function() {
+            const projectName = this.value;
+            loadCenters(projectName);
+            const dates = datePicker.selectedDates;
+            if (dates.length === 2) {
+                loadSchedule(dates[0], dates[1]);
+            }
+        });
+
+        // 监听中心选择变化
+        document.getElementById('centerFilter').addEventListener('change', function() {
+            const dates = datePicker.selectedDates;
+            if (dates.length === 2) {
+                loadSchedule(dates[0], dates[1]);
+            }
         });
     </script>
 </body>
