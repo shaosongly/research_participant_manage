@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>访视记录管理</title>
+    <!-- 引入 Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入 Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 66px;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 30px;
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0.2rem 0;
+            min-height: 40px;
+        }
+        .navbar-brand {
+            padding: 0;
+            font-size: 1rem;
+        }
+        .navbar-nav {
+            flex-direction: row;
+            align-items: center;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+        }
+        .nav-link {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="landing.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="project_manage.html">项目管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">添加受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="view.html">查看受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="schedule.html">访视安排</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="visit_record.html">访视记录</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- 访视记录录入部分 -->
+        <h2 class="mb-4 text-center">访视记录录入</h2>
+        <div class="card mb-4">
+            <div class="card-body">
+                <!-- 项目和中心选择 -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="projectSelect" class="form-label">选择项目:</label>
+                        <select class="form-select" id="projectSelect" required>
+                            <option value="">请选择项目</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="centerSelect" class="form-label">选择中心:</label>
+                        <select class="form-select" id="centerSelect" required>
+                            <option value="">请先选择项目</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 单次录入表单 -->
+                <form id="singleVisitForm" class="mb-4">
+                    <h5 class="mb-3">单次访视记录</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="subjectSelect" class="form-label">受试者:</label>
+                                <select class="form-select" id="subjectSelect" required>
+                                    <option value="">请先选择中心</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="visitNumber" class="form-label">访视序号:</label>
+                                <input type="number" class="form-control" id="visitNumber" min="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="visitDate" class="form-label">实际访视日期:</label>
+                                <input type="text" class="form-control" id="visitDate" required>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">提交访视记录</button>
+                </form>
+
+                <!-- 批量导入表单 -->
+                <form id="batchImportForm">
+                    <h5 class="mb-3">批量导入访视记录</h5>
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">选择Excel文件：</label>
+                        <input type="file" class="form-control" id="excelFile" accept=".xlsx, .xls" required>
+                    </div>
+                    <div id="columnMapping" class="mb-3">
+                        <!-- 字段映射将在这里动态生成 -->
+                    </div>
+                    <button type="submit" class="btn btn-primary">批量导入</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 访视记录展示部分 -->
+        <h2 class="mb-4 text-center">访视记录列表</h2>
+        <div class="card">
+            <div class="card-body">
+                <!-- 筛选条件 -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="filterProject" class="form-label">项目筛选:</label>
+                        <select class="form-select" id="filterProject">
+                            <option value="">全部项目</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filterCenter" class="form-label">中心筛选:</label>
+                        <select class="form-select" id="filterCenter">
+                            <option value="">全部中心</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filterSubject" class="form-label">受试者筛选:</label>
+                        <select class="form-select" id="filterSubject">
+                            <option value="">全部受试者</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 访视记录表格 -->
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>项目</th>
+                                <th>中心</th>
+                                <th>受试者</th>
+                                <th>访视序号</th>
+                                <th>实际访视日期</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="visitRecordsTableBody">
+                            <!-- 访视记录将通过 JavaScript 动态添加 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入必要的 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/zh.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
+    <script>
+        // 初始化日期选择器
+        flatpickr("#visitDate", {
+            dateFormat: "Y-m-d",
+            locale: "zh",
+            allowInput: true,
+            altInput: true,
+            altFormat: "Y年m月d日",
+            disableMobile: true
+        });
+
+        let db;
+        const dbName = "ResearchDB";
+
+        // 初始化数据库连接
+        const request = indexedDB.open(dbName);
+
+        request.onerror = function(event) {
+            console.error("数据库错误:", event.target.error);
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            loadProjectsAndCenters();
+            loadVisitRecords();
+        };
+
+        // 加载项目和中心
+        async function loadProjectsAndCenters() {
+            try {
+                const transaction = db.transaction(['projects'], 'readonly');
+                const projectStore = transaction.objectStore('projects');
+                
+                const projects = await new Promise((resolve) => {
+                    projectStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                });
+                
+                updateProjectSelects(projects);
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                alert('加载项目列表失败');
+            }
+        }
+
+        // 更新所有项目选择框
+        function updateProjectSelects(projects) {
+            const projectSelects = ['projectSelect', 'filterProject'];
+            projectSelects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                const defaultOption = select.querySelector('option:first-child').cloneNode(true);
+                select.innerHTML = '';
+                select.appendChild(defaultOption);
+                projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.projectName;
+                    option.textContent = project.projectName;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        // 加载中心
+        async function loadCentersForProject(projectName) {
+            try {
+                const transaction = db.transaction(['centers'], 'readonly');
+                const centerStore = transaction.objectStore('centers');
+                const centerIndex = centerStore.index('projectName');
+                
+                const centers = await new Promise((resolve) => {
+                    centerIndex.getAll(projectName).onsuccess = (event) => resolve(event.target.result);
+                });
+                
+                updateCenterSelects(centers);
+            } catch (error) {
+                console.error('Error loading centers:', error);
+                alert('加载中心列表失败');
+            }
+        }
+
+        // 更新所有中心选择框
+        function updateCenterSelects(centers) {
+            const centerSelects = ['centerSelect', 'filterCenter'];
+            centerSelects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                const defaultOption = select.querySelector('option:first-child').cloneNode(true);
+                select.innerHTML = '';
+                select.appendChild(defaultOption);
+                centers.forEach(center => {
+                    const option = document.createElement('option');
+                    option.value = center.centerName;
+                    option.textContent = center.centerName;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        // 加载受试者
+        async function loadSubjectsForCenter(projectName, centerName) {
+            try {
+                const transaction = db.transaction(['subjects'], 'readonly');
+                const subjectStore = transaction.objectStore('subjects');
+                const subjects = await new Promise((resolve) => {
+                    subjectStore.getAll().onsuccess = (event) => {
+                        const allSubjects = event.target.result;
+                        resolve(allSubjects.filter(s => 
+                            s.project === projectName && s.center === centerName
+                        ));
+                    };
+                });
+                
+                updateSubjectSelects(subjects);
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+                alert('加载受试者列表失败');
+            }
+        }
+
+        // 更新所有受试者选择框
+        function updateSubjectSelects(subjects) {
+            const subjectSelects = ['subjectSelect', 'filterSubject'];
+            subjectSelects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                const defaultOption = select.querySelector('option:first-child').cloneNode(true);
+                select.innerHTML = '';
+                select.appendChild(defaultOption);
+                subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject.name;
+                    option.textContent = subject.name;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        // 加载访视记录
+        async function loadVisitRecords(filters = {}) {
+            try {
+                const transaction = db.transaction(['visitRecords'], 'readonly');
+                const visitStore = transaction.objectStore('visitRecords');
+                
+                const records = await new Promise((resolve) => {
+                    visitStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                });
+
+                // 应用筛选
+                const filteredRecords = records.filter(record => {
+                    return (!filters.project || record.project === filters.project) &&
+                           (!filters.center || record.center === filters.center) &&
+                           (!filters.subject || record.subjectName === filters.subject);
+                });
+
+                // 更新表格
+                updateVisitRecordsTable(filteredRecords);
+            } catch (error) {
+                console.error('Error loading visit records:', error);
+                alert('加载访视记录失败');
+            }
+        }
+
+        // 更新访视记录表格
+        function updateVisitRecordsTable(records) {
+            const tbody = document.getElementById('visitRecordsTableBody');
+            tbody.innerHTML = '';
+            
+            records.forEach(record => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${record.project}</td>
+                    <td>${record.center}</td>
+                    <td>${record.subjectName}</td>
+                    <td>${record.visitNumber}</td>
+                    <td>${record.visitDate}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger delete-record" 
+                                data-project="${record.project}"
+                                data-center="${record.center}"
+                                data-subject="${record.subjectName}"
+                                data-visit="${record.visitNumber}">
+                            删除
+                        </button>
+                    </td>
+                `;
+            });
+        }
+
+        // 添加日期解析函数
+        function parseExcelDate(dateValue) {
+            console.log("Original date value:", dateValue);
+            
+            if (dateValue instanceof Date) {
+                return new Date(Date.UTC(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate()));
+            }
+            
+            if (typeof dateValue === 'number') {
+                // Excel的日期数字是从1900年1月1日开始的天数
+                const date = new Date((dateValue - 25569) * 86400 * 1000);
+                return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            }
+            
+            if (typeof dateValue === 'string') {
+                // 处理 "MMDD" 格式
+                if (/^\d{4}$/.test(dateValue)) {
+                    const month = parseInt(dateValue.substr(0, 2)) - 1;
+                    const day = parseInt(dateValue.substr(2, 2));
+                    const year = new Date().getFullYear();
+                    return new Date(Date.UTC(year, month, day));
+                }
+                
+                // 处理 "M/D/YY" 格式
+                const parts = dateValue.split('/');
+                if (parts.length === 3) {
+                    const month = parseInt(parts[0]) - 1;
+                    const day = parseInt(parts[1]);
+                    let year = parseInt(parts[2]);
+                    
+                    if (year < 100) {
+                        year += year < 50 ? 2000 : 1900;
+                    }
+                    
+                    return new Date(Date.UTC(year, month, day));
+                }
+                
+                // 尝试使用 Date 构造函数
+                const date = new Date(dateValue);
+                if (!isNaN(date.getTime())) {
+                    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+                }
+            }
+            
+            return null;
+        }
+
+        // 事件监听器设置
+        document.addEventListener('DOMContentLoaded', function() {
+            // 项目选择变化
+            document.getElementById('projectSelect').addEventListener('change', function() {
+                const projectName = this.value;
+                if (projectName) {
+                    loadCentersForProject(projectName);
+                }
+            });
+
+            // 中心选择变化
+            document.getElementById('centerSelect').addEventListener('change', function() {
+                const projectName = document.getElementById('projectSelect').value;
+                const centerName = this.value;
+                if (projectName && centerName) {
+                    loadSubjectsForCenter(projectName, centerName);
+                }
+            });
+
+            // 筛选条件变化
+            ['filterProject', 'filterCenter', 'filterSubject'].forEach(filterId => {
+                document.getElementById(filterId).addEventListener('change', function() {
+                    const filters = {
+                        project: document.getElementById('filterProject').value,
+                        center: document.getElementById('filterCenter').value,
+                        subject: document.getElementById('filterSubject').value
+                    };
+                    loadVisitRecords(filters);
+                });
+            });
+
+            // 单次访视记录提交
+            document.getElementById('singleVisitForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const visitData = {
+                    project: document.getElementById('projectSelect').value,
+                    center: document.getElementById('centerSelect').value,
+                    subjectName: document.getElementById('subjectSelect').value,
+                    visitNumber: parseInt(document.getElementById('visitNumber').value),
+                    visitDate: document.getElementById('visitDate').value
+                };
+
+                try {
+                    const transaction = db.transaction(['visitRecords'], 'readwrite');
+                    const visitStore = transaction.objectStore('visitRecords');
+                    
+                    await new Promise((resolve, reject) => {
+                        const request = visitStore.add(visitData);
+                        request.onsuccess = resolve;
+                        request.onerror = reject;
+                    });
+
+                    alert('访视记录添加成功');
+                    this.reset();
+                    loadVisitRecords();
+                } catch (error) {
+                    console.error('Error saving visit record:', error);
+                    alert('保存访视记录失败');
+                }
+            });
+
+            // 批量导入处理
+            document.getElementById('excelFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {
+                        type: 'array',
+                        cellDates: true,  // 启用日期单元格处理
+                        dateNF: 'yyyy-mm-dd'  // 指定日期格式
+                    });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const headers = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0];
+
+                    // 打印读取到的表头
+                    console.log("Headers:", headers);
+
+                    const rows = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    // 打印读取到的行数据
+                    console.log("Rows:", rows);
+
+                    // 生成字段映射选择
+                    const mappingHtml = headers.map((header, index) => `
+                        <div class="mb-2">
+                            <label class="form-label">Excel列 "${header}" 对应：</label>
+                            <select class="form-select" data-excel-column="${index}">
+                                <option value="">请选择</option>
+                                <option value="subjectName">受试者名称（必填）</option>
+                                <option value="visitNumber">访视序号（必填）</option>
+                                <option value="visitDate">实际访视日期（必填）</option>
+                            </select>
+                        </div>
+                    `).join('');
+
+                    document.getElementById('columnMapping').innerHTML = mappingHtml;
+                };
+
+                reader.readAsArrayBuffer(file);
+            });
+
+            // 批量导入表单提交
+            document.getElementById('batchImportForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const projectName = document.getElementById('projectSelect').value;
+                const centerName = document.getElementById('centerSelect').value;
+
+                if (!projectName || !centerName) {
+                    alert('请先选择项目和中心');
+                    return;
+                }
+
+                const file = document.getElementById('excelFile').files[0];
+                if (!file) {
+                    alert('请选择Excel文件');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, {
+                            type: 'array',
+                            cellDates: true,
+                            dateNF: 'yyyy-mm-dd'
+                        });
+                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const headers = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0];
+
+                        // 验证是否有数据
+                        if (!headers || headers.length === 0) {
+                            throw new Error('Excel 文件为空或格式不正确');
+                        }
+
+                        // 在这里定义 rows
+                        const rows = XLSX.utils.sheet_to_json(worksheet);
+                        
+                        if (rows.length === 0) {
+                            throw new Error('Excel 文件没有数据行');
+                        }
+
+                        // 获取字段映射
+                        const columnMapping = {};
+                        document.querySelectorAll('#columnMapping select').forEach(select => {
+                            if (select.value) {
+                                columnMapping[select.dataset.excelColumn] = select.value;
+                            }
+                        });
+
+                        console.log('Column Mapping:', columnMapping); // 调试用
+                        console.log('Rows:', rows); // 调试用
+
+                        // 验证是否完成了必要的字段映射
+                        const requiredFields = ['subjectName', 'visitNumber', 'visitDate'];
+                        const mappedFields = Object.values(columnMapping);
+                        const missingMappings = requiredFields.filter(field => !mappedFields.includes(field));
+
+                        if (missingMappings.length > 0) {
+                            throw new Error(`请完成必要字段的映射：${missingMappings.join('、')}`);
+                        }
+
+                        // 转换数据
+                        const visitRecords = rows.map((row, index) => {
+                            // 确保所有必需的字段都存在
+                            const record = {
+                                project: projectName,
+                                center: centerName,
+                                subjectName: '',
+                                visitNumber: 0,
+                                visitDate: ''
+                            };
+
+                            // 从Excel映射中获取数据
+                            Object.keys(columnMapping).forEach(colIndex => {
+                                const field = columnMapping[colIndex];
+                                const header = headers[colIndex];  // 获取对应的表头
+                                const value = row[header];  // 使用表头作为键名获取值
+                                
+                                if (field === 'visitNumber') {
+                                    record[field] = parseInt(value) || 0;
+                                } else if (field === 'visitDate') {
+                                    const parsedDate = parseExcelDate(value);
+                                    if (parsedDate) {
+                                        record[field] = parsedDate.toISOString().split('T')[0];
+                                    } else {
+                                        console.error('Invalid date value:', value);
+                                        record[field] = '';
+                                    }
+                                } else {
+                                    record[field] = String(value || '');
+                                }
+                            });
+
+                            // 验证必需字段并提供更详细的错误信息
+                            const missingFields = [];
+                            if (!record.subjectName) missingFields.push('受试者名称');
+                            if (!record.visitNumber) missingFields.push('访视序号');
+                            if (!record.visitDate) missingFields.push('访视日期');
+
+                            if (missingFields.length > 0) {
+                                throw new Error(`第 ${index + 1} 行数据缺少必需字段：${missingFields.join('、')}`);
+                            }
+
+                            return record;
+                        });
+
+                        try {
+                            const transaction = db.transaction(['visitRecords'], 'readwrite');
+                            const visitStore = transaction.objectStore('visitRecords');
+
+                            // 逐个添加记录，这样可以更好地处理错误
+                            for (const record of visitRecords) {
+                                await new Promise((resolve, reject) => {
+                                    const request = visitStore.add(record);
+                                    request.onsuccess = resolve;
+                                    request.onerror = (event) => {
+                                        console.error('Error adding record:', record, event.target.error);
+                                        reject(event.target.error);
+                                    };
+                                });
+                            }
+
+                            alert('批量导入成功');
+                            document.getElementById('batchImportForm').reset();
+                            document.getElementById('columnMapping').innerHTML = '';
+                            loadVisitRecords();
+                        } catch (error) {
+                            console.error('Batch import error:', error);
+                            alert('批量导入失败：' + error.message);
+                        }
+                    } catch (error) {
+                        console.error('Error in file processing:', error);
+                        alert(error.message);
+                        return;
+                    }
+                };
+
+                reader.readAsArrayBuffer(file);
+            });
+
+            // 删除访视记录
+            document.getElementById('visitRecordsTableBody').addEventListener('click', async function(e) {
+                if (e.target.classList.contains('delete-record')) {
+                    if (!confirm('确定要删除这条访视记录吗？')) {
+                        return;
+                    }
+
+                    const record = {
+                        project: e.target.dataset.project,
+                        center: e.target.dataset.center,
+                        subjectName: e.target.dataset.subject,
+                        visitNumber: parseInt(e.target.dataset.visit)
+                    };
+
+                    try {
+                        const transaction = db.transaction(['visitRecords'], 'readwrite');
+                        const visitStore = transaction.objectStore('visitRecords');
+                        
+                        await new Promise((resolve, reject) => {
+                            const request = visitStore.delete([
+                                record.project,
+                                record.center,
+                                record.subjectName,
+                                record.visitNumber
+                            ]);
+                            request.onsuccess = resolve;
+                            request.onerror = reject;
+                        });
+
+                        loadVisitRecords();
+                    } catch (error) {
+                        console.error('Delete error:', error);
+                        alert('删除失败，请重试');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
