@@ -145,8 +145,20 @@
         <div class="card mb-4">
             <div class="card-body">
                 <div class="row align-items-end">
-                    <div class="col-md-8 mb-3 mb-md-0">
-                        <label for="subjectInput" class="form-label">选择或输入受试者:</label>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="projectSelect" class="form-label">选择项目:</label>
+                        <select class="form-select" id="projectSelect">
+                            <option value="">请选择项目</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="centerSelect" class="form-label">选择中心:</label>
+                        <select class="form-select" id="centerSelect">
+                            <option value="">请先选择项目</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <label for="subjectInput" class="form-label">输入受试者:</label>
                         <input class="form-control" 
                                id="subjectInput" 
                                type="text"
@@ -154,7 +166,7 @@
                                autocomplete="off">
                         <div id="subjectSuggestions" class="suggestion-list"></div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <button id="searchButton" class="btn btn-primary w-100">查询</button>
                     </div>
                 </div>
@@ -249,7 +261,7 @@
 
 
         let db;
-        const dbName = "SubjectsDB";
+        const dbName = "ResearchDB";
 
         const request = indexedDB.open(dbName);
 
@@ -260,7 +272,8 @@
         request.onsuccess = function(event) {
             db = event.target.result;
             console.log("数据库打开成功");
-            loadSubjects(); // 页面加载时获取所有受试者
+            loadProjects();  // 先加载项目列表
+            loadSubjects();  // 加载受试者列表
         };
 
         let allSubjects = []; // 存储所有受试者数据
@@ -281,23 +294,39 @@
         // 添加输入处理函数
         function handleInput(event) {
             const input = event.target;
-            const value = input.value.trim().toLowerCase();
+            const projectName = document.getElementById('projectSelect').value;
+            const centerName = document.getElementById('centerSelect').value;
             const suggestionList = document.getElementById('subjectSuggestions');
             
-            if (value === '') {
-                suggestionList.style.display = 'none';
+            if (!projectName || !centerName) {
+                alert('请先选择项目和中心');
+                input.value = '';
                 return;
             }
-
-            // 过滤匹配的受试者
-            const matches = allSubjects.filter(subject => 
-                subject.name.toLowerCase().startsWith(value)
+            
+            // 获取当前中心的所有受试者
+            const centerSubjects = allSubjects.filter(subject => 
+                subject.project === projectName && 
+                subject.center === centerName
             );
-
+            
+            // 如果有输入值，进一步过滤匹配的受试者
+            const value = input.value.trim().toLowerCase();
+            const matches = value ? 
+                centerSubjects.filter(subject => 
+                    subject.name.toLowerCase().startsWith(value)
+                ) : 
+                centerSubjects;
+            
             // 显示建议列表
-            if (matches.length > 0) {
+            displaySuggestions(matches, input, suggestionList);
+        }
+
+        // 添加显示建议列表的辅助函数
+        function displaySuggestions(subjects, input, suggestionList) {
+            if (subjects.length > 0) {
                 suggestionList.innerHTML = '';
-                matches.forEach(subject => {
+                subjects.forEach(subject => {
                     const div = document.createElement('div');
                     div.className = 'suggestion-item';
                     div.textContent = subject.name;
@@ -373,10 +402,22 @@
         // 添加事件监听器
         document.getElementById('subjectInput').addEventListener('input', handleInput);
         document.getElementById('subjectInput').addEventListener('keydown', handleKeydown);
+        document.getElementById('subjectInput').addEventListener('focus', function(event) {
+            // 当输入框获得焦点时，显示所有当前中心的受试者
+            handleInput(event);
+        });
 
         // 修改搜索函数
         function searchSubject() {
+            const projectName = document.getElementById('projectSelect').value;
+            const centerName = document.getElementById('centerSelect').value;
             const inputValue = document.getElementById('subjectInput').value.trim();
+            
+            if (!projectName || !centerName) {
+                alert("请先选择项目和中心");
+                return;
+            }
+            
             if (!inputValue) {
                 alert("请选择或输入受试者姓名");
                 return;
@@ -384,14 +425,13 @@
 
             const transaction = db.transaction(["subjects"], "readonly");
             const objectStore = transaction.objectStore("subjects");
-            const nameIndex = objectStore.index("name");
-
-            const request = nameIndex.getAll(inputValue);
+            
+            // 使用复合主键查询
+            const request = objectStore.get([projectName, centerName, inputValue]);
 
             request.onsuccess = function(event) {
-                const results = event.target.result;
-                if (results.length > 0) {
-                    const subject = results[0];
+                const subject = event.target.result;
+                if (subject) {
                     displaySubjectInfo(subject);
                     generateVisitPlan(subject);
                 } else {
@@ -549,7 +589,7 @@
                             dateType = `延后${offset}天`;
                         }
                         
-                        // 是否是访视组的第一行或最后一行
+                        // 是否是���视组的第一行或最后一行
                         const isFirst = offset === -window;
                         const isLast = offset === window;
                         
@@ -642,5 +682,61 @@
                 searchSubject();
             }
         });
+
+        // 加载项目列表
+        async function loadProjects() {
+            try {
+                const transaction = db.transaction(['projects'], 'readonly');
+                const projectStore = transaction.objectStore('projects');
+                const projects = await new Promise((resolve) => {
+                    projectStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                });
+                
+                const projectSelect = document.getElementById('projectSelect');
+                projectSelect.innerHTML = '<option value="">请选择项目</option>' +
+                    projects.map(project => 
+                        `<option value="${project.projectName}">${project.projectName}</option>`
+                    ).join('');
+                    
+                // 添加项目选择事件监听器
+                projectSelect.addEventListener('change', function() {
+                    const selectedProject = this.value;
+                    document.getElementById('subjectInput').value = '';
+                    if (selectedProject) {
+                        loadCenters(selectedProject);
+                    } else {
+                        document.getElementById('centerSelect').innerHTML = '<option value="">请先选择项目</option>';
+                    }
+                });
+            } catch (error) {
+                console.error('加载项目列表失败:', error);
+            }
+        }
+
+        // 加载中心列表
+        async function loadCenters(projectName) {
+            try {
+                const transaction = db.transaction(['centers'], 'readonly');
+                const centerStore = transaction.objectStore('centers');
+                const centerIndex = centerStore.index('projectName');
+                
+                const centers = await new Promise((resolve) => {
+                    centerIndex.getAll(projectName).onsuccess = (event) => resolve(event.target.result);
+                });
+                
+                const centerSelect = document.getElementById('centerSelect');
+                centerSelect.innerHTML = '<option value="">请选择中心</option>' +
+                    centers.map(center => 
+                        `<option value="${center.centerName}">${center.centerName}</option>`
+                    ).join('');
+                    
+                // 添加中心选择事件监听器
+                centerSelect.addEventListener('change', function() {
+                    document.getElementById('subjectInput').value = '';
+                });
+            } catch (error) {
+                console.error('加载中心列表失败:', error);
+            }
+        }
     </script>
 </body>

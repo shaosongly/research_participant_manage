@@ -136,13 +136,6 @@
             loadSchedule(today, today);
         };
 
-        request.onupgradeneeded = function(event) {
-            db = event.target.result;
-            const objectStore = db.createObjectStore("subjects", { keyPath: "id", autoIncrement: true });
-            objectStore.createIndex("name", "name", { unique: false });
-            objectStore.createIndex("firstDate", "firstDate", { unique: false });
-        };
-
         function loadSchedule(startDate, endDate) {
             const tableBody = document.querySelector('#scheduleTable tbody');
             tableBody.innerHTML = '';

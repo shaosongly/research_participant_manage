@@ -172,11 +172,16 @@
                 centerStore.createIndex('createTime', 'createTime', { unique: false });
             }
 
-            // 保留原有的受试者表结构
+            // 修改受试者表结构
             if (!db.objectStoreNames.contains('subjects')) {
-                const subjectStore = db.createObjectStore('subjects', { keyPath: 'name' });
-                subjectStore.createIndex('projectName', 'projectName', { unique: false });
-                subjectStore.createIndex('centerName', 'centerName', { unique: false });
+                const subjectStore = db.createObjectStore('subjects', { 
+                    keyPath: ['project', 'center', 'name'] 
+                });
+                // 添加必要的索引
+                subjectStore.createIndex('project', 'project', { unique: false });
+                subjectStore.createIndex('center', 'center', { unique: false });
+                subjectStore.createIndex('name', 'name', { unique: false });
+                subjectStore.createIndex('projectCenter', ['project', 'center'], { unique: false });
             }
         };
 
@@ -456,7 +461,7 @@
                     
                     for (const subject of subjects) {
                         await new Promise((resolve) => {
-                            subjectStore.delete(subject.name).onsuccess = resolve;
+                            subjectStore.delete([deleteProject, subject.center, subject.name]).onsuccess = resolve;
                         });
                     }
                 } else if (deleteType === 'center') {
@@ -478,7 +483,7 @@
                     for (const subject of subjects) {
                         if (subject.project === deleteProject && subject.center === deleteCenter) {
                             await new Promise((resolve) => {
-                                subjectStore.delete(subject.name).onsuccess = resolve;
+                                subjectStore.delete([deleteProject, deleteCenter, subject.name]).onsuccess = resolve;
                             });
                         }
                     }

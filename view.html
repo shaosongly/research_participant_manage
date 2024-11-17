@@ -96,15 +96,6 @@
             loadSubjects();
         };
 
-        request.onupgradeneeded = function(event) {
-            db = event.target.result;
-            if (!db.objectStoreNames.contains("subjects")) {
-                const objectStore = db.createObjectStore("subjects", { keyPath: "name" });
-                objectStore.createIndex("project", "project", { unique: false });
-                objectStore.createIndex("center", "center", { unique: false });
-            }
-        };
-
         let allSubjects = [];  // 存储所有受试者数据
         let projectSet = new Set();  // 存储所有项目
         let centerMap = new Map();  // 存储项目-中心映射

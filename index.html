@@ -157,10 +157,9 @@
 
         let db;
         const dbName = "ResearchDB";
-        const version = 1;
 
         // 初始化数据库连接
-        const request = indexedDB.open(dbName, version);
+        const request = indexedDB.open(dbName);
 
         request.onerror = function(event) {
             console.error("数据库错误:", event.target.error);
