@@ -35,12 +35,19 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="#">受试者管理系统</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto"> <!-- 添加 ms-auto 类 -->
+                    <li class="nav-item">
+                        <a class="nav-link active" href="landing.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="project_manage.html">项目管理</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="index.html">添加受试者</a>
                     </li>
@@ -52,6 +59,12 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="visit_plan.html">访视计划</a>
+                    </li>
+                    <li class="nav-item"></li>
+                        <a class="nav-link" href="visit_record.html">访视记录</a>
+                    </li>
+                    <li class="nav-item"></li>
+                        <a class="nav-link" href="window_check.html">超窗检查</a>
                     </li>
                 </ul>
             </div>
@@ -68,11 +81,11 @@
             <div class="col-md-3 mb-4">
                 <div class="card h-100">
                     <div class="card-body">
-                        <div class="feature-icon text-center">📝</div>
-                        <h5 class="card-title text-center">添加受试者</h5>
-                        <p class="card-text text-center">轻松添加新的受试者信息,包括名称、首次受试日期、访视频率等。</p>
+                        <div class="feature-icon text-center">🏢</div>
+                        <h5 class="card-title text-center">项目管理</h5>
+                        <p class="card-text text-center">管理项目和中心信息，为受试者分配所属项目和中心。</p>
                         <div class="text-center mt-auto">
-                            <a href="index.html" class="btn btn-primary">开始添加</a>
+                            <a href="project_manage.html" class="btn btn-primary">管理项目</a>
                         </div>
                     </div>
                 </div>

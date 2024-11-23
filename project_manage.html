@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目管理</title>
+    <!-- 引入 Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 66px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin-top: 30px;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0.2rem 0;
+            /* 减小上下内边距 */
+            min-height: 40px;
+            /* 设置最小高度 */
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0.2rem 0;
+            min-height: 40px;
+        }
+        .navbar-brand {
+            padding: 0;
+            font-size: 1rem;
+        }
+        .navbar-nav {
+            flex-direction: row;
+            align-items: center;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+        }
+        .nav-link {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .project-card {
+            margin-bottom: 20px;
+        }
+
+        .center-list {
+            margin-top: 10px;
+        }
+
+        .center-item {
+            padding: 8px 15px;
+            margin-bottom: 5px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-center-btn {
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .delete-center-btn:hover {
+            opacity: 1;
+        }
+
+        .center-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .card-header .btn {
+            margin-left: 8px;
+        }
+
+        .btn-group .btn {
+            margin-left: 12px;
+        }
+
+        .center-item .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 添加导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto"> <!-- 添加 ms-auto 类 -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="landing.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="project_manage.html">项目管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">添加受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="view.html">查看受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="schedule.html">访视安排</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="visit_plan.html">访视计划</a>
+                    </li>
+                    <li class="nav-item"></li>
+                        <a class="nav-link" href="visit_record.html">访视记录</a>
+                    </li>
+                    <li class="nav-item"></li>
+                        <a class="nav-link active" href="window_check.html">超窗检查</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="mb-4 text-center">项目管理</h1>
+
+        <!-- 新建项目按钮 -->
+        <div class="mb-4">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newProjectModal">
+                新建项目
+            </button>
+        </div>
+
+        <!-- 项目列表 -->
+        <div id="projectList">
+            <!-- 项目卡片将通过 JavaScript 动态添加 -->
+        </div>
+
+        <!-- 返回按钮 -->
+        <div class="text-center mt-4">
+            <a href="landing.html" class="btn btn-info">返回首页</a>
+        </div>
+
+        <!-- 新建项目模态框 -->
+        <div class="modal fade" id="newProjectModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">新建项目</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="newProjectForm">
+                            <div class="mb-3">
+                                <label for="projectName" class="form-label">项目名称:</label>
+                                <input type="text" class="form-control" id="projectName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="centerName" class="form-label">初始中心名称:</label>
+                                <input type="text" class="form-control" id="centerName" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="saveProjectBtn">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新增中心模态框 -->
+        <div class="modal fade" id="newCenterModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">新增中心</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="newCenterForm">
+                            <input type="hidden" id="projectForCenter">
+                            <div class="mb-3">
+                                <label for="newCenterName" class="form-label">中心名称:</label>
+                                <input type="text" class="form-control" id="newCenterName" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="saveCenterBtn">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 确认删除模态框 -->
+        <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">确认删除</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="deleteConfirmMessage"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">确认删除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入 Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let db;
+        const dbName = "ResearchDB";
+        const version = 2;
+
+        // 初始化数据库
+        const request = indexedDB.open(dbName, version);
+
+        // 创建/升级数据库结构
+        request.onupgradeneeded = function (event) {
+            const db = event.target.result;
+            console.log('Database upgrade needed. Current version:', event.oldVersion, 'New version:', event.newVersion);
+
+            // 创建项目表
+            if (!db.objectStoreNames.contains('projects')) {
+                console.log('Creating projects store');
+                const projectStore = db.createObjectStore('projects', { keyPath: 'projectName' });
+                projectStore.createIndex('createTime', 'createTime', { unique: false });
+            }
+
+            // 创建中心表
+            if (!db.objectStoreNames.contains('centers')) {
+                console.log('Creating centers store');
+                const centerStore = db.createObjectStore('centers', { keyPath: ['projectName', 'centerName'] });
+                centerStore.createIndex('projectName', 'projectName', { unique: false });
+                centerStore.createIndex('createTime', 'createTime', { unique: false });
+            }
+
+            // 创建受试者表
+            if (!db.objectStoreNames.contains('subjects')) {
+                console.log('Creating subjects store');
+                const subjectStore = db.createObjectStore('subjects', {
+                    keyPath: ['project', 'center', 'name']
+                });
+                subjectStore.createIndex('project', 'project', { unique: false });
+                subjectStore.createIndex('center', 'center', { unique: false });
+                subjectStore.createIndex('name', 'name', { unique: false });
+                subjectStore.createIndex('projectCenter', ['project', 'center'], { unique: false });
+            }
+
+            // 创建访视记录表
+            if (!db.objectStoreNames.contains('visitRecords')) {
+                console.log('Creating visitRecords store');
+                const visitStore = db.createObjectStore('visitRecords', {
+                    keyPath: ['project', 'center', 'subjectName', 'visitNumber']
+                });
+                visitStore.createIndex('project', 'project', { unique: false });
+                visitStore.createIndex('center', 'center', { unique: false });
+                visitStore.createIndex('subjectName', 'subjectName', { unique: false });
+                visitStore.createIndex('visitNumber', 'visitNumber', { unique: false });
+                visitStore.createIndex('subjectKey', ['project', 'center', 'subjectName'], { unique: false });
+                visitStore.createIndex('visitDate', 'visitDate', { unique: false });
+            }
+        };
+
+        request.onsuccess = function (event) {
+            db = event.target.result;
+            console.log('Database opened successfully. Version:', db.version);
+            console.log('Available stores:', Array.from(db.objectStoreNames));
+            loadProjects();
+        };
+
+        // 加载项目列表
+        async function loadProjects() {
+            const transaction = db.transaction(['projects', 'centers', 'subjects'], 'readonly');
+            const projectStore = transaction.objectStore('projects');
+            const centerStore = transaction.objectStore('centers');
+            const subjectStore = transaction.objectStore('subjects');
+
+            try {
+                // 获取所有项目
+                const projects = await new Promise((resolve) => {
+                    projectStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                });
+
+                // 获取所有中心
+                const centers = await new Promise((resolve) => {
+                    centerStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                });
+
+                // 获取所有受试者
+                const subjects = await new Promise((resolve) => {
+                    subjectStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                });
+
+                // 计算每个中心的受试者数量
+                const centerSubjectCounts = new Map();
+                subjects.forEach(subject => {
+                    const key = `${subject.project}-${subject.center}`;
+                    centerSubjectCounts.set(key, (centerSubjectCounts.get(key) || 0) + 1);
+                });
+
+                // 组织数据结构
+                const projectMap = new Map();
+                projects.forEach(project => {
+                    projectMap.set(project.projectName, new Set());
+                });
+
+                centers.forEach(center => {
+                    if (projectMap.has(center.projectName)) {
+                        projectMap.get(center.projectName).add(center.centerName);
+                    }
+                });
+
+                // 渲染项目列表
+                const projectList = document.getElementById('projectList');
+                projectList.innerHTML = '';
+
+                projectMap.forEach((centers, project) => {
+                    const projectCard = document.createElement('div');
+                    projectCard.className = 'card project-card';
+                    projectCard.innerHTML = `
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">${project}</h5>
+                            <div>
+                                <button class="btn btn-sm btn-primary add-center-btn" 
+                                        data-project="${project}"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#newCenterModal">
+                                    新增中心
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-project-btn"
+                                        data-project="${project}">
+                                    删除项目
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="center-list">
+                                ${Array.from(centers).map(center => {
+                        const subjectCount = centerSubjectCounts.get(`${project}-${center}`) || 0;
+                        return `
+                                        <div class="center-item">
+                                            <span>${center}</span>
+                                            <div class="btn-group">
+                                                <span class="btn btn-sm btn-outline-secondary" style="cursor: default">
+                                                    受试者: ${subjectCount}
+                                                </span>
+                                                <a href="index.html?project=${encodeURIComponent(project)}&center=${encodeURIComponent(center)}" 
+                                                   class="btn btn-sm btn-success">
+                                                    录入受试者
+                                                </a>
+                                                <a href="view.html?project=${encodeURIComponent(project)}&center=${encodeURIComponent(center)}" 
+                                                   class="btn btn-sm btn-info">
+                                                    查看受试者
+                                                </a>
+                                                <button class="btn btn-sm btn-outline-danger delete-center-btn"
+                                                        data-project="${project}"
+                                                        data-center="${center}">
+                                                    删除
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+                    }).join('')}
+                            </div>
+                        </div>
+                    `;
+                    projectList.appendChild(projectCard);
+                });
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                alert('加载项目列表失败');
+            }
+        }
+
+        // 保存新项目
+        document.getElementById('saveProjectBtn').addEventListener('click', async function () {
+            const projectName = document.getElementById('projectName').value.trim();
+            const centerName = document.getElementById('centerName').value.trim();
+
+            if (!projectName || !centerName) {
+                alert('请填写完整信息');
+                return;
+            }
+
+            const transaction = db.transaction(['projects', 'centers'], 'readwrite');
+            const projectStore = transaction.objectStore('projects');
+            const centerStore = transaction.objectStore('centers');
+
+            try {
+                // 检查项目是否已存在
+                const projectRequest = await new Promise((resolve) => {
+                    projectStore.get(projectName).onsuccess = (event) => resolve(event.target.result);
+                });
+
+                if (projectRequest) {
+                    alert('项目名称已存在');
+                    return;
+                }
+
+                // 保存项目
+                await new Promise((resolve, reject) => {
+                    projectStore.add({
+                        projectName: projectName,
+                        createTime: new Date()
+                    }).onsuccess = resolve;
+                });
+
+                // 保存中心
+                await new Promise((resolve, reject) => {
+                    centerStore.add({
+                        projectName: projectName,
+                        centerName: centerName,
+                        createTime: new Date()
+                    }).onsuccess = resolve;
+                });
+
+                loadProjects();
+                bootstrap.Modal.getInstance(document.getElementById('newProjectModal')).hide();
+                document.getElementById('newProjectForm').reset();
+            } catch (error) {
+                console.error('Error saving project:', error);
+                alert('保存失败，请重试');
+            }
+        });
+
+        // 修改保存新中心的处理函数 (第310-343行)
+        document.getElementById('saveCenterBtn').addEventListener('click', async function () {
+            const projectName = document.getElementById('projectForCenter').value;
+            const centerName = document.getElementById('newCenterName').value.trim();
+
+            if (!centerName) {
+                alert('请填写中心名称');
+                return;
+            }
+
+            const transaction = db.transaction(['centers'], 'readwrite');
+            const centerStore = transaction.objectStore('centers');
+
+            try {
+                // 检查中心是否已存在
+                const centerRequest = await new Promise((resolve) => {
+                    centerStore.get([projectName, centerName]).onsuccess = (event) => resolve(event.target.result);
+                });
+
+                if (centerRequest) {
+                    alert('该项目下已存在此中心名称');
+                    return;
+                }
+
+                // 保存新中心
+                await new Promise((resolve, reject) => {
+                    centerStore.add({
+                        projectName: projectName,
+                        centerName: centerName,
+                        createTime: new Date()
+                    }).onsuccess = resolve;
+                });
+
+                loadProjects();
+                bootstrap.Modal.getInstance(document.getElementById('newCenterModal')).hide();
+                document.getElementById('newCenterForm').reset();
+            } catch (error) {
+                console.error('Error saving center:', error);
+                alert('保存失败，请重试');
+            }
+        });
+
+        // 设置新增中心按钮的项目信息
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('add-center-btn')) {
+                const projectName = e.target.getAttribute('data-project');
+                document.getElementById('projectForCenter').value = projectName;
+            }
+        });
+
+        // 删除确认相关变量
+        let deleteType = ''; // 'project' 或 'center'
+        let deleteProject = '';
+        let deleteCenter = '';
+
+        // 处理删除项目按钮点击
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('delete-project-btn')) {
+                const project = e.target.getAttribute('data-project');
+                showDeleteConfirm('project', project);
+            } else if (e.target.classList.contains('delete-center-btn')) {
+                const project = e.target.getAttribute('data-project');
+                const center = e.target.getAttribute('data-center');
+                showDeleteConfirm('center', project, center);
+            }
+        });
+
+        // 显示删除确认对话框
+        function showDeleteConfirm(type, project, center = '') {
+            deleteType = type;
+            deleteProject = project;
+            deleteCenter = center;
+
+            const message = type === 'project'
+                ? `确定要删除项目"${project}"吗？这将删除该项目下的所有中心和受试者数据！`
+                : `确定要删除"${project}"项目下的"${center}"中心吗？这将删除该中心下的所有受试者数据！`;
+
+            document.getElementById('deleteConfirmMessage').textContent = message;
+            new bootstrap.Modal(document.getElementById('confirmDeleteModal')).show();
+        }
+
+        // 修改删除确认按钮的处理函数 (第391-418行)
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function () {
+            try {
+                if (deleteType === 'project') {
+                    // 删除项目时需要删除所有相关数据
+                    const transaction = db.transaction(['projects', 'centers', 'subjects', 'visitRecords'], 'readwrite');
+                    const projectStore = transaction.objectStore('projects');
+                    const centerStore = transaction.objectStore('centers');
+                    const subjectStore = transaction.objectStore('subjects');
+                    const visitStore = transaction.objectStore('visitRecords');
+
+                    // 删除项目记录
+                    await new Promise((resolve) => {
+                        projectStore.delete(deleteProject).onsuccess = resolve;
+                    });
+
+                    // 删除该项目下的所有中心
+                    const centerIndex = centerStore.index('projectName');
+                    const centers = await new Promise((resolve) => {
+                        centerIndex.getAll(deleteProject).onsuccess = (event) => resolve(event.target.result);
+                    });
+
+                    for (const center of centers) {
+                        await new Promise((resolve) => {
+                            centerStore.delete([deleteProject, center.centerName]).onsuccess = resolve;
+                        });
+                    }
+
+                    // 删除该项目下的所有受试者
+                    const subjectIndex = subjectStore.index('project');
+                    const subjects = await new Promise((resolve) => {
+                        subjectIndex.getAll(deleteProject).onsuccess = (event) => resolve(event.target.result);
+                    });
+
+                    for (const subject of subjects) {
+                        await new Promise((resolve) => {
+                            subjectStore.delete([deleteProject, subject.center, subject.name]).onsuccess = resolve;
+                        });
+                    }
+
+                    // 删除该项目下的所有访视记录
+                    const visitIndex = visitStore.index('project');
+                    const visits = await new Promise((resolve) => {
+                        visitIndex.getAll(deleteProject).onsuccess = (event) => resolve(event.target.result);
+                    });
+
+                    for (const visit of visits) {
+                        await new Promise((resolve) => {
+                            visitStore.delete([deleteProject, visit.center, visit.subjectName, visit.visitNumber]).onsuccess = resolve;
+                        });
+                    }
+
+                    // 在所有删除操作完成后，关闭模态框并刷新项目列表
+                    bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
+                    loadProjects();
+                } else if (deleteType === 'center') {
+                    const transaction = db.transaction(['centers', 'subjects', 'visitRecords'], 'readwrite');
+                    const centerStore = transaction.objectStore('centers');
+                    const subjectStore = transaction.objectStore('subjects');
+                    const visitStore = transaction.objectStore('visitRecords');
+
+                    try {
+                        // 删除中心记录
+                        await new Promise((resolve) => {
+                            centerStore.delete([deleteProject, deleteCenter]).onsuccess = resolve;
+                        });
+
+                        // 删除该中心下的所有受试者
+                        const subjects = await new Promise((resolve) => {
+                            const index = subjectStore.index('projectCenter');
+                            index.getAll([deleteProject, deleteCenter]).onsuccess = (event) => resolve(event.target.result);
+                        });
+
+                        for (const subject of subjects) {
+                            await new Promise((resolve) => {
+                                subjectStore.delete([deleteProject, deleteCenter, subject.name]).onsuccess = resolve;
+                            });
+                        }
+
+                        // 删除该中心下的所有访视记录
+                        const visits = await new Promise((resolve) => {
+                            const index = visitStore.index('center');
+                            const request = index.openCursor(IDBKeyRange.only(deleteCenter));
+                            const results = [];
+                            
+                            request.onsuccess = (event) => {
+                                const cursor = event.target.result;
+                                if (cursor) {
+                                    if (cursor.value.project === deleteProject) {
+                                        results.push(cursor.value);
+                                    }
+                                    cursor.continue();
+                                } else {
+                                    resolve(results);
+                                }
+                            };
+                        });
+
+                        // 删除访视记录
+                        for (const visit of visits) {
+                            await new Promise((resolve) => {
+                                visitStore.delete([
+                                    visit.project,
+                                    visit.center,
+                                    visit.subjectName,
+                                    visit.visitNumber
+                                ]).onsuccess = resolve;
+                            });
+                        }
+
+                        bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
+                        loadProjects();
+                    } catch (error) {
+                        console.error('Delete center error:', error);
+                        alert('删除失败，请重试');
+                    }
+                }
+            } catch (error) {
+                alert('删除失败，请重试');
+                console.error('Delete error:', error);
+            }
+        });
+    </script>
+</body>
+
+</html>

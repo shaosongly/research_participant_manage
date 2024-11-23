@@ -11,57 +11,193 @@
     <style>
         body {
             background-color: #f8f9fa;
+            padding-top: 66px;
         }
         .container {
-            max-width: 600px;
+            max-width: 1000px;
             margin-top: 30px;
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0.2rem 0;
+            min-height: 40px;
+        }
+        .navbar-brand {
+            padding: 0;
+            font-size: 1rem;
+        }
+        .navbar-nav {
+            flex-direction: row;
+            align-items: center;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+        }
+        .nav-link {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 95%;
+            }
+        }
+
+        .card {
+            margin-bottom: 2rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-label {
+            margin-bottom: 0.5rem;
+        }
+
+        .mb-3 {
+            margin-bottom: 1.5rem !important;
         }
     </style>
 </head>
 <body>
+    <!-- 添加导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto"> <!-- 添加 ms-auto 类 -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="landing.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="project_manage.html">项目管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">添加受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="view.html">查看受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="schedule.html">访视安排</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="visit_plan.html">访视计划</a>
+                    </li>
+                    <li class="nav-item"></li>
+                        <a class="nav-link" href="visit_record.html">访视记录</a>
+                    </li>
+                    <li class="nav-item"></li>
+                        <a class="nav-link" href="window_check.html">超窗检查</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <h1 class="mb-4 text-center">受试者信息提交</h1>
         <div class="card">
             <div class="card-body">
                 <form id="subjectForm">
+                    <!-- 项目和中心选择 -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="projectSelect" class="form-label">选择项目:</label>
+                                <select class="form-select" id="projectSelect" required>
+                                    <option value="">请选择项目</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="centerSelect" class="form-label">选择中心:</label>
+                                <select class="form-select" id="centerSelect" required>
+                                    <option value="">请先选择项目</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
-                        <label for="name" class="form-label">受试者名称:</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                        <label for="subjectName" class="form-label">受试者编号:</label>
+                        <input type="text" class="form-control" id="subjectName" required>
                     </div>
                     <div class="mb-3">
                         <label for="firstDate" class="form-label">首次受试日期:</label>
                         <input type="text" class="form-control" id="firstDate" name="firstDate" required>
                     </div>
                     <div class="mb-3">
-                        <label for="frequency" class="form-label">访视间隔(天):</label>
-                        <input type="text" class="form-control" id="frequency" name="frequency" 
-                               placeholder="用逗号分隔每次访视的间隔天数，如: 1,2,3" required>
-                        <div class="form-text">
-                            请输入每次访视的间隔天数，用逗号分隔。例如：
-                            <ul class="mb-0">
-                                <li>输入3表示固定每3天访视一次，比如1号，4号，7号</li>
-                                <li>输入1,2,3表示三次访视日期分别为前一次访视日期+1天，+2天，+3天</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="mb-3">
                         <label for="totalVisits" class="form-label">总访视次数(包含首次访视):</label>
                         <input type="number" class="form-control" id="totalVisits" name="totalVisits" required>
                     </div>
                     <div class="mb-3">
-                        <label for="visitWindow" class="form-label">访视窗口(天):</label>
-                        <input type="text" class="form-control" id="visitWindow" name="visitWindow" 
-                               placeholder="用逗号分隔每次访视的窗口天数，如: 1,2,3">
-                        <div class="form-text">不填写表示无访视窗口。每个数字代表对应次序访视的窗口天数（不包含首次访视）</div>
+                        <label class="form-label">访视设置:</label>
+                        <div class="card">
+                            <div class="card-body">
+                                <!-- 访视类型选择 -->
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="frequencyType" id="fixedFrequency" value="fixed" checked>
+                                        <label class="form-check-label" for="fixedFrequency">
+                                            固定间隔
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="frequencyType" id="variableFrequency" value="variable">
+                                        <label class="form-check-label" for="variableFrequency">
+                                            变化间隔
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- 固定间隔输入区域 -->
+                                <div id="fixedFrequencyInput">
+                                    <div class="mb-3">
+                                        <label for="fixedDays" class="form-label">固定访视间隔(天):</label>
+                                        <input type="number" class="form-control" id="fixedDays" min="1" value="1">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="fixedWindow" class="form-label">固定访视窗口(±天数):</label>
+                                        <input type="number" class="form-control" id="fixedWindow" min="0" value="0">
+                                        <div class="form-text">0表示无访视窗口</div>
+                                    </div>
+                                </div>
+
+                                <!-- 变化间隔表格 -->
+                                <div id="variableFrequencyInput" style="display: none;">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" id="visitTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>访视次数</th>
+                                                    <th>间隔天数</th>
+                                                    <th>访视窗口(±天数)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="visitTableBody">
+                                                <!-- 动态生成的行 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">提交</button>
                 </form>
             </div>
-        </div>
-        <div class="text-center mt-4">
-            <a href="view.html" class="btn btn-secondary">查看已保存的受试者信息</a>
-            <a href="schedule.html" class="btn btn-secondary">查看今日访视安排</a>
-            <a href="landing.html" class="btn btn-info">返回首页</a>
         </div>
         <h2 class="mt-5 mb-4 text-center">批量导入受试者信息</h2>
         <div class="card">
@@ -100,60 +236,148 @@
             disableMobile: true
         });
 
-        // 添加表单提交事件监听器
-        document.getElementById('subjectForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // 阻止表单默认提交行为
+        let db;
+        const dbName = "ResearchDB";
 
-            // 获取表单数据
-            const formData = new FormData(this);
-            const frequency = formData.get('frequency').trim();
-            const visitWindow = formData.get('visitWindow').trim();
+        // 初始化数据库连接
+        const request = indexedDB.open(dbName);
+
+        request.onerror = function(event) {
+            console.error("数据库错误:", event.target.error);
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            loadProjectsAndCenters();
             
-            // 验证访视频率格式
-            if (!/^\d+(?:,\d+)*$/.test(frequency)) {
-                alert('访视频率格式不正确，请使用逗号分隔的数字，如: 1,2,3');
+            // 如果URL中包含项目和中心参数，自动选择对应选项
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectFromUrl = urlParams.get('project');
+            const centerFromUrl = urlParams.get('center');
+            
+            if (projectFromUrl) {
+                setTimeout(() => {
+                    document.getElementById('projectSelect').value = projectFromUrl;
+                    loadCentersForProject(projectFromUrl);
+                    if (centerFromUrl) {
+                        setTimeout(() => {
+                            document.getElementById('centerSelect').value = centerFromUrl;
+                        }, 100);
+                    }
+                }, 100);
+            }
+        };
+
+        // 加载项目和中心数据
+        async function loadProjectsAndCenters() {
+            try {
+                const transaction = db.transaction(['projects'], 'readonly');
+                const projectStore = transaction.objectStore('projects');
+                
+                const projects = await new Promise((resolve) => {
+                    projectStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                });
+                
+                const projectSelect = document.getElementById('projectSelect');
+                projectSelect.innerHTML = '<option value="">请选择项目</option>' +
+                    projects.map(project => 
+                        `<option value="${project.projectName}">${project.projectName}</option>`
+                    ).join('');
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                alert('加载项目列表失败');
+            }
+        }
+
+        // 根据选择的项目加载对应的中心
+        async function loadCentersForProject(projectName) {
+            try {
+                const transaction = db.transaction(['centers'], 'readonly');
+                const centerStore = transaction.objectStore('centers');
+                const centerIndex = centerStore.index('projectName');
+                
+                const centers = await new Promise((resolve) => {
+                    centerIndex.getAll(projectName).onsuccess = (event) => resolve(event.target.result);
+                });
+                
+                const centerSelect = document.getElementById('centerSelect');
+                centerSelect.innerHTML = '<option value="">请选择中心</option>' +
+                    centers.map(center => 
+                        `<option value="${center.centerName}">${center.centerName}</option>`
+                    ).join('');
+            } catch (error) {
+                console.error('Error loading centers:', error);
+                alert('加载中心列表失败');
+            }
+        }
+
+        // 监听项目选择变化
+        document.getElementById('projectSelect').addEventListener('change', function() {
+            const projectName = this.value;
+            if (projectName) {
+                loadCentersForProject(projectName);
+            } else {
+                document.getElementById('centerSelect').innerHTML = '<option value="">请先选择项目</option>';
+            }
+        });
+
+        // 修改表单提交处理
+        document.getElementById('subjectForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const projectName = document.getElementById('projectSelect').value;
+            const centerName = document.getElementById('centerSelect').value;
+            const subjectName = document.getElementById('subjectName').value;
+            const firstDate = document.getElementById('firstDate').value;
+            const totalVisits = document.getElementById('totalVisits').value;
+            const isFixedFrequency = document.getElementById('fixedFrequency').checked;
+            
+            if (!projectName || !centerName) {
+                alert('请选择项目和中心');
                 return;
             }
 
-            // 验证访视窗口格式
-            if (visitWindow !== '' && !/^\d+(?:,\d+)*$/.test(visitWindow)) {
-                alert('访视窗口格式不正确，请使用逗号分隔的数字，如: 1,2,3,4');
-                return;
+            // 获取访视间隔和窗口
+            let frequency, visitWindow;
+            if (isFixedFrequency) {
+                // 固定间隔模式
+                frequency = document.getElementById('fixedDays').value;
+                visitWindow = document.getElementById('fixedWindow').value || '0';
+            } else {
+                // 变化间隔模式
+                frequency = Array.from(document.querySelectorAll('.visit-frequency'))
+                    .map(input => input.value)
+                    .join(',');
+                visitWindow = Array.from(document.querySelectorAll('.visit-window'))
+                    .map(input => input.value || '0')
+                    .join(',');
             }
-
+            
             const subjectData = {
-                name: formData.get('name'),
-                firstDate: formData.get('firstDate'),
+                project: projectName,
+                center: centerName,
+                name: subjectName,
+                firstDate: firstDate,
+                totalVisits: parseInt(totalVisits),
                 frequency: frequency,
-                totalVisits: formData.get('totalVisits'),
-                visitWindow: visitWindow // 如果为空字符串则表示无窗口限制
+                visitWindow: visitWindow
             };
-
-            const dbRequest = indexedDB.open("SubjectsDB");
-
-            dbRequest.onerror = function(event) {
-                console.error("数据库错误: " + event.target.error);
-            };
-
-            dbRequest.onsuccess = function(event) {
-                const db = event.target.result;
-                try {
-                    const transaction = db.transaction(["subjects"], "readwrite");
-                    const objectStore = transaction.objectStore("subjects");
-                    const addRequest = objectStore.add(subjectData);
-
-                    addRequest.onsuccess = function() {
-                        console.log("数据保存成功");
-                        window.location.href = 'view.html';
-                    };
-
-                    addRequest.onerror = function(event) {
-                        console.error("保存数据时出错:", event.target.error);
-                    };
-                } catch (error) {
-                    console.error("执行事务时出错:", error);
-                }
-            };
+            
+            try {
+                const transaction = db.transaction(['subjects'], 'readwrite');
+                const objectStore = transaction.objectStore('subjects');
+                await new Promise((resolve, reject) => {
+                    const request = objectStore.add(subjectData);
+                    request.onsuccess = resolve;
+                    request.onerror = reject;
+                });
+                
+                console.log('数据保存成功:', subjectData);
+                window.location.href = 'view.html';
+            } catch (error) {
+                console.error('保存数据时出错:', error);
+                alert('保存失败，请重试');
+            }
         });
 
         // 处理Excel文件上传
@@ -174,11 +398,13 @@
                         <label class="form-label">Excel列 "${header}" 对应：</label>
                         <select class="form-select" data-excel-column="${index}">
                             <option value="">请选择</option>
+                            <option value="project">项目（可选）</option>
+                            <option value="center">中心（可选）</option>
                             <option value="name">受试者名称</option>
                             <option value="firstDate">首次受试日期</option>
                             <option value="frequency">访视间隔</option>
                             <option value="totalVisits">总访视次数</option>
-                            <option value="visitWindow">访视窗口</option>
+                            <option value="visitWindow">访视窗口（可选）</option>
                         </select>
                     </div>
                 `).join('');
@@ -190,13 +416,21 @@
         });
 
         // 处理批量导入
-        document.getElementById('batchImportForm').addEventListener('submit', function(e) {
+        document.getElementById('batchImportForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            const selectedProject = document.getElementById('projectSelect').value;
+            const selectedCenter = document.getElementById('centerSelect').value;
+
+            if (!selectedProject || !selectedCenter) {
+                alert('请先在页面上方选择项目和中心');
+                return;
+            }
 
             const file = document.getElementById('excelFile').files[0];
             const reader = new FileReader();
 
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array', cellDates: true});
                 const firstSheetName = workbook.SheetNames[0];
@@ -208,63 +442,119 @@
                 document.querySelectorAll('#columnMapping select').forEach(select => {
                     const field = select.value;
                     const columnIndex = parseInt(select.dataset.excelColumn);
-                    mapping[field] = columnIndex;
+                    if (field) {  // 只保存有效的映射
+                        mapping[field] = columnIndex;
+                    }
                 });
 
+                // 检查必要字段是否都已映射（项目和中心现在是可选的）
+                const requiredFields = ['name', 'firstDate', 'totalVisits'];
+                const missingFields = requiredFields.filter(field => mapping[field] === undefined);
+                if (missingFields.length > 0) {
+                    alert(`请映射所有必要字段: ${missingFields.join(', ')}`);
+                    return;
+                }
+
                 // 转换数据
-                const headers = jsonData[0];
                 const subjectsData = jsonData.slice(1).map(row => {
-                    const subject = {};
+                    // 创建基础对象，使用选择框中的项目和中心作为默认值
+                    const subject = {
+                        project: selectedProject,
+                        center: selectedCenter,
+                        name: null,
+                        firstDate: null,
+                        totalVisits: null,
+                        frequency: null,
+                        visitWindow: '0'  // 默认访视窗口为0
+                    };
+
+                    // 处理映射的字段
                     Object.keys(mapping).forEach(field => {
                         const columnIndex = mapping[field];
                         if (columnIndex !== undefined && columnIndex < row.length) {
                             if (field === 'firstDate') {
-                                // 处理日期
                                 const dateValue = row[columnIndex];
                                 const parsedDate = parseExcelDate(dateValue);
                                 subject[field] = parsedDate ? parsedDate.toISOString().split('T')[0] : null;
+                            } else if (field === 'frequency') {
+                                // 直接使用Excel中的访视间隔值
+                                subject.frequency = row[columnIndex]?.toString().trim() || null;
                             } else if (field === 'visitWindow') {
-                                // 处理访视窗口数据
-                                const windowValue = row[columnIndex];
-                                // 如果Excel中的值为空，则设置为空字符串
-                                subject[field] = windowValue ? String(windowValue).trim() : '';
-                            } else {
-                                subject[field] = row[columnIndex];
+                                // 访视窗口是可选的，如果有值则使用，否则保持默认值0
+                                const windowValue = row[columnIndex]?.toString().trim();
+                                if (windowValue && windowValue !== '') {
+                                    subject.visitWindow = windowValue;
+                                }
+                            } else if (field === 'totalVisits') {
+                                const visits = parseInt(row[columnIndex]);
+                                subject[field] = !isNaN(visits) ? visits : null;
+                            } else if (field === 'name') {
+                                subject[field] = row[columnIndex]?.toString().trim() || null;
+                            } else if (field === 'project' || field === 'center') {
+                                // 如果Excel中有项目或中心列，则覆盖默认值
+                                const value = row[columnIndex]?.toString().trim();
+                                if (value) {
+                                    subject[field] = value;
+                                }
                             }
                         }
                     });
+
                     return subject;
                 });
 
-                console.log("解析后的数据:", subjectsData);
+                // 添加调试日志
+                console.log('转换后的数据:', subjectsData);
 
-                // 批量导入数据
-                const request = indexedDB.open("SubjectsDB");
+                // 修改验证逻辑
+                const invalidSubjects = subjectsData.filter(subject => {
+                    const isInvalid = !subject.name || 
+                                      !subject.firstDate || 
+                                      !subject.totalVisits || 
+                                      subject.totalVisits <= 0 || 
+                                      !subject.frequency;
+                    if (isInvalid) {
+                        console.log('无效数据:', subject);
+                        console.log('原因:', {
+                            noName: !subject.name,
+                            noDate: !subject.firstDate,
+                            noVisits: !subject.totalVisits,
+                            invalidVisits: subject.totalVisits <= 0,
+                            noFrequency: !subject.frequency
+                        });
+                    }
+                    return isInvalid;
+                });
 
-                request.onsuccess = function(event) {
-                    const db = event.target.result;
-                    const transaction = db.transaction(["subjects"], "readwrite");
-                    const objectStore = transaction.objectStore("subjects");
+                if (invalidSubjects.length > 0) {
+                    alert(`发现 ${invalidSubjects.length} 条无效数据，请检查Excel文件`);
+                    console.error('Invalid subjects:', invalidSubjects);
+                    return;
+                }
 
-                    let successCount = 0;
-                    subjectsData.forEach(subject => {
-                        const addRequest = objectStore.add(subject);
-                        addRequest.onsuccess = function() {
-                            successCount++;
-                            if (successCount === subjectsData.length) {
-                                alert(`成功导入 ${successCount} 条记录`);
-                                window.location.href = 'view.html';
-                            }
-                        };
-                        addRequest.onerror = function(event) {
-                            console.error("添加记录时出错:", event.target.error);
-                        };
-                    });
-                };
-
-                request.onerror = function(event) {
-                    console.error("数据库错误: " + event.target.error);
-                };
+                // 添加保存数据的逻辑
+                try {
+                    const transaction = db.transaction(['subjects'], 'readwrite');
+                    const objectStore = transaction.objectStore('subjects');
+                    
+                    // 使用 Promise.all 批量保存数据
+                    await Promise.all(subjectsData.map(subject => 
+                        new Promise((resolve, reject) => {
+                            const request = objectStore.add(subject);
+                            request.onsuccess = resolve;
+                            request.onerror = (event) => {
+                                console.error('保存失败的数据:', subject);
+                                reject(event.target.error);
+                            };
+                        })
+                    ));
+                    
+                    console.log('批量导入成功，共导入', subjectsData.length, '条数据');
+                    window.location.href = 'view.html';
+                } catch (error) {
+                    console.error('批量导入失败:', error);
+                    alert('导入失败，请检查数据是否重复或格式是否正确');
+                }
             };
 
             reader.readAsArrayBuffer(file);
@@ -316,6 +606,45 @@
             }
             
             return null;
+        }
+
+        // 监听访视次数变化
+        document.getElementById('totalVisits').addEventListener('change', function() {
+            updateVisitTable();
+        });
+
+        // 监听间隔类型切换
+        document.querySelectorAll('input[name="frequencyType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const isFixed = this.value === 'fixed';
+                document.getElementById('fixedFrequencyInput').style.display = isFixed ? 'block' : 'none';
+                document.getElementById('variableFrequencyInput').style.display = isFixed ? 'none' : 'block';
+                if (!isFixed) {
+                    updateVisitTable();
+                }
+            });
+        });
+
+        function updateVisitTable() {
+            const totalVisits = parseInt(document.getElementById('totalVisits').value) || 0;
+            const tbody = document.getElementById('visitTableBody');
+            tbody.innerHTML = '';
+
+            // 从第二次访视开始（跳过首次访视）
+            for (let i = 2; i <= totalVisits; i++) {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>第 ${i} 次访视</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm visit-frequency" 
+                               min="1" value="1" data-visit="${i}">
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm visit-window" 
+                               min="0" value="0" data-visit="${i}">
+                    </td>
+                `;
+            }
         }
     </script>
 </body>

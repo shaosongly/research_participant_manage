@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,64 +16,236 @@
     <style>
         body {
             background-color: #f8f9fa;
+            padding-top: 66px;
         }
+
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin-top: 30px;
         }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0.2rem 0;
+            min-height: 40px;
+        }
+        .navbar-brand {
+            padding: 0;
+            font-size: 1rem;
+        }
+        .navbar-nav {
+            flex-direction: row;
+            align-items: center;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+        }
+        .nav-link {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.9rem;
+        }
+
         /* Flatpickr 自定义样式 */
         .flatpickr-input {
             font-size: 16px;
             padding: 8px 12px;
         }
+
         .flatpickr-calendar {
             font-size: 14px;
         }
-        /* 修改访视次数交替背景色为更明显的对比色 */
+
+        /* 修改访视次数交替背景色为更高对比度的颜色 */
         .visit-group-even {
-            background-color: #e3f2fd !important; /* 浅蓝色 */
+            background-color: #dcedc8 !important;
+            /* 绿色背景 */
+            border-top: 2px solid #81c784 !important;
+            /* 添加上边框 */
         }
-        
+
         .visit-group-odd {
-            background-color: #fff3e0 !important; /* 浅橙色 */
+            background-color: #ffecb3 !important;
+            /* 橙色背景 */
+            border-top: 2px solid #ffd54f !important;
+            /* 添加上边框 */
         }
-        
-        /* 修改鼠标悬停效果 */
+
+        /* 修改鼠标悬停效果，使用更深的颜色 */
         .visit-group-even:hover {
-            background-color: #bbdefb !important; /* 深一点的蓝色 */
+            background-color: #aed581 !important;
+            /* 明显的绿色 */
         }
-        
+
         .visit-group-odd:hover {
-            background-color: #ffe0b2 !important; /* 深一点的橙色 */
+            background-color: #ffd54f !important;
+            /* 明显的橙色 */
         }
-        
+
+        /* 修改访视组样式 */
+        .visit-group-start {
+            border-top: 2px solid #666 !important;
+            margin-top: 1rem !important;
+            /* 添加上方间距 */
+        }
+
+        /* 访视组的最后一行添加底部边框 */
+        .visit-group-end {
+            border-bottom: 1px solid #666 !important;
+            margin-bottom: 1rem !important;
+            /* 添加下方间距 */
+        }
+
         /* 调整表格样式 */
         .table {
             border-collapse: separate;
             border-spacing: 0;
         }
-        
-        /* 移除 Bootstrap 的 table-striped 类的默认样式 */
-        .table-visits > tbody > tr:nth-of-type(odd) {
-            background-color: inherit;
+
+        /* 表格单元格样式 */
+        .table-visits td {
+            padding: 0.75rem !important;
+            /* 增加单元格内边距 */
+        }
+
+        /* 表头样式加强 */
+        .table-visits th {
+            background-color: #e9ecef !important;
+            border-bottom: 2px solid #666 !important;
+            padding: 1rem !important;
+        }
+
+        /* 基准日期行样式 */
+        .visit-base-date {
+            font-weight: bold !important;
+            border-top: 1px solid rgba(0, 0, 0, 0.2) !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* 窗口期日期行样式 - 使用半透明的相同色系 */
+        .visit-group-even .visit-window-date {
+            background-color: rgba(220, 237, 200, 0.4) !important;
+            /* 浅绿色，更透明 */
+            color: #666 !important;
+            font-size: 0.95em;
+        }
+
+        .visit-group-odd .visit-window-date {
+            background-color: rgba(255, 236, 179, 0.4) !important;
+            /* 浅橙色，更透明 */
+            color: #666 !important;
+            font-size: 0.95em;
+        }
+
+        /* 移除之前的通用窗口期背景色 */
+        .visit-window-date {
+            color: #666 !important;
+            font-size: 0.95em;
+        }
+
+        /* 基准日期行的特殊悬停效果 */
+        .visit-base-date:hover {
+            background-color: rgba(0, 0, 0, 0.05) !important;
+        }
+
+        /* 建议列表样式 */
+        .suggestion-list {
+            position: absolute;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .suggestion-item.active {
+            background-color: #e9ecef;
         }
     </style>
 </head>
+
 <body>
+    <!-- 添加导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="landing.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="project_manage.html">项目管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">添加受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="view.html">查看受试者</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="schedule.html">访视安排</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="visit_plan.html">访视计划</a>
+                    </li>
+                    <li class="nav-item"></li>
+                        <a class="nav-link" href="visit_record.html">访视记录</a>
+                    </li>
+                    <li class="nav-item"></li>
+                        <a class="nav-link" href="window_check.html">超窗检查</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <h1 class="mb-4 text-center">访视计划</h1>
-        
+
         <!-- 搜索卡片 -->
         <div class="card mb-4">
             <div class="card-body">
                 <div class="row align-items-end">
-                    <div class="col-md-8 mb-3 mb-md-0">
-                        <label for="subjectSelect" class="form-label">选择受试者:</label>
-                        <select class="form-select" id="subjectSelect">
-                            <option value="">请选择受试者</option>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="projectSelect" class="form-label">选择项目:</label>
+                        <select class="form-select" id="projectSelect">
+                            <option value="">请选择项目</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="centerSelect" class="form-label">选择中心:</label>
+                        <select class="form-select" id="centerSelect">
+                            <option value="">请先选择项目</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <label for="subjectInput" class="form-label">输入受试者:</label>
+                        <input class="form-control" id="subjectInput" type="text" placeholder="请输入受试者姓名"
+                            autocomplete="off">
+                        <div id="subjectSuggestions" class="suggestion-list"></div>
+                    </div>
+                    <div class="col-md-2">
                         <button id="searchButton" class="btn btn-primary w-100">查询</button>
                     </div>
                 </div>
@@ -146,7 +319,6 @@
 
         <!-- 导航按钮 -->
         <div class="text-center mt-4">
-            <a href="schedule.html" class="btn btn-primary">返回今日访视安排</a>
             <a href="landing.html" class="btn btn-info">返回首页</a>
         </div>
     </div>
@@ -160,61 +332,184 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
 
     <script>
+
+        //节假日修正
+        HolidayUtil.fix('202501010120250101202501261020250129202501281120250129202501291120250129202501301120250129202501311120250129202502011120250129202502021120250129202502031120250129202502041120250129202502081020250129202504042120250404202504052120250404202504062120250404202504273020250501202505013120250501202505023120250501202505033120250501202505043120250501202505053120250501202505314120250531202506014120250531202506024120250531202509287020251001202510017120251001202510027120251001202510037120251001202510047120251001202510057120251001202510067120251001202510077120251001202510087120251001202510117020251001');
+        HolidayUtil.fix('202312300120240101202312310120240101202401010120240101202402041020240210202402101120240210202402111120240210202402121120240210202402131120240210202402141120240210202402151120240210202402161120240210202402171120240210202402181020240210202404042120240404202404052120240404202404062120240404202404072020240404202404283020240501202405013120240501202405023120240501202405033120240501202405043120240501202405053120240501202405113020240501202406084120240610202406094120240610202406104120240610202409145020240917202409155120240917202409165120240917202409175120240917202409296020241001202410016120241001202410026120241001202410036120241001202410046120241001202410056120241001202410066120241001202410076120241001202410126020241001');
+
+
         let db;
-        const dbName = "SubjectsDB";
+        const dbName = "ResearchDB";
 
         const request = indexedDB.open(dbName);
 
-        request.onerror = function(event) {
+        request.onerror = function (event) {
             console.error("数据库错误: " + event.target.error);
         };
 
-        request.onsuccess = function(event) {
+        request.onsuccess = function (event) {
             db = event.target.result;
             console.log("数据库打开成功");
-            loadSubjects(); // 页面加载时获取所有受试者
+            loadProjects();  // 先加载项目列表
+            loadSubjects();  // 加载受试者列表
         };
 
-        // 新增：加载所有受试者到下拉列表
+        let allSubjects = []; // 存储所有受试者数据
+
+        // 修改加载受试者列表的函数
         function loadSubjects() {
             const transaction = db.transaction(["subjects"], "readonly");
             const objectStore = transaction.objectStore("subjects");
             const request = objectStore.getAll();
 
-            request.onsuccess = function(event) {
-                const subjects = event.target.result;
-                const select = document.getElementById('subjectSelect');
-                
+            request.onsuccess = function (event) {
+                allSubjects = event.target.result;
                 // 按姓名排序
-                subjects.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
-                
-                // 添加选项
-                subjects.forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject.name;
-                    option.textContent = subject.name;
-                    select.appendChild(option);
-                });
+                allSubjects.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
             };
         }
 
+        // 添加输入处理函数
+        function handleInput(event) {
+            const input = event.target;
+            const projectName = document.getElementById('projectSelect').value;
+            const centerName = document.getElementById('centerSelect').value;
+            const suggestionList = document.getElementById('subjectSuggestions');
+
+            if (!projectName || !centerName) {
+                alert('请先选择项目和中心');
+                input.value = '';
+                return;
+            }
+
+            // 获取当前中心的所有受试者
+            const centerSubjects = allSubjects.filter(subject =>
+                subject.project === projectName &&
+                subject.center === centerName
+            );
+
+            // 如果有输入值，进一步过滤匹配的受试者
+            const value = input.value.trim().toLowerCase();
+            const matches = value ?
+                centerSubjects.filter(subject =>
+                    subject.name.toLowerCase().startsWith(value)
+                ) :
+                centerSubjects;
+
+            // 显示建议列表
+            displaySuggestions(matches, input, suggestionList);
+        }
+
+        // 添加显示建议列表的辅助函数
+        function displaySuggestions(subjects, input, suggestionList) {
+            if (subjects.length > 0) {
+                suggestionList.innerHTML = '';
+                subjects.forEach(subject => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.textContent = subject.name;
+                    div.onclick = () => {
+                        input.value = subject.name;
+                        suggestionList.style.display = 'none';
+                        searchSubject();
+                    };
+                    suggestionList.appendChild(div);
+                });
+                suggestionList.style.display = 'block';
+            } else {
+                suggestionList.style.display = 'none';
+            }
+        }
+
+        // 添加键盘导航功能
+        function handleKeydown(event) {
+            const suggestionList = document.getElementById('subjectSuggestions');
+            const items = suggestionList.getElementsByClassName('suggestion-item');
+            const activeItem = suggestionList.querySelector('.suggestion-item.active');
+
+            if (suggestionList.style.display === 'none') return;
+
+            switch (event.key) {
+                case 'ArrowDown':
+                    event.preventDefault();
+                    if (!activeItem) {
+                        items[0].classList.add('active');
+                    } else {
+                        const nextItem = activeItem.nextElementSibling;
+                        if (nextItem) {
+                            activeItem.classList.remove('active');
+                            nextItem.classList.add('active');
+                        }
+                    }
+                    break;
+
+                case 'ArrowUp':
+                    event.preventDefault();
+                    if (activeItem) {
+                        const prevItem = activeItem.previousElementSibling;
+                        if (prevItem) {
+                            activeItem.classList.remove('active');
+                            prevItem.classList.add('active');
+                        }
+                    }
+                    break;
+
+                case 'Enter':
+                    if (activeItem) {
+                        event.preventDefault();
+                        document.getElementById('subjectInput').value = activeItem.textContent;
+                        suggestionList.style.display = 'none';
+                        searchSubject();
+                    }
+                    break;
+
+                case 'Escape':
+                    suggestionList.style.display = 'none';
+                    break;
+            }
+        }
+
+        // 点击外部关闭建议列表
+        document.addEventListener('click', function (event) {
+            const suggestionList = document.getElementById('subjectSuggestions');
+            if (!event.target.closest('#subjectInput') && !event.target.closest('#subjectSuggestions')) {
+                suggestionList.style.display = 'none';
+            }
+        });
+
+        // 添加事件监听器
+        document.getElementById('subjectInput').addEventListener('input', handleInput);
+        document.getElementById('subjectInput').addEventListener('keydown', handleKeydown);
+        document.getElementById('subjectInput').addEventListener('focus', function (event) {
+            // 当输入框获得焦点时，显示所有当前中心的受试者
+            handleInput(event);
+        });
+
+        // 修改搜索函数
         function searchSubject() {
-            const selectedName = document.getElementById('subjectSelect').value;
-            if (!selectedName) {
-                alert("请选择受试者");
+            const projectName = document.getElementById('projectSelect').value;
+            const centerName = document.getElementById('centerSelect').value;
+            const inputValue = document.getElementById('subjectInput').value.trim();
+
+            if (!projectName || !centerName) {
+                alert("请先选择项目和中心");
+                return;
+            }
+
+            if (!inputValue) {
+                alert("请选择或输入受试者姓名");
                 return;
             }
 
             const transaction = db.transaction(["subjects"], "readonly");
             const objectStore = transaction.objectStore("subjects");
-            const nameIndex = objectStore.index("name");
 
-            const request = nameIndex.getAll(selectedName);
+            // 使用复合主键查询
+            const request = objectStore.get([projectName, centerName, inputValue]);
 
-            request.onsuccess = function(event) {
-                const results = event.target.result;
-                if (results.length > 0) {
-                    const subject = results[0];
+            request.onsuccess = function (event) {
+                const subject = event.target.result;
+                if (subject) {
                     displaySubjectInfo(subject);
                     generateVisitPlan(subject);
                 } else {
@@ -234,14 +529,14 @@
             document.getElementById('firstVisitDate').textContent = formatDate(subject.firstDate);
             document.getElementById('visitFrequency').textContent = `${subject.frequency}`;
             document.getElementById('totalVisits').textContent = subject.totalVisits;
-            
-            // 添加访视窗口信息显示
-            const visitWindowText = subject.visitWindow && subject.visitWindow.trim() !== '' 
-                ? subject.visitWindow 
+
+            // 添加访视口信息显示
+            const visitWindowText = subject.visitWindow && subject.visitWindow.trim() !== ''
+                ? subject.visitWindow
                 : '默认窗口0';
             document.getElementById('visitWindow').textContent = visitWindowText;
 
-            // 更新 Flatpickr 日期
+            // 更 Flatpickr 日期
             flatpickr('#adjustDate', {
                 defaultDate: new Date(subject.firstDate),
                 dateFormat: "Y-m-d",
@@ -253,7 +548,7 @@
                 allowInput: true,
                 clickOpens: true,
                 disableMobile: false,
-                onChange: function(selectedDates, dateStr) {
+                onChange: function (selectedDates, dateStr) {
                     console.log('选择的日期:', dateStr);
                 }
             });
@@ -266,7 +561,7 @@
         }
 
         // 添加计划调整按钮的事件处理
-        document.getElementById('adjustButton').addEventListener('click', function() {
+        document.getElementById('adjustButton').addEventListener('click', function () {
             if (!currentSubject) {
                 alert('请先选择受试者');
                 return;
@@ -295,7 +590,7 @@
 
             const firstDate = new Date(subject.firstDate);
             const totalVisits = parseInt(subject.totalVisits);
-            
+
             // 解析访视间隔
             let frequencies = [];
             if (subject.frequency.includes(',')) {
@@ -310,14 +605,32 @@
                 const fixedFrequency = parseInt(subject.frequency);
                 frequencies = Array(totalVisits - 1).fill(fixedFrequency);
             }
-            
+
             // 解析访视窗口
             let visitWindows = [];
             if (subject.visitWindow && subject.visitWindow.trim() !== '') {
-                visitWindows = subject.visitWindow.split(',').map(Number);
-                if (visitWindows.length !== totalVisits - 1) {
-                    alert('访视窗口数量应该等于总访视次数-1');
-                    return;
+                const windowValue = subject.visitWindow.trim();
+
+                if (windowValue.includes(',')) {
+                    // 如果是逗号分隔的格式
+                    visitWindows = windowValue.split(',').map(Number);
+                    if (visitWindows.length !== totalVisits - 1) {
+                        alert('访视窗口数量应该等于总访视次数-1');
+                        return;
+                    }
+                    // 验证所有窗口值是否为非负数
+                    if (visitWindows.some(w => w < 0)) {
+                        alert('访视窗口不能为负数');
+                        return;
+                    }
+                } else {
+                    // 如果是单个数字，表示固定窗口大小
+                    const fixedWindow = parseInt(windowValue);
+                    if (isNaN(fixedWindow) || fixedWindow < 0) {
+                        alert('请输入有效的访视窗口天数');
+                        return;
+                    }
+                    visitWindows = Array(totalVisits - 1).fill(fixedWindow);
                 }
             } else {
                 // 如果未设置访视窗口，则所有访视的窗口期都是0
@@ -327,7 +640,7 @@
             // 计算每次访视的基准日期
             let visitDates = [firstDate];  // 存储每次访视的基准日期
             let currentDate = new Date(firstDate);
-            
+
             // 计算后续访视的基准日期
             for (let i = 0; i < frequencies.length; i++) {
                 currentDate = new Date(currentDate.getTime() + frequencies[i] * 24 * 60 * 60 * 1000);
@@ -336,51 +649,71 @@
 
             // 遍历每次访视生成计划
             visitDates.forEach((baseDate, visitNum) => {
-                // 确定当前访视次数的背景色类名
                 const groupClass = visitNum % 2 === 0 ? 'visit-group-even' : 'visit-group-odd';
-                
-                // 首次访视或无窗口期时只显示基准日期
-                if (visitNum === 0 || visitWindows[visitNum - 1] === 0) {
-                    addVisitRow(tableBody, visitNum + 1, baseDate, '基准日期', groupClass);
-                    return;
-                }
+                let rows = [];  // 存储当前访视组的所有行
 
-                // 非首次访视且有窗口期时，显示窗口期内的所有日期
-                const window = visitWindows[visitNum - 1];
-                for (let offset = -window; offset <= window; offset++) {
-                    const visitDate = new Date(baseDate.getTime() + offset * 24 * 60 * 60 * 1000);
-                    let dateType = '基准日期';
-                    if (offset < 0) {
-                        dateType = `提前${Math.abs(offset)}天`;
-                    } else if (offset > 0) {
-                        dateType = `延后${offset}天`;
+                if (visitNum === 0 || visitWindows[visitNum - 1] === 0) {
+                    // 单行访视
+                    addVisitRow(tableBody, visitNum + 1, baseDate, '基准日期', groupClass, true, true);
+                } else {
+                    // 多行访视
+                    const window = visitWindows[visitNum - 1];
+                    for (let offset = -window; offset <= window; offset++) {
+                        const visitDate = new Date(baseDate.getTime() + offset * 24 * 60 * 60 * 1000);
+                        let dateType = '基准日期';
+                        if (offset < 0) {
+                            dateType = `提前${Math.abs(offset)}天`;
+                        } else if (offset > 0) {
+                            dateType = `延后${offset}天`;
+                        }
+
+                        // 是否是视组的第一行或最后一行
+                        const isFirst = offset === -window;
+                        const isLast = offset === window;
+
+                        addVisitRow(tableBody, visitNum + 1, visitDate, dateType, groupClass, isFirst, isLast);
                     }
-                    addVisitRow(tableBody, visitNum + 1, visitDate, dateType, groupClass);
                 }
             });
         }
 
         // 添加访视行的辅助函数
-        function addVisitRow(tableBody, visitNumber, date, dateType, groupClass) {
+        function addVisitRow(tableBody, visitNumber, date, dateType, groupClass, isGroupStart, isGroupEnd) {
             const row = tableBody.insertRow();
-            row.className = groupClass; // 添加背景色类
-            
+            row.className = groupClass;
+
+            // 添加访视组开始和结束的标记
+            if (isGroupStart) {
+                row.classList.add('visit-group-start');
+            }
+            if (isGroupEnd) {
+                row.classList.add('visit-group-end');
+            }
+
+            // 添加基准日期或窗口期的样式
+            if (dateType === '基准日期') {
+                row.classList.add('visit-base-date');
+            } else {
+                row.classList.add('visit-window-date');
+            }
+
             // 访视次数
-            row.insertCell(0).textContent = `第 ${visitNumber} 次访视`;
-            
+            const visitCell = row.insertCell(0);
+            visitCell.textContent = `第 ${visitNumber} 次访视`;
+
             // 计划访视日期
             const dateCell = row.insertCell(1);
             dateCell.textContent = `${formatDate(date)} (${dateType})`;
             if (dateType !== '基准日期') {
-                dateCell.style.color = 'blue';
+                dateCell.style.color = '#666'; // 窗口期日期使用灰色
             }
-            
+
             // 节假日信息
             const holidayInfo = getHolidayInfo(date);
             const holidayCell = row.insertCell(2);
             holidayCell.textContent = holidayInfo;
             if (holidayInfo !== '非节假日') {
-                holidayCell.style.color = 'red';
+                holidayCell.style.color = dateType === '基准日期' ? 'red' : '#d32f2f'; // 基准日期的节假日更醒目
             }
         }
 
@@ -389,10 +722,10 @@
                 const year = date.getFullYear();
                 const month = date.getMonth() + 1;
                 const day = date.getDate();
-                
+
                 // 使用 HolidayUtil 获取节假日信息
                 const holiday = HolidayUtil.getHoliday(year, month, day);
-                
+
                 if (holiday) {
                     // 如果是调休工作日，返回调休信息
                     if (holiday.isWork()) {
@@ -401,13 +734,13 @@
                     // 如果是节假日，返回节日名称
                     return holiday.getName();
                 }
-                
+
                 // 如果不是法定节假日检查是否为普通周末
                 const weekDay = date.getDay();
                 if (weekDay === 0 || weekDay === 6) {
                     return weekDay === 0 ? '周日' : '周六';
                 }
-                
+
                 return '非节假日';
             } catch (error) {
                 console.error('Error in getHolidayInfo:', error);
@@ -420,8 +753,68 @@
             return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
         }
 
-        // 添加搜索按钮事件监听
+        // 修改事件监听器
         document.getElementById('searchButton').addEventListener('click', searchSubject);
-        document.getElementById('subjectSelect').addEventListener('change', searchSubject);
+        document.getElementById('subjectInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchSubject();
+            }
+        });
+
+        // 加载项目列表
+        async function loadProjects() {
+            try {
+                const transaction = db.transaction(['projects'], 'readonly');
+                const projectStore = transaction.objectStore('projects');
+                const projects = await new Promise((resolve) => {
+                    projectStore.getAll().onsuccess = (event) => resolve(event.target.result);
+                });
+
+                const projectSelect = document.getElementById('projectSelect');
+                projectSelect.innerHTML = '<option value="">请选择项目</option>' +
+                    projects.map(project =>
+                        `<option value="${project.projectName}">${project.projectName}</option>`
+                    ).join('');
+
+                // 添加项目选择事件监听器
+                projectSelect.addEventListener('change', function () {
+                    const selectedProject = this.value;
+                    document.getElementById('subjectInput').value = '';
+                    if (selectedProject) {
+                        loadCenters(selectedProject);
+                    } else {
+                        document.getElementById('centerSelect').innerHTML = '<option value="">请先选择项目</option>';
+                    }
+                });
+            } catch (error) {
+                console.error('加载项目列表失败:', error);
+            }
+        }
+
+        // 加载中心列表
+        async function loadCenters(projectName) {
+            try {
+                const transaction = db.transaction(['centers'], 'readonly');
+                const centerStore = transaction.objectStore('centers');
+                const centerIndex = centerStore.index('projectName');
+
+                const centers = await new Promise((resolve) => {
+                    centerIndex.getAll(projectName).onsuccess = (event) => resolve(event.target.result);
+                });
+
+                const centerSelect = document.getElementById('centerSelect');
+                centerSelect.innerHTML = '<option value="">请选择中心</option>' +
+                    centers.map(center =>
+                        `<option value="${center.centerName}">${center.centerName}</option>`
+                    ).join('');
+
+                // 添加中心选择事件监听器
+                centerSelect.addEventListener('change', function () {
+                    document.getElementById('subjectInput').value = '';
+                });
+            } catch (error) {
+                console.error('加载中心列表失败:', error);
+            }
+        }
     </script>
 </body>
