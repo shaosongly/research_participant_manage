@@ -116,8 +116,8 @@ const SchedulePage = {
                             name: subject.name,
                             visitNumber: visitNum + 1,
                             baseDate: visit.baseDate,
-                            earliestDate: visit.earliestDate,
-                            latestDate: visit.latestDate
+                            earliestDate: visit.window === 0 ? visit.baseDate : visit.earliestDate,
+                            latestDate: visit.window === 0 ? visit.baseDate : visit.latestDate
                         };
 
                         // 检查访视日期是否在选定的日期范围内
@@ -169,7 +169,11 @@ const SchedulePage = {
         }
 
         function formatWindowDate(date, baseDate) {
-            return date.getTime() === baseDate.getTime() ? '无窗口期' : formatDate(date);
+            // Compare dates by setting time to midnight
+            const normalizedDate = new Date(date.setHours(0, 0, 0, 0));
+            const normalizedBaseDate = new Date(baseDate.setHours(0, 0, 0, 0));
+            
+            return normalizedDate.getTime() === normalizedBaseDate.getTime() ? '无窗口期' : formatDate(date);
         }
 
         return {
