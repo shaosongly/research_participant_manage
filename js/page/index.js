@@ -17,7 +17,7 @@ createApp({
             fixedDays: 1,
             fixedWindow: 0,
         });
-        
+
         const visits = ref([]);
         const excelFile = ref(null);
         const columnMappings = ref([]);
@@ -89,7 +89,7 @@ createApp({
                     name: formData.value.name,
                     firstDate: formData.value.firstDate,
                     totalVisits: formData.value.totalVisits,
-                    frequency: formData.value.frequencyType === 'fixed' 
+                    frequency: formData.value.frequencyType === 'fixed'
                         ? formData.value.fixedDays.toString()
                         : visits.value.map(v => v.frequency).join(','),
                     visitWindow: formData.value.frequencyType === 'fixed'
@@ -119,7 +119,7 @@ createApp({
                 const workbook = XLSX.read(data, { type: 'array' });
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const headers = XLSX.utils.sheet_to_json(firstSheet, { header: 1 })[0];
-                
+
                 columnMappings.value = headers.map(header => ({
                     header,
                     field: ''
@@ -128,54 +128,136 @@ createApp({
             reader.readAsArrayBuffer(file);
         };
 
-        const handleBatchImport = async () => {
-            if (!excelFile.value) {
-                alert('请选择Excel文件');
+        // 处理批量导入
+        const handleBatchImport = async (event) => {
+            event.preventDefault();
+
+            const selectedProject = formData.value.project;
+            const selectedCenter = formData.value.center;
+
+            if (!selectedProject || !selectedCenter) {
+                alert('请先选择项目和中心');
                 return;
             }
 
             const reader = new FileReader();
             reader.onload = async (e) => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(firstSheet);
-
-                const subjectsData = [];
-                const invalidSubjects = [];
-
-                rows.forEach(row => {
-                    const subject = {};
-                    columnMappings.value.forEach(mapping => {
-                        if (mapping.field) {
-                            const value = row[mapping.header];
-                            subject[mapping.field] = mapping.field === 'firstDate' 
-                                ? parseExcelDate(value)?.toISOString().split('T')[0] 
-                                : value;
-                        }
-                    });
-
-                    if (validateSubjectData(subject)) {
-                        subjectsData.push(subject);
-                    } else {
-                        invalidSubjects.push(row);
-                    }
-                });
-
-                if (invalidSubjects.length > 0) {
-                    alert(`发现 ${invalidSubjects.length} 条无效数据，请检查Excel文件`);
-                    console.error('Invalid subjects:', invalidSubjects);
-                    return;
-                }
-
                 try {
-                    await Promise.all(subjectsData.map(subject => 
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(firstSheet);
+
+                    // 根据列映射转换数据
+                    const subjects = rows.map((row, index) => {
+                        const subject = {
+                            project: selectedProject,
+                            center: selectedCenter
+                        };
+                        let hasError = false;
+
+                        // 遍历映射关系，构建数据
+                        columnMappings.value.forEach(mapping => {
+                            if (mapping.field && row[mapping.header] !== undefined) {
+                                let value = row[mapping.header];
+
+                                // 特殊字段处理
+                                switch (mapping.field) {
+                                    case 'firstDate':
+                                        // 处理日期
+                                        const date = parseExcelDate(value);
+                                        if (date) {
+                                            value = date.toISOString().split('T')[0];
+                                        } else {
+                                            console.error(`Row ${index + 1}: Invalid date format`);
+                                            hasError = true;
+                                        }
+                                        break;
+                                    case 'totalVisits':
+                                        // 确保是数字
+                                        value = parseInt(value);
+                                        if (isNaN(value) || value < 2) {
+                                            console.error(`Row ${index + 1}: Invalid total visits`);
+                                            hasError = true;
+                                        }
+                                        break;
+                                    case 'frequency':
+                                        // 确保是数字或逗号分隔的数字
+                                        if (typeof value === 'number') {
+                                            value = value.toString();
+                                        } else if (typeof value === 'string') {
+                                            value = value.trim();
+                                            if (!/^\d+(?:,\d+)*$/.test(value)) {
+                                                console.error(`Row ${index + 1}: Invalid frequency format`);
+                                                hasError = true;
+                                            }
+                                        } else {
+                                            hasError = true;
+                                        }
+                                        break;
+                                    case 'visitWindow':
+                                        // 处理访视窗口
+                                        if (value === undefined || value === '') {
+                                            value = '0';
+                                        } else if (typeof value === 'number') {
+                                            value = value.toString();
+                                        } else if (typeof value === 'string') {
+                                            value = value.trim();
+                                            if (!/^\d+(?:,\d+)*$/.test(value)) {
+                                                console.error(`Row ${index + 1}: Invalid visit window format`);
+                                                hasError = true;
+                                            }
+                                        } else {
+                                            hasError = true;
+                                        }
+                                        break;
+                                }
+                                subject[mapping.field] = value;
+                            }
+                        });
+
+                        // 验证必填字段
+                        const requiredFields = ['name', 'firstDate', 'totalVisits', 'frequency'];
+                        const missingFields = requiredFields.filter(field => !subject[field]);
+                        if (missingFields.length > 0) {
+                            console.error(`Row ${index + 1}: Missing required fields: ${missingFields.join(', ')}`);
+                            hasError = true;
+                        }
+
+                        // 验证频率和窗口的数量
+                        if (!hasError && subject.frequency.includes(',')) {
+                            const frequencyCount = subject.frequency.split(',').length;
+                            if (frequencyCount !== subject.totalVisits - 1) {
+                                console.error(`Row ${index + 1}: Frequency count doesn't match total visits`);
+                                hasError = true;
+                            }
+                        }
+
+                        if (!hasError && subject.visitWindow && subject.visitWindow !== '0' && subject.visitWindow.includes(',')) {
+                            const windowCount = subject.visitWindow.split(',').length;
+                            if (windowCount !== subject.totalVisits - 1) {
+                                console.error(`Row ${index + 1}: Visit window count doesn't match total visits`);
+                                hasError = true;
+                            }
+                        }
+
+                        return hasError ? null : subject;
+                    }).filter(subject => subject !== null);
+
+                    if (subjects.length === 0) {
+                        throw new Error('No valid subjects found in the Excel file');
+                    }
+
+                    // 批量保存
+                    await Promise.all(subjects.map(subject =>
                         SubjectOperations.addSubject(subject)
                     ));
+
+                    alert(`成功导入 ${subjects.length} 条记录`);
                     window.location.href = 'view.html';
                 } catch (error) {
                     console.error('批量导入失败:', error);
-                    alert('导入失败，请检查数据是否重复或格式是否正确');
+                    alert('导入失败，请检查数据格式是否正确');
                 }
             };
             reader.readAsArrayBuffer(excelFile.value);
@@ -219,7 +301,7 @@ createApp({
                 const urlParams = new URLSearchParams(window.location.search);
                 const projectFromUrl = urlParams.get('project');
                 const centerFromUrl = urlParams.get('center');
-                
+
                 if (projectFromUrl) {
                     formData.value.project = projectFromUrl;
                     await loadCenters(projectFromUrl);
@@ -257,12 +339,12 @@ function parseExcelDate(dateValue) {
     if (dateValue instanceof Date) {
         return new Date(Date.UTC(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate()));
     }
-    
+
     if (typeof dateValue === 'number') {
         const date = new Date((dateValue - 25569) * 86400 * 1000);
         return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     }
-    
+
     if (typeof dateValue === 'string') {
         if (/^\d{4}$/.test(dateValue)) {
             const month = parseInt(dateValue.substr(0, 2)) - 1;
@@ -270,25 +352,25 @@ function parseExcelDate(dateValue) {
             const year = new Date().getFullYear();
             return new Date(Date.UTC(year, month, day));
         }
-        
+
         const parts = dateValue.split('/');
         if (parts.length === 3) {
             const month = parseInt(parts[0]) - 1;
             const day = parseInt(parts[1]);
             let year = parseInt(parts[2]);
-            
+
             if (year < 100) {
                 year += year < 50 ? 2000 : 1900;
             }
-            
+
             return new Date(Date.UTC(year, month, day));
         }
-        
+
         const date = new Date(dateValue);
         if (!isNaN(date.getTime())) {
             return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
         }
     }
-    
+
     return null;
 }
