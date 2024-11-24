@@ -255,6 +255,36 @@
                     <!-- 批量导入表单 -->
                     <div v-show="activeTab === 'batch'" class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
                         <div class="p-8">
+                            <!-- 添加项目和中心选择 -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <div>
+                                    <label class="block text-gray-700 text-sm font-semibold mb-2">选择项目:</label>
+                                    <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                             transition-all duration-200"
+                                            v-model="selectedProject" 
+                                            @change="onProjectChange">
+                                        <option value="">请选择项目</option>
+                                        <option v-for="project in projects" :key="project.projectName" :value="project.projectName">
+                                            {{ project.projectName }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 text-sm font-semibold mb-2">选择中心:</label>
+                                    <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                             transition-all duration-200"
+                                            v-model="selectedCenter" 
+                                            @change="onCenterChange">
+                                        <option value="">{{ selectedProject ? '请选择中心' : '请先选择项目' }}</option>
+                                        <option v-for="center in centers" :key="center.centerName" :value="center.centerName">
+                                            {{ center.centerName }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <!-- 批量导入部分 -->
                             <div class="border-t border-gray-200 pt-6">
                                 <h3 class="text-xl font-semibold mb-6 text-gray-800">批量导入访视记录</h3>
