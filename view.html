@@ -7,6 +7,11 @@
     <title>受试者信息查看</title>
     <!-- 引入 Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+    <script>
+        window.Dexie = Dexie;
+    </script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -50,490 +55,190 @@
 </head>
 
 <body>
-    <!-- 添加导航栏 -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="landing.html">首页</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="project_manage.html">项目管理</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html">添加受试者</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="view.html">查看受试者</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="schedule.html">访视安排</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="visit_plan.html">访视计划</a>
-                    </li>
-                    <li class="nav-item"></li>
-                    <a class="nav-link" href="visit_record.html">访视记录</a>
-                    </li>
-                    <li class="nav-item"></li>
+    <div id="app">
+        <!-- 导航栏 -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="landing.html">首页</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="project_manage.html">项目管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">添加受试者</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="view.html">查看受试者</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="schedule.html">访视安排</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="visit_plan.html">访视计划</a>
+                        </li>
+                        <li class="nav-item"></li>
+                        <a class="nav-link" href="visit_record.html">访视记录</a>
+                        </li>
+                        <li class="nav-item"></li>
                         <a class="nav-link" href="window_check.html">超窗检查</a>
-                    </li>
-                </ul>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <div class="container">
-        <h1 class="mb-4 text-center">受试者信息列表</h1>
+        <div class="container">
+            <h1 class="mb-4 text-center">受试者信息列表</h1>
 
-        <!-- 添加筛选区域 -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-5">
-                        <label for="projectFilter" class="form-label">项目筛选:</label>
-                        <select class="form-select" id="projectFilter">
-                            <option value="">全部项目</option>
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <label for="centerFilter" class="form-label">中心筛选:</label>
-                        <select class="form-select" id="centerFilter">
-                            <option value="">全部中心</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button class="btn btn-secondary w-100" onclick="resetFilters()">重置筛选</button>
+            <!-- 筛选区域 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <label for="projectFilter" class="form-label">项目筛选:</label>
+                            <select class="form-select" v-model="selectedProject" @change="onProjectChange">
+                                <option value="">全部项目</option>
+                                <option v-for="project in projects" :key="project" :value="project">
+                                    {{ project }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="centerFilter" class="form-label">中心筛选:</label>
+                            <select class="form-select" v-model="selectedCenter">
+                                <option value="">全部中心</option>
+                                <option v-for="center in centers" :key="center" :value="center">
+                                    {{ center }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button class="btn btn-secondary w-100" @click="resetFilters">重置筛选</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card">
-            <div class="card-body">
-                <table id="subjectTable" class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>
-                                <input type="checkbox" id="selectAll" class="form-check-input" style="display: none;">
-                            </th>
-                            <th>项目</th>
-                            <th>中心</th>
-                            <th>受试者名称</th>
-                            <th>首次受试日期</th>
-                            <th>访视间隔(天)</th>
-                            <th>总访视次数</th>
-                            <th>访视窗口(天)</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- 数据将通过 JavaScript 动态插入这里 -->
-                    </tbody>
-                </table>
+            <!-- 表格区域 -->
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" 
+                                           v-model="selectAll" 
+                                           @change="toggleSelectAll"
+                                           :style="{ display: batchDeleteMode ? '' : 'none' }">
+                                </th>
+                                <th>项目</th>
+                                <th>中心</th>
+                                <th>受试者名称</th>
+                                <th>首次受试日期</th>
+                                <th>访视间隔(天)</th>
+                                <th>总访视次数</th>
+                                <th>访视窗口(天)</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(subject, index) in filteredSubjects" 
+                                :key="index"
+                                :class="{ 'table-warning': subject.editing }">
+                                <td>
+                                    <input type="checkbox" 
+                                           v-model="subject.selected"
+                                           :style="{ display: batchDeleteMode ? '' : 'none' }">
+                                </td>
+                                <td>{{ subject.project }}</td>
+                                <td>{{ subject.center }}</td>
+                                <td>{{ subject.name }}</td>
+                                <td>
+                                    <template v-if="subject.editing">
+                                        <input type="text" class="form-control form-control-sm" 
+                                               v-model="subject.editData.firstDate">
+                                    </template>
+                                    <template v-else>{{ subject.firstDate }}</template>
+                                </td>
+                                <td>
+                                    <template v-if="subject.editing">
+                                        <div class="d-flex flex-column">
+                                            <input type="text" class="form-control form-control-sm" 
+                                                   v-model="subject.editData.frequency"
+                                                   placeholder="单个数字或逗号分隔的多个数字">
+                                            <div class="form-text small">例如：3表示每3天访视一次</div>
+                                        </div>
+                                    </template>
+                                    <template v-else>{{ subject.frequency }}</template>
+                                </td>
+                                <td>
+                                    <template v-if="subject.editing">
+                                        <input type="number" class="form-control form-control-sm" 
+                                               v-model="subject.editData.totalVisits">
+                                    </template>
+                                    <template v-else>{{ subject.totalVisits }}</template>
+                                </td>
+                                <td>
+                                    <template v-if="subject.editing">
+                                        <div class="d-flex flex-column">
+                                            <input type="text" class="form-control form-control-sm" 
+                                                   v-model="subject.editData.visitWindow"
+                                                   placeholder="单个数字或逗号分隔的多个数字">
+                                            <div class="form-text small">不填写默认为0</div>
+                                        </div>
+                                    </template>
+                                    <template v-else>{{ subject.visitWindow || '0' }}</template>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <template v-if="subject.editing">
+                                            <button @click="saveSubject(index)" 
+                                                    class="btn btn-sm btn-success">保存</button>
+                                            <button @click="cancelEdit(index)" 
+                                                    class="btn btn-sm btn-secondary">取消</button>
+                                        </template>
+                                        <template v-else>
+                                            <button @click="editSubject(index)" 
+                                                    class="btn btn-sm btn-primary">编辑</button>
+                                            <button @click="deleteSubject(index)" 
+                                                    class="btn btn-sm btn-danger">删除</button>
+                                        </template>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-        <div class="text-center mt-4">
-            <a href="landing.html" class="btn btn-info">返回首页</a>
-            <button id="batchDeleteBtn" class="btn btn-warning">批量删除</button>
-            <button id="confirmBatchDeleteBtn" class="btn btn-danger" style="display: none;">删除选中</button>
-            <button id="cancelBatchDeleteBtn" class="btn btn-secondary" style="display: none;">取消</button>
+
+            <!-- 底部按钮 -->
+            <div class="text-center mt-4">
+                <a href="landing.html" class="btn btn-info">返回首页</a>
+                <button class="btn btn-warning" 
+                        v-if="!batchDeleteMode"
+                        @click="toggleBatchDeleteMode(true)">批量删除</button>
+                <button class="btn btn-danger" 
+                        v-if="batchDeleteMode"
+                        @click="batchDelete">删除选中</button>
+                <button class="btn btn-secondary" 
+                        v-if="batchDeleteMode"
+                        @click="toggleBatchDeleteMode(false)">取消</button>
+            </div>
         </div>
     </div>
 
-    <!-- 引入 Bootstrap JS 和 Popper.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
-    <script>
-        let db;
-        const dbName = "ResearchDB";
-
-        const request = indexedDB.open(dbName);
-
-        request.onerror = function (event) {
-            console.error("数据库错误: " + event.target.error);
-        };
-
-        request.onsuccess = function (event) {
-            db = event.target.result;
-            console.log("数据库打开成功");
-            loadSubjects();
-        };
-
-        let allSubjects = [];  // 存储所有受试者数据
-        let projectSet = new Set();  // 存储所有项目
-        let centerMap = new Map();  // 存储项目-中心映射
-
-        // 加载筛选选项
-        async function loadFilterOptions() {
-            const transaction = db.transaction(['subjects'], 'readonly');
-            const objectStore = transaction.objectStore('subjects');
-
-            return new Promise((resolve) => {
-                objectStore.getAll().onsuccess = function (event) {
-                    allSubjects = event.target.result;
-
-                    // 收集所有项目和中心
-                    projectSet.clear();
-                    centerMap.clear();
-
-                    allSubjects.forEach(subject => {
-                        projectSet.add(subject.project);
-                        if (!centerMap.has(subject.project)) {
-                            centerMap.set(subject.project, new Set());
-                        }
-                        centerMap.get(subject.project).add(subject.center);
-                    });
-
-                    // 更新项目下拉列表
-                    const projectFilter = document.getElementById('projectFilter');
-                    projectFilter.innerHTML = '<option value="">全部项目</option>';
-                    Array.from(projectSet).sort().forEach(project => {
-                        projectFilter.innerHTML += `<option value="${project}">${project}</option>`;
-                    });
-
-                    resolve();
-                };
-            });
-        }
-
-        // 更新中心下拉列表
-        function updateCenterFilter(selectedProject) {
-            const centerFilter = document.getElementById('centerFilter');
-            centerFilter.innerHTML = '<option value="">全部中心</option>';
-
-            if (selectedProject && centerMap.has(selectedProject)) {
-                Array.from(centerMap.get(selectedProject)).sort().forEach(center => {
-                    centerFilter.innerHTML += `<option value="${center}">${center}</option>`;
-                });
-            }
-        }
-
-        // 应用筛选并显示数据
-        function applyFilters() {
-            const selectedProject = document.getElementById('projectFilter').value;
-            const selectedCenter = document.getElementById('centerFilter').value;
-
-            const filteredSubjects = allSubjects.filter(subject => {
-                if (selectedProject && subject.project !== selectedProject) return false;
-                if (selectedCenter && subject.center !== selectedCenter) return false;
-                return true;
-            });
-
-            displaySubjects(filteredSubjects);
-        }
-
-        // 重置筛选
-        function resetFilters() {
-            document.getElementById('projectFilter').value = '';
-            document.getElementById('centerFilter').value = '';
-            applyFilters();
-        }
-
-        // 显示受试者数据
-        function displaySubjects(subjects) {
-            const tableBody = document.querySelector('#subjectTable tbody');
-            tableBody.innerHTML = '';
-
-            subjects.forEach(data => {
-                const row = tableBody.insertRow();
-                row.dataset.id = data.name;
-
-                // 添加复选框列
-                const checkboxCell = row.insertCell(0);
-                checkboxCell.innerHTML = `
-                    <input type="checkbox" class="form-check-input subject-checkbox" 
-                           style="display: none;" value="${data.name}">
-                `;
-
-                // 填充数据
-                row.insertCell(1).textContent = data.project;
-                row.insertCell(2).textContent = data.center;
-                row.insertCell(3).textContent = data.name;
-                row.insertCell(4).textContent = data.firstDate;
-                row.insertCell(5).textContent = data.frequency;
-                row.insertCell(6).textContent = data.totalVisits;
-                row.insertCell(7).textContent = data.visitWindow;
-
-                // 操作按钮
-                const actionCell = row.insertCell(8);
-                actionCell.innerHTML = `
-                    <div class="btn-group" role="group">
-                        <button onclick="editRow('${data.name}')" class="btn btn-sm btn-outline-primary">编辑</button>
-                        <button onclick="deleteRow('${data.name}')" class="btn btn-sm btn-outline-danger">删除</button>
-                    </div>
-                `;
-            });
-        }
-
-        // 修改原有的 loadSubjects 函数
-        async function loadSubjects() {
-            await loadFilterOptions();
-            applyFilters();
-        }
-
-        // 添加事件监听器
-        document.getElementById('projectFilter').addEventListener('change', function () {
-            updateCenterFilter(this.value);
-            applyFilters();
-        });
-
-        document.getElementById('centerFilter').addEventListener('change', applyFilters);
-
-        // 检查 URL 参数并自动设置筛选
-        function checkUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const projectFromUrl = urlParams.get('project');
-            const centerFromUrl = urlParams.get('center');
-
-            if (projectFromUrl) {
-                setTimeout(() => {
-                    document.getElementById('projectFilter').value = projectFromUrl;
-                    updateCenterFilter(projectFromUrl);
-                    if (centerFromUrl) {
-                        setTimeout(() => {
-                            document.getElementById('centerFilter').value = centerFromUrl;
-                            applyFilters();
-                        }, 100);
-                    }
-                }, 100);
-            }
-        }
-
-        // 在数据库打开成功后调用
-        request.onsuccess = function (event) {
-            db = event.target.result;
-            console.log("数据库打开成功");
-            loadSubjects();
-            checkUrlParams();  // 检查 URL 参数
-        };
-
-        function editRow(id) {
-            const row = document.querySelector(`tr[data-id="${id}"]`);
-            row.classList.add('table-warning');
-            const cells = row.cells;
-
-            // 定义每个字段的配置
-            const fieldConfigs = [
-                { readonly: true },  // 复选框列
-                { readonly: true },  // 项目
-                { readonly: true },  // 中心
-                { readonly: true },  // 受试者名称 - 改为只读
-                { readonly: false }, // 首次受试日期
-                {
-                    readonly: false,
-                    placeholder: "单个数字或逗号分隔的多个数字，如: 3 或 1,2,3",
-                    help: "例如：3表示每3天访视一次，1,2,3表示每次访视间隔分别为1天、2天、3天"
-                }, // 访视间隔
-                { readonly: false }, // 总访视次数
-                {
-                    readonly: false,
-                    placeholder: "单个数字或逗号分隔的多个数字，如: 1 或 1,2,3",
-                    help: "不填写默认为0，表示无访视窗口"
-                }  // 访视窗口
-            ];
-
-            // 从第1列开始（跳过复选框列）
-            for (let i = 1; i < 8; i++) {
-                const cell = cells[i];
-                const config = fieldConfigs[i];
-                const content = cell.textContent;
-
-                cell.innerHTML = `
-                    <div class="d-flex flex-column">
-                        <input type="text" class="form-control form-control-sm" 
-                               value="${content}" 
-                               ${config.readonly ? 'readonly' : ''}
-                               ${config.placeholder ? `placeholder="${config.placeholder}"` : ''}>
-                        ${config.help ? `<div class="form-text small">${config.help}</div>` : ''}
-                    </div>
-                `;
-            }
-
-            // 修改操作按钮列
-            const actionCell = cells[8];
-            actionCell.innerHTML = `
-                <div class="btn-group" role="group">
-                    <button onclick="saveRow('${id}')" class="btn btn-sm btn-success">保存</button>
-                    <button onclick="cancelEdit('${id}')" class="btn btn-sm btn-secondary">取消</button>
-                </div>
-            `;
-        }
-
-        function saveRow(id) {
-            const row = document.querySelector(`tr[data-id="${id}"]`);
-            const cells = row.cells;
-
-            // 获取输入值（从第1列开始，跳过复选框列）
-            const project = cells[1].querySelector('input').value.trim();
-            const center = cells[2].querySelector('input').value.trim();
-            const name = cells[3].querySelector('input').value.trim();
-            const firstDate = cells[4].querySelector('input').value.trim();
-            const frequency = cells[5].querySelector('input').value.trim();
-            const totalVisits = cells[6].querySelector('input').value.trim();
-            const visitWindow = cells[7].querySelector('input').value.trim() || '0';
-
-            // 验证访视频率格式和数量
-            if (!/^\d+(?:,\d+)*$/.test(frequency)) {
-                alert('访视频率格式不正确，请输入单个数字或用逗号分隔的多个数字，如: 3 或 1,2,3');
-                return;
-            }
-
-            const frequencyNums = frequency.split(',');
-            const totalVisitsNum = parseInt(totalVisits);
-
-            if (frequencyNums.length > 1 && frequencyNums.length !== totalVisitsNum - 1) {
-                alert(`当使用变化的访视间隔时，数量必须等于总访视次数减1（${totalVisitsNum - 1}），当前输入了 ${frequencyNums.length} 个间隔`);
-                return;
-            }
-
-            // 验证访视窗口格式和数量
-            if (visitWindow !== '0' && !/^\d+(?:,\d+)*$/.test(visitWindow)) {
-                alert('访视窗口格式不正确，请使用单个数字或逗号分隔的多个数字，如: 1 或 1,2,3');
-                return;
-            }
-
-            const windowNums = visitWindow === '0' ? [] : visitWindow.split(',');
-            if (windowNums.length > 1 && windowNums.length !== totalVisitsNum - 1) {
-                alert(`当使用变化的访视窗口时，数量必须等于总访视次数减1（${totalVisitsNum - 1}），当前输入了 ${windowNums.length} 个窗口值`);
-                return;
-            }
-
-            if (!name || !firstDate || !frequency || !totalVisits || totalVisitsNum <= 0) {
-                alert('请填写所有必填字段，且总访视次数必须大于0');
-                return;
-            }
-
-            const updatedData = {
-                project: project,
-                center: center,
-                name: name,
-                firstDate: firstDate,
-                frequency: frequency,
-                totalVisits: parseInt(totalVisits),
-                visitWindow: visitWindow
-            };
-
-            const transaction = db.transaction(["subjects"], "readwrite");
-            const objectStore = transaction.objectStore("subjects");
-            const request = objectStore.put(updatedData);
-
-            request.onsuccess = function () {
-                console.log("数据更新成功");
-                loadSubjects();
-            };
-
-            request.onerror = function () {
-                console.error("更新数据时出错");
-                alert('更新失败，请重试');
-            };
-        }
-
-        function cancelEdit(id) {
-            loadSubjects();
-        }
-
-        function deleteRow(id) {
-            const row = document.querySelector(`tr[data-id="${id}"]`);
-            const project = row.cells[1].textContent;
-            const center = row.cells[2].textContent;
-            const name = row.cells[3].textContent;
-
-            if (confirm("确定要删除这条记录吗？")) {
-                const transaction = db.transaction(["subjects"], "readwrite");
-                const objectStore = transaction.objectStore("subjects");
-                const request = objectStore.delete([project, center, name]);
-
-                request.onsuccess = function () {
-                    console.log("数据删除成功");
-                    loadSubjects();
-                };
-
-                request.onerror = function () {
-                    console.error("删除数据时出错");
-                    alert("删除失败，请重试");
-                };
-            }
-        }
-
-        // 添加批量删除相关的函数和事件处理 (在脚本末尾添加)
-        let batchDeleteMode = false;
-
-        // 切换批量删除模式
-        function toggleBatchDeleteMode(enabled) {
-            batchDeleteMode = enabled;
-            const checkboxes = document.querySelectorAll('.subject-checkbox, #selectAll');
-            const normalButtons = document.querySelectorAll('#batchDeleteBtn, .btn-outline-primary, .btn-outline-danger');
-            const batchButtons = document.querySelectorAll('#confirmBatchDeleteBtn, #cancelBatchDeleteBtn');
-
-            checkboxes.forEach(cb => cb.style.display = enabled ? '' : 'none');
-            normalButtons.forEach(btn => btn.style.display = enabled ? 'none' : '');
-            batchButtons.forEach(btn => btn.style.display = enabled ? '' : 'none');
-
-            if (!enabled) {
-                // 退出批量删除模式时，取消所有选择
-                checkboxes.forEach(cb => cb.checked = false);
-            }
-        }
-
-        // 全选/取消全选
-        document.getElementById('selectAll').addEventListener('change', function () {
-            const checkboxes = document.querySelectorAll('.subject-checkbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-        });
-
-        // 进入批量删除模式
-        document.getElementById('batchDeleteBtn').addEventListener('click', function () {
-            toggleBatchDeleteMode(true);
-        });
-
-        // 取消批量删除
-        document.getElementById('cancelBatchDeleteBtn').addEventListener('click', function () {
-            toggleBatchDeleteMode(false);
-        });
-
-        // 执行批量删除
-        document.getElementById('confirmBatchDeleteBtn').addEventListener('click', async function () {
-            const selectedCheckboxes = document.querySelectorAll('.subject-checkbox:checked');
-            if (selectedCheckboxes.length === 0) {
-                alert('请至少选择一条记录');
-                return;
-            }
-
-            if (confirm(`确定要删除选中的 ${selectedCheckboxes.length} 条记录吗？`)) {
-                const transaction = db.transaction(['subjects'], 'readwrite');
-                const objectStore = transaction.objectStore('subjects');
-
-                try {
-                    for (const checkbox of selectedCheckboxes) {
-                        const row = checkbox.closest('tr');
-                        const project = row.cells[1].textContent;
-                        const center = row.cells[2].textContent;
-                        const name = row.cells[3].textContent;
-
-                        await new Promise((resolve, reject) => {
-                            const request = objectStore.delete([project, center, name]);
-                            request.onsuccess = resolve;
-                            request.onerror = reject;
-                        });
-                    }
-
-                    console.log('批量删除成功');
-                    toggleBatchDeleteMode(false);
-                    loadSubjects();
-                } catch (error) {
-                    console.error('批量删除出错:', error);
-                    alert('删除失败，请重试');
-                }
-            }
-        });
-    </script>
+    <!-- 引入 Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 引入应用代码 -->
+    <script type="module" src="./js/page/view.js"></script>
 </body>
 
 </html>
