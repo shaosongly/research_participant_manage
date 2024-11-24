@@ -6,12 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>项目管理</title>
     <!-- 引入CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/project_manage.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入js -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="../js/page/project-manage.js"></script>
     <script>
         window.Dexie = Dexie;
@@ -23,12 +22,13 @@
         <!-- 导航栏组件 -->
         <nav-bar></nav-bar>
 
-        <div class="container">
-            <h1 class="mb-4 text-center">项目管理</h1>
+        <div class="container mx-auto px-4 pt-20">
+            <h1 class="text-2xl font-bold mb-4 text-center">项目管理</h1>
 
             <!-- 新建项目按钮 -->
             <div class="mb-4">
-                <button class="btn btn-primary" @click="showNewProjectModal">新建项目</button>
+                <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 
+                        @click="showNewProjectModal">新建项目</button>
             </div>
 
             <!-- 项目列表 -->
@@ -39,11 +39,6 @@
                 @delete-center="confirmDelete('center', $event.project, $event.center)"
                 @add-center="showNewCenterModal($event)">
             </project-list>
-
-            <!-- 返回按钮 -->
-            <div class="text-center mt-4">
-                <a href="../landing.html" class="btn btn-info">返回首页</a>
-            </div>
 
             <!-- 模态框组件 -->
             <project-modal
@@ -72,47 +67,43 @@
 
     <!-- 组件模板 -->
     <template id="nav-bar-template">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container">
-                <a class="navbar-brand" href="../landing.html">受试者管理系统</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="../landing.html">首页</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="project_manage.html">项目管理</a>
-                        </li>
-                        <!-- ... 其他导航项 ... -->
-                    </ul>
+        <nav class="fixed top-0 w-full bg-blue-600 text-white z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-14">
+                    <a href="../landing.html" class="text-lg font-semibold">受试者管理系统</a>
+                    <div class="flex space-x-4">
+                        <a href="../landing.html" class="hover:text-blue-200">首页</a>
+                        <a href="project_manage.html" class="text-blue-200">项目管理</a>
+                    </div>
                 </div>
             </div>
         </nav>
     </template>
 
     <template id="project-list-template">
-        <div id="projectList">
-            <div v-for="[projectName, centers] in projects" :key="projectName" class="card project-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{ projectName }}</h5>
-                    <div class="btn-group">
-                        <button class="btn btn-primary btn-sm" @click="$emit('add-center', projectName)">
+        <div id="projectList" class="space-y-4">
+            <div v-for="[projectName, centers] in projects" :key="projectName" 
+                 class="bg-white rounded-lg shadow-md">
+                <div class="flex justify-between items-center px-4 py-3 bg-gray-50 rounded-t-lg">
+                    <h5 class="text-lg font-medium">{{ projectName }}</h5>
+                    <div class="space-x-2">
+                        <button @click="$emit('add-center', projectName)"
+                                class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
                             添加中心
                         </button>
-                        <button class="btn btn-danger btn-sm" @click="$emit('delete-project', projectName)">
+                        <button @click="$emit('delete-project', projectName)"
+                                class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
                             删除项目
                         </button>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="center-list">
-                        <div v-for="centerName in centers" :key="centerName" class="center-item">
+                <div class="p-4">
+                    <div class="space-y-2">
+                        <div v-for="centerName in centers" :key="centerName" 
+                             class="flex justify-between items-center p-3 bg-gray-50 rounded">
                             <span>{{ centerName }} ({{ getCenterSubjectCount(projectName, centerName) }} 名受试者)</span>
-                            <button class="btn btn-danger btn-sm"
-                                    @click="$emit('delete-center', { project: projectName, center: centerName })">
+                            <button @click="$emit('delete-center', { project: projectName, center: centerName })"
+                                    class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">
                                 删除
                             </button>
                         </div>
@@ -124,27 +115,37 @@
 
     <!-- 项目模态框模板 -->
     <template id="project-modal-template">
-        <div class="modal show" style="display: block; background: rgba(0,0,0,0.5);">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">新建项目</h5>
-                        <button type="button" class="btn-close" @click="$emit('close')"></button>
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg w-full max-w-md mx-4">
+                <div class="flex justify-between items-center p-4 border-b">
+                    <h5 class="text-lg font-medium">新建项目</h5>
+                    <button @click="$emit('close')" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">项目名称</label>
+                        <input type="text" 
+                               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                               v-model="projectName" required>
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">项目名称</label>
-                            <input type="text" class="form-control" v-model="projectName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">中心名称</label>
-                            <input type="text" class="form-control" v-model="centerName" required>
-                        </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">中心名称</label>
+                        <input type="text" 
+                               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                               v-model="centerName" required>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @click="$emit('close')">取消</button>
-                        <button type="button" class="btn btn-primary" @click="handleSave">保存</button>
-                    </div>
+                </div>
+                <div class="flex justify-end space-x-2 p-4 border-t">
+                    <button type="button" 
+                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300" 
+                            @click="$emit('close')">取消</button>
+                    <button type="button" 
+                            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 
+                            @click="handleSave">保存</button>
                 </div>
             </div>
         </div>
@@ -152,27 +153,38 @@
 
     <!-- 中心模态框模板 -->
     <template id="center-modal-template">
-        <div class="modal show" style="display: block; background: rgba(0,0,0,0.5);">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">添加中心</h5>
-                        <button type="button" class="btn-close" @click="$emit('close')"></button>
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg w-full max-w-md mx-4">
+                <div class="flex justify-between items-center p-4 border-b">
+                    <h5 class="text-lg font-medium">添加中心</h5>
+                    <button @click="$emit('close')" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">项目名称</label>
+                        <input type="text" 
+                               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-100 cursor-not-allowed" 
+                               :value="projectName" 
+                               disabled>
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">项目名称</label>
-                            <input type="text" class="form-control" :value="projectName" disabled>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">中心名称</label>
-                            <input type="text" class="form-control" v-model="centerName" required>
-                        </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">中心名称</label>
+                        <input type="text" 
+                               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                               v-model="centerName" required>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @click="$emit('close')">取消</button>
-                        <button type="button" class="btn btn-primary" @click="handleSave">保存</button>
-                    </div>
+                </div>
+                <div class="flex justify-end space-x-2 p-4 border-t">
+                    <button type="button" 
+                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300" 
+                            @click="$emit('close')">取消</button>
+                    <button type="button" 
+                            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 
+                            @click="handleSave">保存</button>
                 </div>
             </div>
         </div>
@@ -180,20 +192,26 @@
 
     <!-- 删除确认模态框模板 -->
     <template id="delete-confirm-modal-template">
-        <div class="modal show" style="display: block; background: rgba(0,0,0,0.5);">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">确认删除</h5>
-                        <button type="button" class="btn-close" @click="$emit('close')"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>{{ confirmMessage }}</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @click="$emit('close')">取消</button>
-                        <button type="button" class="btn btn-danger" @click="$emit('confirm')">确认删除</button>
-                    </div>
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg w-full max-w-md mx-4">
+                <div class="flex justify-between items-center p-4 border-b">
+                    <h5 class="text-lg font-medium">确认删除</h5>
+                    <button @click="$emit('close')" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <p class="text-gray-700">{{ confirmMessage }}</p>
+                </div>
+                <div class="flex justify-end space-x-2 p-4 border-t">
+                    <button type="button" 
+                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300" 
+                            @click="$emit('close')">取消</button>
+                    <button type="button" 
+                            class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" 
+                            @click="$emit('confirm')">确认删除</button>
                 </div>
             </div>
         </div>
