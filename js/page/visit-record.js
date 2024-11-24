@@ -98,13 +98,14 @@ const app = Vue.createApp({
             filterSubjects: [],
 
             // 添加 tab 状态管理
-            activeTab: 'single'
+            activeTab: 'view'
         }
     },
 
     mounted() {
         this.initializePage();
         this.initializeDatePicker();
+        this.handleTabChange('view');
     },
 
     methods: {
@@ -472,11 +473,9 @@ const app = Vue.createApp({
     },
 
     watch: {
-        // 添加 activeTab 监听器
         activeTab: {
             immediate: true,
             handler(newTab) {
-                // 如果切换到查看记录标签，自动加载记录
                 if (newTab === 'view') {
                     this.$nextTick(() => {
                         this.loadVisitRecords();

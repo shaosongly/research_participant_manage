@@ -1,44 +1,49 @@
 /* 访视组样式 */
 .visit-group-even {
-    @apply bg-white;
+    background-color: white;
 }
 
 .visit-group-odd {
-    @apply bg-gray-50;
+    background-color: #F9FAFB;
 }
 
 .visit-group-even:hover {
-    @apply bg-blue-100;
+    background-color: #DBEAFE;
 }
 
 .visit-group-odd:hover {
-    @apply bg-orange-100;
+    background-color: #FFE4E6;
 }
 
 /* Flatpickr 日期选择器自定义样式 */
 .flatpickr-calendar {
-    @apply bg-white border border-gray-200 rounded-lg shadow-lg;
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .flatpickr-day.selected {
-    @apply bg-blue-500 border-blue-500;
+    background: #3B82F6;
+    border-color: #3B82F6;
 }
 
 .flatpickr-day:hover {
-    @apply bg-blue-100;
+    background: #EFF6FF;
 }
 
 /* 添加响应式表格滚动条样式 */
 .overflow-x-auto {
-    @apply scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100;
+    scrollbar-width: thin;
+    scrollbar-color: #D1D5DB #F3F4F6;
 }
 
 /* 添加表格悬停效果 */
 tr:hover td {
-    @apply bg-opacity-75;
+    background-color: rgba(current-color, 0.75);
 }
 
 /* 添加表格动画效果 */
 tbody tr {
-    @apply transition-all duration-200;
+    transition: all 0.2s;
 }

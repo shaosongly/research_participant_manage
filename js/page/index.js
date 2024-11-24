@@ -5,7 +5,7 @@ const { createApp, ref, computed, onMounted, watch, nextTick } = Vue;
 createApp({
     setup() {
         // 状态定义
-        const activeTab = ref('single');
+        const activeTab = ref('view');
         const projects = ref([]);
         const centers = ref([]);
         const formData = ref({

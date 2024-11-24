@@ -3,5 +3,6 @@
 }
 
 .overdue {
-    @apply text-red-600 font-bold;
+    color: #DC2626;
+    font-weight: 700;
 }
