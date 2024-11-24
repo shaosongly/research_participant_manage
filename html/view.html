@@ -55,45 +55,57 @@
         </nav>
 
         <!-- 主要内容区域 -->
-        <div class="container mx-auto px-4 pt-20">
-            <h1 class="text-2xl font-bold mb-4 text-center">受试者信息列表</h1>
+        <div class="container mx-auto px-4 pt-24 pb-8">
+            <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">受试者信息列表</h1>
 
-            <!-- 筛选区域 -->
-            <div class="bg-white rounded-lg shadow-md mb-6 p-4">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <div class="md:col-span-5">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">项目筛选:</label>
-                        <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                v-model="selectedProject" 
-                                @change="onProjectChange">
-                            <option value="">全部项目</option>
-                            <option v-for="project in projects" :key="project" :value="project">
-                                {{ project }}
-                            </option>
-                        </select>
-                    </div>
-                    <div class="md:col-span-5">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">中心筛选:</label>
-                        <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                v-model="selectedCenter">
-                            <option value="">全部中心</option>
-                            <option v-for="center in centers" :key="center" :value="center">
-                                {{ center }}
-                            </option>
-                        </select>
-                    </div>
-                    <div class="md:col-span-2 flex items-end">
-                        <button class="w-full px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-                                @click="resetFilters">重置筛选</button>
+            <!-- 筛选区域优化 -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8">
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div class="md:col-span-5">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">项目筛选:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
+                                    v-model="selectedProject" 
+                                    @change="onProjectChange">
+                                <option value="">全部项目</option>
+                                <option v-for="project in projects" :key="project" :value="project">
+                                    {{ project }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-5">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">中心筛选:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
+                                    v-model="selectedCenter">
+                                <option value="">全部中心</option>
+                                <option v-for="center in centers" :key="center" :value="center">
+                                    {{ center }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2 flex items-end">
+                            <button class="w-full px-4 py-2.5 bg-gradient-to-r from-gray-500 to-gray-600 
+                                     text-white rounded-lg hover:from-gray-600 hover:to-gray-700 
+                                     transition-all duration-200 transform hover:scale-[1.02] 
+                                     active:scale-[0.98] focus:outline-none focus:ring-2 
+                                     focus:ring-gray-500 focus:ring-offset-2"
+                                    @click="resetFilters">
+                                重置筛选
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 表格区域 -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- 表格区域优化 -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <input type="checkbox" 
@@ -112,10 +124,13 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="divide-y divide-gray-200">
                             <tr v-for="(subject, index) in filteredSubjects" 
                                 :key="index"
-                                :class="{ 'bg-yellow-50': subject.editing }">
+                                :class="[
+                                    'transition-all duration-200',
+                                    subject.editing ? 'bg-blue-50' : 'hover:bg-gray-50'
+                                ]">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <input type="checkbox" 
                                            class="rounded border-gray-300"
@@ -128,7 +143,10 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <template v-if="subject.editing">
                                         <input type="text" 
-                                               class="w-full border rounded py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                               class="w-full border border-gray-300 rounded-lg py-2 px-3 
+                                                      text-gray-700 focus:outline-none focus:ring-2 
+                                                      focus:ring-blue-500 focus:border-transparent
+                                                      transition-all duration-200"
                                                v-model="subject.editData.firstDate">
                                     </template>
                                     <template v-else>{{ subject.firstDate }}</template>
@@ -169,21 +187,37 @@
                                     <div class="flex space-x-2">
                                         <template v-if="subject.editing">
                                             <button @click="saveSubject(index)" 
-                                                    class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+                                                    class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 
+                                                           text-white rounded-lg hover:from-green-600 hover:to-green-700 
+                                                           transition-all duration-200 transform hover:scale-[1.02] 
+                                                           active:scale-[0.98] focus:outline-none focus:ring-2 
+                                                           focus:ring-green-500 focus:ring-offset-2">
                                                 保存
                                             </button>
                                             <button @click="cancelEdit(index)" 
-                                                    class="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">
+                                                    class="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 
+                                                           text-white rounded-lg hover:from-gray-600 hover:to-gray-700 
+                                                           transition-all duration-200 transform hover:scale-[1.02] 
+                                                           active:scale-[0.98] focus:outline-none focus:ring-2 
+                                                           focus:ring-gray-500 focus:ring-offset-2">
                                                 取消
                                             </button>
                                         </template>
                                         <template v-else>
                                             <button @click="editSubject(index)" 
-                                                    class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                                                    class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 
+                                                           text-white rounded-lg hover:from-blue-600 hover:to-blue-700 
+                                                           transition-all duration-200 transform hover:scale-[1.02] 
+                                                           active:scale-[0.98] focus:outline-none focus:ring-2 
+                                                           focus:ring-blue-500 focus:ring-offset-2">
                                                 编辑
                                             </button>
                                             <button @click="deleteSubject(index)" 
-                                                    class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                                                    class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 
+                                                           text-white rounded-lg hover:from-red-600 hover:to-red-700 
+                                                           transition-all duration-200 transform hover:scale-[1.02] 
+                                                           active:scale-[0.98] focus:outline-none focus:ring-2 
+                                                           focus:ring-red-500 focus:ring-offset-2">
                                                 删除
                                             </button>
                                         </template>
@@ -195,20 +229,32 @@
                 </div>
             </div>
 
-            <!-- 底部按钮 -->
-            <div class="flex justify-center space-x-4 mt-6">
+            <!-- 底部按钮优化 -->
+            <div class="flex justify-center space-x-4 mt-8">
                 <button v-if="!batchDeleteMode"
-                        class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
+                        class="px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 
+                               text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 
+                               transition-all duration-200 transform hover:scale-[1.02] 
+                               active:scale-[0.98] focus:outline-none focus:ring-2 
+                               focus:ring-yellow-500 focus:ring-offset-2 shadow-md"
                         @click="toggleBatchDeleteMode(true)">
                     批量删除
                 </button>
                 <button v-if="batchDeleteMode"
-                        class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                        class="px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 
+                               text-white rounded-lg hover:from-red-600 hover:to-red-700 
+                               transition-all duration-200 transform hover:scale-[1.02] 
+                               active:scale-[0.98] focus:outline-none focus:ring-2 
+                               focus:ring-red-500 focus:ring-offset-2 shadow-md"
                         @click="batchDelete">
                     删除选中
                 </button>
                 <button v-if="batchDeleteMode"
-                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                        class="px-6 py-2.5 bg-gradient-to-r from-gray-500 to-gray-600 
+                               text-white rounded-lg hover:from-gray-600 hover:to-gray-700 
+                               transition-all duration-200 transform hover:scale-[1.02] 
+                               active:scale-[0.98] focus:outline-none focus:ring-2 
+                               focus:ring-gray-500 focus:ring-offset-2 shadow-md"
                         @click="toggleBatchDeleteMode(false)">
                     取消
                 </button>

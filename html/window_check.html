@@ -53,16 +53,19 @@
             </div>
         </nav>
 
-        <div class="container mx-auto px-4 pt-20">
-            <h2 class="text-2xl font-bold mb-4 text-center">访视超窗检查</h2>
+        <div class="container mx-auto px-4 pt-24 pb-8">
+            <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">访视超窗检查</h1>
             
-            <!-- 超窗检查筛选 -->
-            <div class="bg-white rounded-lg shadow-md mb-6">
+            <!-- 超窗检查筛选卡片 -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8">
                 <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800">超窗检查</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                         <div class="md:col-span-5">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">项目筛选:</label>
-                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">项目筛选:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
                                     v-model="filters.project" 
                                     @change="onProjectChange('violation')">
                                 <option value="">全部项目</option>
@@ -72,8 +75,10 @@
                             </select>
                         </div>
                         <div class="md:col-span-5">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">中心筛选:</label>
-                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">中心筛选:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
                                     v-model="filters.center">
                                 <option value="">全部中心</option>
                                 <option v-for="center in centers" :key="center.centerName" :value="center.centerName">
@@ -82,7 +87,11 @@
                             </select>
                         </div>
                         <div class="md:col-span-2 flex items-end">
-                            <button class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                            <button class="w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 
+                                     text-white rounded-lg hover:from-blue-600 hover:to-blue-700 
+                                     transition-all duration-200 transform hover:scale-[1.02] 
+                                     active:scale-[0.98] focus:outline-none focus:ring-2 
+                                     focus:ring-blue-500 focus:ring-offset-2 shadow-md"
                                     @click="checkViolations">
                                 检查超窗
                             </button>
@@ -92,50 +101,61 @@
             </div>
 
             <!-- 超窗检查结果表格 -->
-            <div class="bg-white rounded-lg shadow-md mb-8">
-                <div class="p-6 overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">项目</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">中心</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">受试者</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">访视序号</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">实际访视日期</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">窗口最早日期</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">窗口最晚日期</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">超期天数</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-if="violations.length === 0">
-                                <td colspan="8" class="px-6 py-4 text-center text-gray-500">没有发现超窗记录</td>
-                            </tr>
-                            <tr v-for="violation in sortedViolations" 
-                                :key="violation.id"
-                                class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">{{ violation.project }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ violation.center }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ violation.subject }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ violation.visitNumber }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(violation.actualDate) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(violation.earliestDate) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(violation.latestDate) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap overdue">{{ violation.overdueDays }}天</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-12">
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">项目</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">中心</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">受试者</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">访视序号</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">实际访视日期</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">窗口最早日期</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">窗口最晚日期</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">超期天数</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white">
+                                <tr v-if="violations.length === 0">
+                                    <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                                        <div class="flex flex-col items-center justify-center space-y-2">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span>没有发现超窗记录</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr v-for="violation in sortedViolations" 
+                                    :key="violation.id"
+                                    class="hover:bg-blue-50 transition-colors duration-150">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ violation.project }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ violation.center }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ violation.subject }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ violation.visitNumber }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(violation.actualDate) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(violation.earliestDate) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(violation.latestDate) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">{{ violation.overdueDays }}天</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <!-- 超窗提醒部分 -->
-            <h2 class="text-2xl font-bold mb-4 text-center">超窗提醒</h2>
-            <div class="bg-white rounded-lg shadow-md mb-6">
+            <h2 class="text-2xl font-bold mb-8 text-center text-gray-800">超窗提醒</h2>
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8">
                 <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                         <div class="md:col-span-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">项目筛选:</label>
-                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">项目筛选:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
                                     v-model="reminderFilters.project" 
                                     @change="onProjectChange('reminder')">
                                 <option value="">全部项目</option>
@@ -145,8 +165,10 @@
                             </select>
                         </div>
                         <div class="md:col-span-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">中心筛选:</label>
-                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">中心筛选:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
                                     v-model="reminderFilters.center">
                                 <option value="">全部中心</option>
                                 <option v-for="center in reminderCenters" :key="center.centerName" :value="center.centerName">
@@ -155,12 +177,18 @@
                             </select>
                         </div>
                         <div class="md:col-span-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">截止日期:</label>
-                            <input type="date" class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">截止日期:</label>
+                            <input type="date" class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
                                    v-model="reminderFilters.date">
                         </div>
                         <div class="md:col-span-1 flex items-end">
-                            <button class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                            <button class="w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 
+                                     text-white rounded-lg hover:from-blue-600 hover:to-blue-700 
+                                     transition-all duration-200 transform hover:scale-[1.02] 
+                                     active:scale-[0.98] focus:outline-none focus:ring-2 
+                                     focus:ring-blue-500 focus:ring-offset-2 shadow-md"
                                     @click="checkReminders">
                                 检查
                             </button>
@@ -170,37 +198,46 @@
             </div>
 
             <!-- 超窗提醒表格 -->
-            <div class="bg-white rounded-lg shadow-md mb-8">
-                <div class="p-6 overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">项目</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">中心</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">受试者</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">访视序号</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">窗口最早日期</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">窗口最晚日期</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">已超期天数</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-if="reminders.length === 0">
-                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">没有发现需要提醒的记录</td>
-                            </tr>
-                            <tr v-for="reminder in sortedReminders" 
-                                :key="reminder.id"
-                                class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">{{ reminder.project }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ reminder.center }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ reminder.subject }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ reminder.visitNumber }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(reminder.earliestDate) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(reminder.latestDate) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap overdue">{{ reminder.overdueDays }}天</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">项目</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">中心</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">受试者</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">访视序号</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">窗口最早日期</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">窗口最晚日期</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">已超期天数</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white">
+                                <tr v-if="reminders.length === 0">
+                                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                        <div class="flex flex-col items-center justify-center space-y-2">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span>没有发现需要提醒的记录</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr v-for="reminder in sortedReminders" 
+                                    :key="reminder.id"
+                                    class="hover:bg-blue-50 transition-colors duration-150">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ reminder.project }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ reminder.center }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ reminder.subject }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ reminder.visitNumber }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(reminder.earliestDate) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(reminder.latestDate) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">{{ reminder.overdueDays }}天</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

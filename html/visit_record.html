@@ -57,16 +57,20 @@
             </div>
         </nav>
 
-        <div class="container mx-auto px-4 pt-20">
+        <div class="container mx-auto px-4 pt-24 pb-8">
             <!-- 访视记录录入部分 -->
-            <h2 class="text-2xl font-bold mb-4 text-center">访视记录录入</h2>
-            <div class="bg-white rounded-lg shadow-md mb-6">
+            <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">访视记录管理</h1>
+
+            <!-- 录入卡片 -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8">
                 <div class="p-6">
                     <!-- 项目和中心选择 -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">选择项目:</label>
-                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">选择项目:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
                                     v-model="selectedProject" 
                                     @change="onProjectChange">
                                 <option value="">请选择项目</option>
@@ -76,8 +80,10 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">选择中心:</label>
-                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">选择中心:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
                                     v-model="selectedCenter" 
                                     @change="onCenterChange">
                                 <option value="">{{ selectedProject ? '请选择中心' : '请先选择项目' }}</option>
@@ -89,94 +95,125 @@
                     </div>
 
                     <!-- 单次录入表单 -->
-                    <form @submit.prevent="submitSingleVisit" class="mb-6">
-                        <h5 class="text-lg font-semibold mb-4">单次访视记录</h5>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2">受试者:</label>
-                                <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        v-model="singleVisit.subjectName" 
-                                        required>
-                                    <option value="">{{ selectedCenter ? '请选择受试者' : '请先选择中心' }}</option>
-                                    <option v-for="subject in subjects" :key="subject.name" :value="subject.name">
-                                        {{ subject.name }}
-                                    </option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2">访视序号:</label>
-                                <input type="number" 
-                                       class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                       v-model.number="singleVisit.visitNumber" 
-                                       min="1" 
-                                       required>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2">实际访视日期:</label>
-                                <input type="text" 
-                                       class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                       ref="visitDatePicker" 
-                                       required>
-                            </div>
-                        </div>
-                        <button type="submit" 
-                                class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
-                            提交访视记录
-                        </button>
-                    </form>
-
-                    <!-- 批量导入表单 -->
-                    <form @submit.prevent="submitBatchImport">
-                        <h5 class="text-lg font-semibold mb-4">批量导入访视记录</h5>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">选择Excel文件：</label>
-                            <input type="file" 
-                                   class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                   @change="handleFileChange" 
-                                   accept=".xlsx, .xls" 
-                                   required>
-                        </div>
-                        <div v-if="columnMapping.length > 0" class="mb-4">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div v-for="field in mappingFields" :key="field.key">
-                                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                                        {{ field.label }}{{ field.required ? ' *' : '' }}
-                                    </label>
+                    <div class="border-t border-gray-200 pt-6 mb-8">
+                        <h3 class="text-xl font-semibold mb-6 text-gray-800">单次访视记录</h3>
+                        <form @submit.prevent="submitSingleVisit">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-gray-700 text-sm font-bold mb-2">受试者:</label>
                                     <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            v-model="field.selected" 
-                                            :required="field.required">
-                                        <option value="">请选择列</option>
-                                        <option v-for="(col, idx) in columnMapping" :key="idx" :value="idx">
-                                            {{ col }}
+                                            v-model="singleVisit.subjectName" 
+                                            required>
+                                        <option value="">{{ selectedCenter ? '请选择受试者' : '请先选择中心' }}</option>
+                                        <option v-for="subject in subjects" :key="subject.name" :value="subject.name">
+                                            {{ subject.name }}
                                         </option>
                                     </select>
                                 </div>
+                                <div>
+                                    <label class="block text-gray-700 text-sm font-bold mb-2">访视序号:</label>
+                                    <input type="number" 
+                                           class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                           v-model.number="singleVisit.visitNumber" 
+                                           min="1" 
+                                           required>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 text-sm font-bold mb-2">实际访视日期:</label>
+                                    <input type="text" 
+                                           class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                           ref="visitDatePicker" 
+                                           required>
+                                </div>
                             </div>
-                        </div>
-                        <button type="submit" 
-                                class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
-                            批量导入
-                        </button>
-                    </form>
+                            <button type="submit" 
+                                    class="mt-6 px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 
+                                           text-white rounded-lg hover:from-blue-600 hover:to-blue-700 
+                                           transition-all duration-200 transform hover:scale-[1.02] 
+                                           active:scale-[0.98] focus:outline-none focus:ring-2 
+                                           focus:ring-blue-500 focus:ring-offset-2 shadow-md">
+                                提交访视记录
+                            </button>
+                        </form>
+                    </div>
 
-                    <!-- 导入说明 -->
-                    <div class="mt-3">
-                        <h6>导入说明：</h6>
-                        <p>请选择Excel文件后，为每个必需字段选择对应的Excel列：</p>
-                        <ul>
-                            <li>受试者姓名 - 必选</li>
-                            <li>访视序号 - 必选</li>
-                            <li>访视日期 - 必选</li>
-                            <li>项目名称 - 可选（若不选择则使用上方选择的项目）</li>
-                            <li>中心名称 - 可选（若不选择则使用上方选择的中心）</li>
-                        </ul>
+                    <!-- 批量导入部分 -->
+                    <div class="border-t border-gray-200 pt-6">
+                        <h3 class="text-xl font-semibold mb-6 text-gray-800">批量导入访视记录</h3>
+                        <form @submit.prevent="submitBatchImport">
+                            <div class="mb-6">
+                                <label class="block text-gray-700 text-sm font-semibold mb-2">选择Excel文件：</label>
+                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg
+                                            hover:border-blue-500 transition-colors">
+                                    <div class="space-y-1 text-center">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" 
+                                                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <div class="flex text-sm text-gray-600">
+                                            <label class="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500">
+                                                <span>选择文件</span>
+                                                <input type="file" 
+                                                       class="sr-only"
+                                                       @change="handleFileChange" 
+                                                       accept=".xlsx, .xls" 
+                                                       required>
+                                            </label>
+                                            <p class="pl-1">或拖放文件到此处</p>
+                                        </div>
+                                        <p class="text-xs text-gray-500">支持 Excel 文件 (.xlsx, .xls)</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 列映射部分 -->
+                            <div v-if="columnMapping.length > 0" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div v-for="field in mappingFields" :key="field.key">
+                                        <label class="block text-gray-700 text-sm font-semibold mb-2">
+                                            {{ field.label }}{{ field.required ? ' *' : '' }}
+                                        </label>
+                                        <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                                 transition-all duration-200"
+                                                v-model="field.selected" 
+                                                :required="field.required">
+                                            <option value="">请选择列</option>
+                                            <option v-for="(col, idx) in columnMapping" :key="idx" :value="idx">
+                                                {{ col }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" 
+                                        class="w-full px-6 py-2.5 bg-gradient-to-r from-green-500 to-green-600 
+                                               text-white rounded-lg hover:from-green-600 hover:to-green-700 
+                                               transition-all duration-200 transform hover:scale-[1.02] 
+                                               active:scale-[0.98] focus:outline-none focus:ring-2 
+                                               focus:ring-green-500 focus:ring-offset-2 shadow-md">
+                                        批量导入
+                                    </button>
+                            </div>
+                        </form>
+
+                        <!-- 导入说明 -->
+                        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-2">导入说明：</h4>
+                            <p class="text-sm text-gray-600 mb-2">请选择Excel文件后，为每个必需字段选择对应的Excel列：</p>
+                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                <li>受试者姓名 - 必选</li>
+                                <li>访视序号 - 必选</li>
+                                <li>访视日期 - 必选</li>
+                                <li>项目名称 - 可选（若不选择则使用上方选择的项目）</li>
+                                <li>中心名称 - 可选（若不选择则使用上方选择的中心）</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 访视记录展示部分 -->
-            <h2 class="text-2xl font-bold mb-4 text-center">访视记录列表</h2>
-            <div class="bg-white rounded-lg shadow-md mb-6">
+            <!-- 访视记录列表部分 -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
                 <div class="p-6">
                     <!-- 筛选条件 -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -218,7 +255,7 @@
                     <!-- 访视记录表格 -->
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                                         :class="{ 'hidden': !showBatchDelete }">
@@ -235,10 +272,10 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="divide-y divide-gray-200">
                                 <tr v-for="record in visitRecords" 
                                     :key="`${record.project}-${record.center}-${record.subjectName}-${record.visitNumber}`"
-                                    class="hover:bg-gray-50">
+                                    class="hover:bg-blue-50 transition-colors duration-150">
                                     <td class="px-6 py-4 whitespace-nowrap" :class="{ 'hidden': !showBatchDelete }">
                                         <input type="checkbox" 
                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -261,19 +298,31 @@
                         </table>
                     </div>
 
-                    <!-- 批量删除按钮 -->
-                    <div class="mt-6 space-x-2">
+                    <!-- 批量操作按钮优化 -->
+                    <div class="mt-6 flex justify-end space-x-3">
                         <button v-if="!showBatchDelete" 
-                                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                                class="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 
+                                       text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 
+                                       transition-all duration-200 transform hover:scale-[1.02] 
+                                       active:scale-[0.98] focus:outline-none focus:ring-2 
+                                       focus:ring-yellow-500 focus:ring-offset-2 shadow-md"
                                 @click="startBatchDelete">
                             批量删除
                         </button>
                         <template v-else>
-                            <button class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                            <button class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 
+                                           text-white rounded-lg hover:from-red-600 hover:to-red-700 
+                                           transition-all duration-200 transform hover:scale-[1.02] 
+                                           active:scale-[0.98] focus:outline-none focus:ring-2 
+                                           focus:ring-red-500 focus:ring-offset-2 shadow-md"
                                     @click="confirmBatchDelete">
                                 确认删除
                             </button>
-                            <button class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                            <button class="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 
+                                           text-white rounded-lg hover:from-gray-600 hover:to-gray-700 
+                                           transition-all duration-200 transform hover:scale-[1.02] 
+                                           active:scale-[0.98] focus:outline-none focus:ring-2 
+                                           focus:ring-gray-500 focus:ring-offset-2 shadow-md"
                                     @click="cancelBatchDelete">
                                 取消
                             </button>

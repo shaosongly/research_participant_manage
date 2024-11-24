@@ -66,118 +66,140 @@
             </div>
         </nav>
 
-        <div class="container mx-auto px-4 pt-20">
-            <h1 class="text-2xl font-bold mb-4 text-center">访视计划</h1>
+        <div class="container mx-auto px-4 pt-24 pb-8">
+            <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">访视计划生成</h1>
 
             <!-- 搜索区域 -->
-            <div class="bg-white rounded-lg shadow-md mb-6">
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8">
                 <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                         <!-- 项目选择 -->
-                        <div class="md:col-span-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">项目:</label>
-                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        <div class="md:col-span-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">选择项目:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                         transition-all duration-200"
                                     v-model="selectedProject" 
                                     @change="handleProjectChange">
                                 <option value="">请选择项目</option>
-                                <option v-for="project in projects" 
-                                        :key="project.projectName" 
-                                        :value="project.projectName">
-                                    {{ project.projectName }}
+                                <option v-for="project in projects" :key="project" :value="project">
+                                    {{ project }}
                                 </option>
                             </select>
                         </div>
 
                         <!-- 中心选择 -->
-                        <div class="md:col-span-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">中心:</label>
-                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    v-model="selectedCenter" 
+                        <div class="md:col-span-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">选择中心:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                         transition-all duration-200"
+                                    v-model="selectedCenter"
                                     @change="handleCenterChange">
                                 <option value="">请选择中心</option>
-                                <option v-for="center in centers" 
-                                        :key="center.centerName" 
-                                        :value="center.centerName">
-                                    {{ center.centerName }}
+                                <option v-for="center in centers" :key="center" :value="center">
+                                    {{ center }}
                                 </option>
                             </select>
                         </div>
 
                         <!-- 受试者搜索 -->
-                        <div class="md:col-span-4 relative">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">受试者:</label>
-                            <input type="text" 
-                                   class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                   id="subjectInput"
-                                   v-model="subjectInput"
-                                   @input="handleSubjectInput"
-                                   placeholder="输入受试者名称">
-                            <!-- 建议列表 -->
-                            <div class="suggestion-list" :style="{ display: showSuggestions ? 'block' : 'none' }">
-                                <div v-for="subject in filteredSubjects" 
-                                     :key="subject.name"
-                                     class="suggestion-item"
-                                     @click="selectSubject(subject)">
-                                    {{ subject.name }}
+                        <div class="md:col-span-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">受试者姓名:</label>
+                            <div class="relative">
+                                <input type="text"
+                                       id="subjectInput"
+                                       v-model="subjectInput"
+                                       @input="handleSubjectInput"
+                                       class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                              transition-all duration-200"
+                                       placeholder="输入受试者姓名">
+                                
+                                <!-- 建议列表 -->
+                                <div v-if="showSuggestions && filteredSubjects.length > 0"
+                                     class="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto">
+                                    <div v-for="subject in filteredSubjects"
+                                         :key="subject.id"
+                                         @click="selectSubject(subject)"
+                                         class="px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors">
+                                        {{ subject.name }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- 搜索按钮 -->
-                        <div class="md:col-span-2 flex items-end">
-                            <button class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                                    @click="searchSubject">
-                                搜索
-                            </button>
-                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- 访视计划调整 -->
-            <div class="bg-white rounded-lg shadow-md mb-6" v-if="currentSubject">
-                <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-                        <div class="md:col-span-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">调整首次访视日期:</label>
-                            <input type="text" 
-                                   class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                   id="adjustDate">
-                        </div>
-                        <div class="md:col-span-2">
-                            <button class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                                    @click="adjustVisitPlan">
-                                重新生成计划
-                            </button>
+                    <!-- 日期调整区域 -->
+                    <div v-if="currentSubject" class="mt-6 pt-6 border-t border-gray-200">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                            <div class="md:col-span-4">
+                                <label class="block text-gray-700 text-sm font-semibold mb-2">调整首次访视日期:</label>
+                                <input type="text"
+                                       id="adjustDate"
+                                       class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                              transition-all duration-200 cursor-pointer bg-white"
+                                       readonly>
+                            </div>
+                            <div class="md:col-span-2">
+                                <button @click="adjustVisitPlan"
+                                        class="w-full px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 
+                                               text-white rounded-lg hover:from-green-600 hover:to-green-700 
+                                               transition-all duration-200 transform hover:scale-[1.02] 
+                                               active:scale-[0.98] focus:outline-none focus:ring-2 
+                                               focus:ring-green-500 focus:ring-offset-2">
+                                    重新生成计划
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- 访视计划表格 -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden" v-if="visitPlan.length">
+            <div v-if="visitPlan.length > 0" 
+                 class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">访视次数</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日期类型</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日期</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">节假日信息</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">访视次数</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">日期类型</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">访视日期</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">节假日信息</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="divide-y divide-gray-200">
                             <tr v-for="item in visitPlan" 
                                 :key="`${item.visitNumber}-${item.dateType}`"
-                                :class="item.rowClasses">
-                                <td class="px-6 py-4 whitespace-nowrap">第 {{ item.visitNumber }} 次访视</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ item.dateType }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap" :style="item.dateStyle">{{ formatDate(item.date) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap" :style="item.holidayStyle">{{ item.holidayInfo }}</td>
+                                :class="[item.rowClasses, 'transition-colors duration-200']">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    第 {{ item.visitNumber }} 次访视
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ item.dateType }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm" :style="item.dateStyle">
+                                    {{ formatDate(item.date) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm" :style="item.holidayStyle">
+                                    {{ item.holidayInfo }}
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- 空状态提示 -->
+            <div v-else-if="currentSubject" 
+                 class="bg-white rounded-xl shadow-md p-8 text-center text-gray-500">
+                <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p>暂无访视计划数据</p>
             </div>
         </div>
     </template>
