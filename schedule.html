@@ -5,10 +5,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>今日访视安排</title>
-    <!-- 引入 Bootstrap CSS -->
+    <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- 引入 Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- 引入js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/zh.js"></script>
+    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+    <script type="module" src="js/page/schedule.js"></script>
+    <script>
+        window.Dexie = Dexie;
+    </script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -45,29 +55,22 @@
             font-size: 0.9rem;
         }
 
-        /* 添加访视组的背景色样式 */
         .visit-group-even {
             background-color: #e3f2fd !important;
-            /* 浅蓝色 */
         }
 
         .visit-group-odd {
             background-color: #fff3e0 !important;
-            /* 浅橙色 */
         }
 
-        /* 修改鼠标悬停效果 */
         .visit-group-even:hover {
             background-color: #bbdefb !important;
-            /* 深一点的蓝色 */
         }
 
         .visit-group-odd:hover {
             background-color: #ffe0b2 !important;
-            /* 深一点的橙色 */
         }
 
-        /* 移除 Bootstrap 的默认条纹样式 */
         .table-visits>tbody>tr:nth-of-type(odd) {
             background-color: inherit;
         }
@@ -75,401 +78,9 @@
 </head>
 
 <body>
-    <!-- 添加导航栏 -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="landing.html">首页</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="project_manage.html">项目管理</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html">添加受试者</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="view.html">查看受试者</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="schedule.html">访视安排</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="visit_plan.html">访视计划</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="visit_record.html">访视记录</a>
-                    </li>
-                     <li class="nav-item"></li>
-                        <a class="nav-link" href="window_check.html">超窗检查</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container">
-        <h1 class="mb-4 text-center">今日访视安排</h1>
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="row align-items-end">
-                    <div class="col-md-3 mb-3 mb-md-0">
-                        <label for="projectFilter" class="form-label">项目筛选:</label>
-                        <select class="form-select" id="projectFilter">
-                            <option value="">全部项目</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3 mb-md-0">
-                        <label for="centerFilter" class="form-label">中心筛选:</label>
-                        <select class="form-select" id="centerFilter">
-                            <option value="">全部中心</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 mb-3 mb-md-0">
-                        <label for="dateRange" class="form-label">选择日期范围:</label>
-                        <input type="text" class="form-control" id="dateRange">
-                    </div>
-                    <div class="col-md-2">
-                        <button id="refreshButton" class="btn btn-primary w-100">刷新访视安排</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-body">
-                <table id="scheduleTable" class="table table-visits table-hover">
-                    <thead>
-                        <tr>
-                            <th>项目</th>
-                            <th>中心</th>
-                            <th>受试者名称</th>
-                            <th>访视次数</th>
-                            <th>窗口期最早日期</th>
-                            <th>基准日期</th>
-                            <th>窗口期最晚日期</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- 数据将通过 JavaScript 动态插入这里 -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="text-center mt-4">
-            <a href="landing.html" class="btn btn-info">返回首页</a>
-        </div>
+    <div id="app">
+        <schedule-page></schedule-page>
     </div>
-
-    <!-- 引入 Bootstrap JS 和 Popper.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
-    <!-- 引入 Flatpickr JS -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <!-- 引入 Flatpickr 中文语言包 -->
-    <script src="https://npmcdn.com/flatpickr/dist/l10n/zh.js"></script>
-    <script>
-        let db;
-        const dbName = "ResearchDB";
-
-        // 初始化 Flatpickr 为日期范围选择器
-        const datePicker = flatpickr("#dateRange", {
-            mode: "range",
-            dateFormat: "Y-m-d",
-            locale: "zh",
-            defaultDate: [new Date(), new Date()],
-            altInput: true,
-            altFormat: "Y年m月d日",
-            onChange: function (selectedDates, dateStr, instance) {
-                if (selectedDates.length === 2) {
-                    loadSchedule(selectedDates[0], selectedDates[1]);
-                }
-            }
-        });
-
-        const request = indexedDB.open(dbName);
-
-        request.onerror = function (event) {
-            console.error("数据库错误: " + event.target.error);
-        };
-
-        request.onsuccess = function (event) {
-            db = event.target.result;
-            console.log("数据库打开成功");
-            loadProjects();
-            loadCenters();
-            const today = new Date();
-            loadSchedule(today, today);
-        };
-
-        function loadSchedule(startDate, endDate) {
-            const tableBody = document.querySelector('#scheduleTable tbody');
-            tableBody.innerHTML = '';
-
-            const objectStore = db.transaction("subjects").objectStore("subjects");
-
-            objectStore.getAll().onsuccess = function (event) {
-                const projectFilter = document.getElementById('projectFilter').value;
-                const centerFilter = document.getElementById('centerFilter').value;
-
-                const subjects = event.target.result.filter(subject => {
-                    return (!projectFilter || subject.project === projectFilter) &&
-                        (!centerFilter || subject.center === centerFilter);
-                });
-                let scheduleItems = [];
-
-                subjects.forEach(subject => {
-                    const firstDate = new Date(subject.firstDate);
-                    const totalVisits = parseInt(subject.totalVisits);
-
-                    // 解析访视间隔
-                    let frequencies = [];
-                    if (subject.frequency.includes(',')) {
-                        frequencies = subject.frequency.split(',').map(Number);
-                        if (frequencies.length !== totalVisits - 1) {
-                            console.error('访视间隔数量不正确');
-                            return;
-                        }
-                    } else {
-                        // 如果是单个数字，创建相同间隔的数组
-                        const fixedFrequency = parseInt(subject.frequency);
-                        frequencies = Array(totalVisits - 1).fill(fixedFrequency);
-                    }
-
-                    // 解析访视窗口
-                    let visitWindows = [];
-                    if (subject.visitWindow && subject.visitWindow.trim() !== '') {
-                        const windowValue = subject.visitWindow.trim();
-
-                        if (windowValue.includes(',')) {
-                            // 如果是逗号分隔的格式
-                            visitWindows = windowValue.split(',').map(Number);
-                            if (visitWindows.length !== totalVisits - 1) {
-                                console.error('访视窗口数量不正确');
-                                return;
-                            }
-                            // 验证所有窗口值是否为非负数
-                            if (visitWindows.some(w => isNaN(w) || w < 0)) {
-                                console.error('存在无效的访视窗口值');
-                                return;
-                            }
-                        } else {
-                            // 如果是单个数字，表示固定窗口大小
-                            const fixedWindow = parseInt(windowValue);
-                            if (isNaN(fixedWindow) || fixedWindow < 0) {
-                                console.error('无效的固定访视窗口值');
-                                return;
-                            }
-                            // 创建相同窗口大小的数组
-                            visitWindows = Array(totalVisits - 1).fill(fixedWindow);
-                        }
-                    } else {
-                        // 如果未设置访视窗口，则所有访视的窗口期都是0
-                        visitWindows = Array(totalVisits - 1).fill(0);
-                    }
-
-                    // 计算每次访视的基准日期
-                    let visitDates = [firstDate];  // 存储每次访视的基准日期
-                    let currentDate = new Date(firstDate);
-
-                    // 计算后续访视的基准日期
-                    for (let i = 0; i < frequencies.length; i++) {
-                        currentDate = new Date(currentDate.getTime() + frequencies[i] * 24 * 60 * 60 * 1000);
-                        visitDates.push(currentDate);
-                    }
-
-                    // 遍历每次访视生成计划
-                    visitDates.forEach((baseDate, visitNum) => {
-                        let scheduleItem = {
-                            project: subject.project,
-                            center: subject.center,
-                            name: subject.name,
-                            visitNumber: visitNum + 1,
-                            baseDate: baseDate,
-                            earliestDate: baseDate,
-                            latestDate: baseDate
-                        };
-
-                        // 如果有窗口期，计算最早和最晚日期
-                        if (visitNum > 0 && visitWindows[visitNum - 1] > 0) {
-                            const window = visitWindows[visitNum - 1];
-                            scheduleItem.earliestDate = new Date(baseDate.getTime() - window * 24 * 60 * 60 * 1000);
-                            scheduleItem.latestDate = new Date(baseDate.getTime() + window * 24 * 60 * 60 * 1000);
-                        }
-
-                        // 修改判断逻辑：使用窗口期最早日期或基准日期进行判断
-                        const dateToCheck = (visitNum > 0 && visitWindows[visitNum - 1] > 0)
-                            ? scheduleItem.earliestDate  // 如果有窗口期，使用最早日期
-                            : scheduleItem.baseDate;     // 如果没有窗口期，使用基准日期
-
-                        // 将日期标准化到当天的开始时间
-                        const normalizedDateToCheck = new Date(dateToCheck.setHours(0, 0, 0, 0));
-                        const normalizedStartDate = new Date(startDate.setHours(0, 0, 0, 0));
-                        const normalizedEndDate = new Date(endDate.setHours(23, 59, 59, 999));
-
-                        // 检查日期是否在选定范围内
-                        if (normalizedDateToCheck >= normalizedStartDate && normalizedDateToCheck <= normalizedEndDate) {
-                            scheduleItems.push(scheduleItem);
-                        }
-                    });
-                });
-
-                // 按日期排序
-                scheduleItems.sort((a, b) => {
-                    const dateCompare = a.baseDate - b.baseDate;
-                    if (dateCompare !== 0) return dateCompare;
-                    if (a.name !== b.name) return a.name.localeCompare(b.name);
-                    return a.visitNumber - b.visitNumber;
-                });
-
-                // 用于跟踪上一个访视组
-                let lastVisitGroup = null;
-                let isEvenGroup = true;
-
-                // 显示排序后的访视安排
-                scheduleItems.forEach(item => {
-                    const row = tableBody.insertRow();
-
-                    // 确定当前访视组（项目+中心+受试者名称的组合）
-                    const currentVisitGroup = `${item.project}-${item.center}-${item.name}`;
-
-                    // 如果是新的访视组，切换奇偶标记
-                    if (currentVisitGroup !== lastVisitGroup) {
-                        isEvenGroup = !isEvenGroup;
-                        lastVisitGroup = currentVisitGroup;
-                    }
-
-                    // 添加对应的背景色类
-                    row.className = isEvenGroup ? 'visit-group-even' : 'visit-group-odd';
-
-                    // 填充单元格内容
-                    row.insertCell(0).textContent = item.project;
-                    row.insertCell(1).textContent = item.center;
-                    row.insertCell(2).textContent = item.name;
-                    row.insertCell(3).textContent = `第 ${item.visitNumber} 次访视`;
-
-                    // 添加窗口期日期和基准日期
-                    const earliestCell = row.insertCell(4);
-                    const baseDateCell = row.insertCell(5);
-                    const latestCell = row.insertCell(6);
-
-                    baseDateCell.textContent = formatDate(item.baseDate);
-
-                    if (item.earliestDate.getTime() === item.baseDate.getTime()) {
-                        earliestCell.textContent = '无窗口期';
-                        latestCell.textContent = '无窗口期';
-                        earliestCell.style.color = '#666';
-                        latestCell.style.color = '#666';
-                    } else {
-                        earliestCell.textContent = formatDate(item.earliestDate);
-                        latestCell.textContent = formatDate(item.latestDate);
-                        earliestCell.style.color = '#0066cc';
-                        latestCell.style.color = '#0066cc';
-                    }
-                });
-
-                if (scheduleItems.length === 0) {
-                    const row = tableBody.insertRow();
-                    const cell = row.insertCell(0);
-                    cell.colSpan = 7;  // 修改��7列
-                    cell.textContent = "所选日期范围内无访视安排";
-                    cell.classList.add("text-center");
-                }
-            };
-        }
-
-        function formatDate(date) {
-            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
-        }
-
-        // 修改刷新按钮事件监听
-        document.getElementById('refreshButton').addEventListener('click', function () {
-            const dates = datePicker.selectedDates;
-            if (dates.length === 2) {
-                loadSchedule(dates[0], dates[1]);
-            } else {
-                alert('请选择完整的日期范围');
-            }
-        });
-
-        // 页面加载时初始化今天的数据
-        document.addEventListener('DOMContentLoaded', function () {
-            const today = new Date();
-            loadSchedule(today, today);
-        });
-
-        // 添加项目和中心加载函数 (第117行后)
-        // 加载项目列表
-        async function loadProjects() {
-            try {
-                const transaction = db.transaction(['projects'], 'readonly');
-                const projectStore = transaction.objectStore('projects');
-                const projects = await new Promise((resolve) => {
-                    projectStore.getAll().onsuccess = (event) => resolve(event.target.result);
-                });
-
-                const projectSelect = document.getElementById('projectFilter');
-                projectSelect.innerHTML = '<option value="">全部项目</option>' +
-                    projects.map(project =>
-                        `<option value="${project.projectName}">${project.projectName}</option>`
-                    ).join('');
-            } catch (error) {
-                console.error('加载项目列表失败:', error);
-            }
-        }
-
-        // 加载中心列表
-        async function loadCenters(projectName = '') {
-            try {
-                const transaction = db.transaction(['centers'], 'readonly');
-                const centerStore = transaction.objectStore('centers');
-                let centers;
-
-                if (projectName) {
-                    const centerIndex = centerStore.index('projectName');
-                    centers = await new Promise((resolve) => {
-                        centerIndex.getAll(projectName).onsuccess = (event) => resolve(event.target.result);
-                    });
-                } else {
-                    centers = await new Promise((resolve) => {
-                        centerStore.getAll().onsuccess = (event) => resolve(event.target.result);
-                    });
-                }
-
-                const centerSelect = document.getElementById('centerFilter');
-                centerSelect.innerHTML = '<option value="">全部中心</option>' +
-                    centers.map(center =>
-                        `<option value="${center.centerName}">${center.centerName}</option>`
-                    ).join('');
-            } catch (error) {
-                console.error('加载中心列表失败:', error);
-            }
-        }
-
-        // 添加项目选择变化监听 (第308行后)
-        // 监听项目选择变化
-        document.getElementById('projectFilter').addEventListener('change', function () {
-            const projectName = this.value;
-            loadCenters(projectName);
-            const dates = datePicker.selectedDates;
-            if (dates.length === 2) {
-                loadSchedule(dates[0], dates[1]);
-            }
-        });
-
-        // 监听中心选择变化
-        document.getElementById('centerFilter').addEventListener('change', function () {
-            const dates = datePicker.selectedDates;
-            if (dates.length === 2) {
-                loadSchedule(dates[0], dates[1]);
-            }
-        });
-    </script>
 </body>
 
 </html>
