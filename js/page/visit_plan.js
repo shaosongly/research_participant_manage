@@ -1,7 +1,7 @@
 import { ProjectOperations, CenterOperations, SubjectOperations } from '../common/db-operations.js';
 import { SubjectService } from '../common/subject-service.js';
 
-const { createApp, ref, onMounted, nextTick } = Vue;
+const { createApp, ref, onMounted, nextTick, onUnmounted } = Vue;
 
 const VisitPlanPage = {
     template: '#visit-plan-template',
@@ -43,6 +43,12 @@ const VisitPlanPage = {
                     showSuggestions.value = false;
                 }
             });
+        });
+
+        onUnmounted(() => {
+            if (datePicker) {
+                datePicker.destroy();
+            }
         });
 
         // 方法定义
@@ -116,12 +122,15 @@ const VisitPlanPage = {
             subjectInput.value = subject.name;
             currentSubject.value = subject;
             showSuggestions.value = false;
-            
-            if (datePicker && subject.firstDate) {
-                datePicker.setDate(new Date(subject.firstDate));
-            }
-            
             generateVisitPlan(subject);
+            
+            // 等待 DOM 更新后初始化日期选择器
+            nextTick(() => {
+                initializeDatePicker();
+                if (datePicker && subject.firstDate) {
+                    datePicker.setDate(new Date(subject.firstDate));
+                }
+            });
         };
 
         const searchSubject = async () => {
@@ -227,13 +236,18 @@ const VisitPlanPage = {
         };
 
         const initializeDatePicker = () => {
-            // 使用 nextTick 确保 DOM 已更新
-            Vue.nextTick(() => {
-                const dateInput = document.getElementById('adjustDate');
-                if (dateInput) {
-                    if (datePicker) {
-                        datePicker.destroy(); // 销毁旧的实例
+            nextTick(() => {
+                try {
+                    const dateInput = document.getElementById('adjustDate');
+                    if (!dateInput) {
+                        console.error('Date input element not found');
+                        return;
                     }
+
+                    if (datePicker) {
+                        datePicker.destroy();
+                    }
+
                     datePicker = flatpickr("#adjustDate", {
                         dateFormat: "Y-m-d",
                         locale: "zh",
@@ -241,10 +255,22 @@ const VisitPlanPage = {
                         altInput: true,
                         altFormat: "Y年m月d日",
                         theme: "material_blue",
+                        defaultDate: currentSubject.value?.firstDate,
                         onChange: function(selectedDates, dateStr) {
+                            console.log('Date selected:', dateStr);
                             dateInput.dataset.selectedDate = dateStr;
+                        },
+                        onOpen: function() {
+                            console.log('Calendar opened');
+                        },
+                        onClose: function() {
+                            console.log('Calendar closed');
                         }
                     });
+
+                    console.log('DatePicker initialized');
+                } catch (error) {
+                    console.error('Error initializing datepicker:', error);
                 }
             });
         };
@@ -321,7 +347,8 @@ const VisitPlanPage = {
             searchSubject,
             selectSubject,
             formatDate,
-            adjustVisitPlan
+            adjustVisitPlan,
+            initializeDatePicker
         };
     }
 };
