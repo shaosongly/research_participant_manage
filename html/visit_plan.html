@@ -5,23 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>访视计划</title>
-    <!-- CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 移除 Bootstrap，添加 Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 保留其他必要的 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
     <link rel="stylesheet" href="../css/visit_plan.css">
-     <!-- JS -->
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.min.js"></script>
-     <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
-     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
-     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
-     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
-     <script type="module" src="../js/page/visit_plan.js"></script>
-     <script>
-         window.Dexie = Dexie;
-     </script>
+    <!-- JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/zh.js"></script>
+    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+    <script type="module" src="../js/page/visit_plan.js"></script>
+    <script>
+        window.Dexie = Dexie;
+    </script>
 </head>
 
 <body>
@@ -32,108 +31,135 @@
     <!-- 访视计划页面模板 -->
     <template id="visit-plan-template">
         <!-- 导航栏 -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container">
-                <a class="navbar-brand" href="../landing.html">受试者管理系统</a>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item" v-for="item in navItems" :key="item.path">
-                            <a class="nav-link" :class="{ active: item.active }" :href="item.path">{{ item.text }}</a>
-                        </li>
-                    </ul>
+        <nav class="fixed top-0 w-full bg-blue-600 text-white z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <a href="../landing.html" class="text-xl font-bold">受试者管理系统</a>
+                    
+                    <!-- 导航链接 -->
+                    <div class="hidden md:flex space-x-4">
+                        <a v-for="item in navItems" 
+                           :key="item.path" 
+                           :href="item.path"
+                           :class="[
+                               'hover:text-blue-200',
+                               { 'text-blue-200': item.active }
+                           ]">
+                            {{ item.text }}
+                        </a>
+                    </div>
                 </div>
             </div>
         </nav>
 
-        <div class="container">
-            <h1 class="mb-4 text-center">访视计划</h1>
+        <div class="container mx-auto px-4 pt-20">
+            <h1 class="text-2xl font-bold mb-4 text-center">访视计划</h1>
 
             <!-- 搜索区域 -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="row">
+            <div class="bg-white rounded-lg shadow-md mb-6">
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                         <!-- 项目选择 -->
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">项目:</label>
-                            <select class="form-select" v-model="selectedProject" @change="handleProjectChange">
+                        <div class="md:col-span-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">项目:</label>
+                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    v-model="selectedProject" 
+                                    @change="handleProjectChange">
                                 <option value="">请选择项目</option>
-                                <option v-for="project in projects" :key="project.projectName" :value="project.projectName">
+                                <option v-for="project in projects" 
+                                        :key="project.projectName" 
+                                        :value="project.projectName">
                                     {{ project.projectName }}
                                 </option>
                             </select>
                         </div>
 
                         <!-- 中心选择 -->
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">中心:</label>
-                            <select class="form-select" v-model="selectedCenter" @change="handleCenterChange">
+                        <div class="md:col-span-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">中心:</label>
+                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    v-model="selectedCenter" 
+                                    @change="handleCenterChange">
                                 <option value="">请选择中心</option>
-                                <option v-for="center in centers" :key="center.centerName" :value="center.centerName">
+                                <option v-for="center in centers" 
+                                        :key="center.centerName" 
+                                        :value="center.centerName">
                                     {{ center.centerName }}
                                 </option>
                             </select>
                         </div>
 
                         <!-- 受试者搜索 -->
-                        <div class="col-md-4 mb-3 position-relative">
-                            <label class="form-label">受试者:</label>
-                            <input type="text" class="form-control" id="subjectInput"
-                                v-model="subjectInput"
-                                @input="handleSubjectInput"
-                                placeholder="输入受试者名称">
+                        <div class="md:col-span-4 relative">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">受试者:</label>
+                            <input type="text" 
+                                   class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   id="subjectInput"
+                                   v-model="subjectInput"
+                                   @input="handleSubjectInput"
+                                   placeholder="输入受试者名称">
                             <!-- 建议列表 -->
                             <div class="suggestion-list" :style="{ display: showSuggestions ? 'block' : 'none' }">
                                 <div v-for="subject in filteredSubjects" 
-                                    :key="subject.name"
-                                    class="suggestion-item"
-                                    @click="selectSubject(subject)">
+                                     :key="subject.name"
+                                     class="suggestion-item"
+                                     @click="selectSubject(subject)">
                                     {{ subject.name }}
                                 </div>
                             </div>
                         </div>
 
                         <!-- 搜索按钮 -->
-                        <div class="col-md-2 mb-3 d-flex align-items-end">
-                            <button class="btn btn-primary w-100" @click="searchSubject">搜索</button>
+                        <div class="md:col-span-2 flex items-end">
+                            <button class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                    @click="searchSubject">
+                                搜索
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- 访视计划调整 -->
-            <div class="card mb-4" v-if="currentSubject">
-                <div class="card-body">
-                    <div class="row align-items-end">
-                        <div class="col-md-4">
-                            <label class="form-label">调整首次访视日期:</label>
-                            <input type="text" class="form-control" id="adjustDate">
+            <div class="bg-white rounded-lg shadow-md mb-6" v-if="currentSubject">
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                        <div class="md:col-span-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">调整首次访视日期:</label>
+                            <input type="text" 
+                                   class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   id="adjustDate">
                         </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-primary w-100" @click="adjustVisitPlan">重新生成计划</button>
+                        <div class="md:col-span-2">
+                            <button class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                    @click="adjustVisitPlan">
+                                重新生成计划
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- 访视计划表格 -->
-            <div class="card" v-if="visitPlan.length">
-                <div class="card-body">
-                    <table class="table table-visits">
-                        <thead>
+            <div class="bg-white rounded-lg shadow-md overflow-hidden" v-if="visitPlan.length">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th>访视次数</th>
-                                <th>日期类型</th>
-                                <th>日期</th>
-                                <th>节假日信息</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">访视次数</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日期类型</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日期</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">节假日信息</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr v-for="item in visitPlan" :key="`${item.visitNumber}-${item.dateType}`"
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr v-for="item in visitPlan" 
+                                :key="`${item.visitNumber}-${item.dateType}`"
                                 :class="item.rowClasses">
-                                <td>第 {{ item.visitNumber }} 次访视</td>
-                                <td>{{ item.dateType }}</td>
-                                <td :style="item.dateStyle">{{ formatDate(item.date) }}</td>
-                                <td :style="item.holidayStyle">{{ item.holidayInfo }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">第 {{ item.visitNumber }} 次访视</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ item.dateType }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap" :style="item.dateStyle">{{ formatDate(item.date) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap" :style="item.holidayStyle">{{ item.holidayInfo }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -141,8 +167,11 @@
             </div>
 
             <!-- 返回按钮 -->
-            <div class="text-center mt-4">
-                <a href="../landing.html" class="btn btn-info">返回首页</a>
+            <div class="text-center mt-6">
+                <a href="../landing.html" 
+                   class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                    返回首页
+                </a>
             </div>
         </div>
     </template>

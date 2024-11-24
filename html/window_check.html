@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>访视超窗检查</title>
-    <!-- 引入css-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 移除 Bootstrap，添加 Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../css/window_check.css">
     <!-- 引入js -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
     <script type="module" src="../js/page/window-check.js"></script>
@@ -16,169 +15,174 @@
         window.Dexie = Dexie;
     </script>
 </head>
-<body>
-    <div id="app">
+<body class="bg-gray-50">
+    <div id="app" v-cloak>
         <!-- 导航栏 -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container">
-                <a class="navbar-brand" href="../landing.html">受试者管理系统</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="../landing.html">首页</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="project_manage.html">项目管理</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="index.html">添加受试者</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="view.html">查看受试者</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="schedule.html">访视安排</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="visit_plan.html">访视计划</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="visit_record.html">访视记录</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="window_check.html">超窗检查</a>
-                        </li>
-                    </ul>
+        <nav class="fixed top-0 w-full bg-blue-600 text-white z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <a href="../landing.html" class="text-xl font-bold">受试者管理系统</a>
+                    
+                    <!-- 导航链接 -->
+                    <div class="hidden md:flex space-x-4">
+                        <a href="../landing.html" class="hover:text-blue-200">首页</a>
+                        <a href="project_manage.html" class="hover:text-blue-200">项目管理</a>
+                        <a href="index.html" class="hover:text-blue-200">添加受试者</a>
+                        <a href="view.html" class="hover:text-blue-200">查看受试者</a>
+                        <a href="schedule.html" class="hover:text-blue-200">访视安排</a>
+                        <a href="visit_plan.html" class="hover:text-blue-200">访视计划</a>
+                        <a href="visit_record.html" class="hover:text-blue-200">访视记录</a>
+                        <a href="window_check.html" class="text-blue-200">超窗检查</a>
+                    </div>
                 </div>
             </div>
         </nav>
 
-        <div class="container">
-            <h2 class="mb-4 text-center">访视超窗检查</h2>
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-5">
-                            <label for="projectFilter" class="form-label">项目筛选:</label>
-                            <select class="form-select" v-model="filters.project" @change="onProjectChange('violation')">
+        <div class="container mx-auto px-4 pt-20">
+            <h2 class="text-2xl font-bold mb-4 text-center">访视超窗检查</h2>
+            
+            <!-- 超窗检查筛选 -->
+            <div class="bg-white rounded-lg shadow-md mb-6">
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <div class="md:col-span-5">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">项目筛选:</label>
+                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    v-model="filters.project" 
+                                    @change="onProjectChange('violation')">
                                 <option value="">全部项目</option>
                                 <option v-for="project in projects" :key="project.projectName" :value="project.projectName">
                                     {{ project.projectName }}
                                 </option>
                             </select>
                         </div>
-                        <div class="col-md-5">
-                            <label for="centerFilter" class="form-label">中心筛选:</label>
-                            <select class="form-select" v-model="filters.center">
+                        <div class="md:col-span-5">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">中心筛选:</label>
+                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    v-model="filters.center">
                                 <option value="">全部中心</option>
                                 <option v-for="center in centers" :key="center.centerName" :value="center.centerName">
                                     {{ center.centerName }}
                                 </option>
                             </select>
                         </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button class="btn btn-primary w-100" @click="checkViolations">检查超窗</button>
+                        <div class="md:col-span-2 flex items-end">
+                            <button class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                    @click="checkViolations">
+                                检查超窗
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card mb-5">
-                <div class="card-body">
-                    <table class="table">
-                        <thead>
+            <!-- 超窗检查结果表格 -->
+            <div class="bg-white rounded-lg shadow-md mb-8">
+                <div class="p-6 overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th>项目</th>
-                                <th>中心</th>
-                                <th>受试者</th>
-                                <th>访视序号</th>
-                                <th>实际访视日期</th>
-                                <th>窗口最早日期</th>
-                                <th>窗口最晚日期</th>
-                                <th>超期天数</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">项目</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">中心</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">受试者</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">访视序号</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">实际访视日期</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">窗口最早日期</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">窗口最晚日期</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">超期天数</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="bg-white divide-y divide-gray-200">
                             <tr v-if="violations.length === 0">
-                                <td colspan="8" class="text-center">没有发现超窗记录</td>
+                                <td colspan="8" class="px-6 py-4 text-center text-gray-500">没有发现超窗记录</td>
                             </tr>
-                            <tr v-for="violation in sortedViolations" :key="violation.id">
-                                <td>{{ violation.project }}</td>
-                                <td>{{ violation.center }}</td>
-                                <td>{{ violation.subject }}</td>
-                                <td>{{ violation.visitNumber }}</td>
-                                <td>{{ formatDate(violation.actualDate) }}</td>
-                                <td>{{ formatDate(violation.earliestDate) }}</td>
-                                <td>{{ formatDate(violation.latestDate) }}</td>
-                                <td class="overdue">{{ violation.overdueDays }}天</td>
+                            <tr v-for="violation in sortedViolations" 
+                                :key="violation.id"
+                                class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">{{ violation.project }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ violation.center }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ violation.subject }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ violation.visitNumber }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(violation.actualDate) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(violation.earliestDate) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(violation.latestDate) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap overdue">{{ violation.overdueDays }}天</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <h2 class="mb-4 text-center">超窗提醒</h2>
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label class="form-label">项目筛选:</label>
-                            <select class="form-select" v-model="reminderFilters.project" @change="onProjectChange('reminder')">
+            <!-- 超窗提醒部分 -->
+            <h2 class="text-2xl font-bold mb-4 text-center">超窗提醒</h2>
+            <div class="bg-white rounded-lg shadow-md mb-6">
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <div class="md:col-span-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">项目筛选:</label>
+                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    v-model="reminderFilters.project" 
+                                    @change="onProjectChange('reminder')">
                                 <option value="">全部项目</option>
                                 <option v-for="project in projects" :key="project.projectName" :value="project.projectName">
                                     {{ project.projectName }}
                                 </option>
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">中心筛选:</label>
-                            <select class="form-select" v-model="reminderFilters.center">
+                        <div class="md:col-span-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">中心筛选:</label>
+                            <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    v-model="reminderFilters.center">
                                 <option value="">全部中心</option>
                                 <option v-for="center in reminderCenters" :key="center.centerName" :value="center.centerName">
                                     {{ center.centerName }}
                                 </option>
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">截止日期:</label>
-                            <input type="date" class="form-control" v-model="reminderFilters.date">
+                        <div class="md:col-span-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">截止日期:</label>
+                            <input type="date" class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   v-model="reminderFilters.date">
                         </div>
-                        <div class="col-md-1 d-flex align-items-end">
-                            <button class="btn btn-primary w-100" @click="checkReminders">检查</button>
+                        <div class="md:col-span-1 flex items-end">
+                            <button class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                    @click="checkReminders">
+                                检查
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-body">
-                    <table class="table">
-                        <thead>
+            <!-- 超窗提醒表格 -->
+            <div class="bg-white rounded-lg shadow-md mb-8">
+                <div class="p-6 overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th>项目</th>
-                                <th>中心</th>
-                                <th>受试者</th>
-                                <th>访视序号</th>
-                                <th>窗口最早日期</th>
-                                <th>窗口最晚日期</th>
-                                <th>已超期天数</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">项目</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">中心</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">受试者</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">访视序号</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">窗口最早日期</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">窗口最晚日期</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">已超期天数</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="bg-white divide-y divide-gray-200">
                             <tr v-if="reminders.length === 0">
-                                <td colspan="7" class="text-center">没有发现需要提醒的记录</td>
+                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">没有发现需要提醒的记录</td>
                             </tr>
-                            <tr v-for="reminder in sortedReminders" :key="reminder.id">
-                                <td>{{ reminder.project }}</td>
-                                <td>{{ reminder.center }}</td>
-                                <td>{{ reminder.subject }}</td>
-                                <td>{{ reminder.visitNumber }}</td>
-                                <td>{{ formatDate(reminder.earliestDate) }}</td>
-                                <td>{{ formatDate(reminder.latestDate) }}</td>
-                                <td class="overdue">{{ reminder.overdueDays }}天</td>
+                            <tr v-for="reminder in sortedReminders" 
+                                :key="reminder.id"
+                                class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">{{ reminder.project }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ reminder.center }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ reminder.subject }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ reminder.visitNumber }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(reminder.earliestDate) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(reminder.latestDate) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap overdue">{{ reminder.overdueDays }}天</td>
                             </tr>
                         </tbody>
                     </table>

@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>受试者信息提交</title>
-    <!-- 引入css -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 移除 Bootstrap CSS，添加 Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 保留其他必要的 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="../css/index.css">
-    <!-- 引入必要的库 -->
+    <!-- 其他脚本保持不变 -->
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -23,208 +24,196 @@
     <!-- Vue 应用的根元素 -->
     <div id="app">
         <!-- 导航栏 -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-            <div class="container">
-                <a class="navbar-brand" href="../landing.html">受试者管理系统</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto"> <!-- 添加 ms-auto 类 -->
-                        <li class="nav-item">
-                            <a class="nav-link" href="../landing.html">首页</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="project_manage.html">项目管理</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="index.html">添加受试者</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="view.html">查看受试者</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="schedule.html">访视安排</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="visit_plan.html">访视计划</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="visit_record.html">访视记录</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="window_check.html">超窗检查</a>
-                        </li>
-                    </ul>
+        <nav class="fixed top-0 w-full bg-blue-600 text-white z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <a href="../landing.html" class="text-xl font-bold">受试者管理系统</a>
+                    
+                    <!-- 移动端菜单按钮 -->
+                    <button class="md:hidden p-2" id="menuButton">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+
+                    <!-- 导航链接 -->
+                    <div class="hidden md:flex space-x-4" id="navMenu">
+                        <a href="../landing.html" class="hover:text-blue-200">首页</a>
+                        <a href="project_manage.html" class="hover:text-blue-200">项目管理</a>
+                        <a href="index.html" class="text-blue-200">添加受试者</a>
+                        <a href="view.html" class="hover:text-blue-200">查看受试者</a>
+                        <a href="schedule.html" class="hover:text-blue-200">访视安排</a>
+                        <a href="visit_plan.html" class="hover:text-blue-200">访视计划</a>
+                        <a href="visit_record.html" class="hover:text-blue-200">访视记录</a>
+                        <a href="window_check.html" class="hover:text-blue-200">超窗检查</a>
+                    </div>
                 </div>
             </div>
         </nav>
 
-        <div class="container">
-            <h1 class="mb-4 text-center">受试者信息提交</h1>
+        <div class="container mx-auto px-4 pt-20">
+            <h1 class="text-2xl font-bold mb-4 text-center">受试者信息提交</h1>
             
             <!-- 表单卡片 -->
-            <div class="card">
-                <div class="card-body">
+            <div class="bg-white rounded-lg shadow-md mb-8">
+                <div class="p-6">
                     <form @submit.prevent="submitForm">
                         <!-- 项目和中心选择 -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">选择项目:</label>
-                                    <select class="form-select" 
-                                            v-model="formData.project" 
-                                            @change="onProjectChange" 
-                                            required>
-                                        <option value="">请选择项目</option>
-                                        <option v-for="project in projects" 
-                                                :key="project" 
-                                                :value="project">
-                                            {{ project }}
-                                        </option>
-                                    </select>
-                                </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">选择项目:</label>
+                                <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                        v-model="formData.project" 
+                                        @change="onProjectChange" 
+                                        required>
+                                    <option value="">请选择项目</option>
+                                    <option v-for="project in projects" 
+                                            :key="project" 
+                                            :value="project">
+                                        {{ project }}
+                                    </option>
+                                </select>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">选择中心:</label>
-                                    <select class="form-select" 
-                                            v-model="formData.center" 
-                                            required>
-                                        <option value="">请选择中心</option>
-                                        <option v-for="center in centers" 
-                                                :key="center" 
-                                                :value="center">
-                                            {{ center }}
-                                        </option>
-                                    </select>
-                                </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">选择中心:</label>
+                                <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                        v-model="formData.center" 
+                                        required>
+                                    <option value="">请选择中心</option>
+                                    <option v-for="center in centers" 
+                                            :key="center" 
+                                            :value="center">
+                                        {{ center }}
+                                    </option>
+                                </select>
                             </div>
                         </div>
 
                         <!-- 基本信息 -->
-                        <div class="mb-3">
-                            <label class="form-label">受试者编号:</label>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">受试者编号:</label>
                             <input type="text" 
-                                   class="form-control" 
+                                   class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                                    v-model="formData.name" 
                                    required>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">首次受试日期:</label>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">首次受试日期:</label>
                             <input type="text" 
-                                   class="form-control" 
+                                   class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                                    ref="datePickerEl"
                                    v-model="formData.firstDate" 
                                    required>
                         </div>
 
                         <!-- 访视设置 -->
-                        <div class="mb-3">
-                            <label class="form-label">总访视次数:</label>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">总访视次数:</label>
                             <input type="number" 
-                                   class="form-control" 
+                                   class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                                    v-model.number="formData.totalVisits" 
                                    min="2" 
                                    required>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">访视间隔类型:</label>
-                            <div class="form-check">
-                                <input type="radio" 
-                                       class="form-check-input" 
-                                       v-model="formData.frequencyType" 
-                                       value="fixed" 
-                                       id="fixedFrequency">
-                                <label class="form-check-label" for="fixedFrequency">固定间隔</label>
-                            </div>
-                            <div class="form-check">
-                                <input type="radio" 
-                                       class="form-check-input" 
-                                       v-model="formData.frequencyType" 
-                                       value="variable" 
-                                       id="variableFrequency">
-                                <label class="form-check-label" for="variableFrequency">变化间隔</label>
+                        <!-- 访视间隔类型 -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">访视间隔类型:</label>
+                            <div class="space-y-2">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" 
+                                           class="form-radio text-blue-600" 
+                                           v-model="formData.frequencyType" 
+                                           value="fixed">
+                                    <span class="ml-2">固定间隔</span>
+                                </label>
+                                <label class="inline-flex items-center ml-6">
+                                    <input type="radio" 
+                                           class="form-radio text-blue-600" 
+                                           v-model="formData.frequencyType" 
+                                           value="variable">
+                                    <span class="ml-2">变化间隔</span>
+                                </label>
                             </div>
                         </div>
 
                         <!-- 访视间隔设置 -->
-                        <div v-if="formData.frequencyType === 'fixed'">
-                            <div class="mb-3">
-                                <label class="form-label">固定访视间隔(天):</label>
+                        <div v-if="formData.frequencyType === 'fixed'" class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">固定访视间隔(天):</label>
                                 <input type="number" 
-                                       class="form-control" 
+                                       class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                                        v-model.number="formData.fixedDays" 
                                        min="1">
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">固定访视窗口(±天数):</label>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">固定访视窗口(±天数):</label>
                                 <input type="number" 
-                                       class="form-control" 
+                                       class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                                        v-model.number="formData.fixedWindow" 
                                        min="0">
                             </div>
                         </div>
-                        <div v-else>
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>访视次数</th>
-                                            <th>间隔天数</th>
-                                            <th>访视窗口(±天数)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(visit, index) in visits" :key="index">
-                                            <td>第 {{ index + 2 }} 次访视</td>
-                                            <td>
-                                                <input type="number" 
-                                                       class="form-control" 
-                                                       v-model.number="visit.frequency" 
-                                                       min="1">
-                                            </td>
-                                            <td>
-                                                <input type="number" 
-                                                       class="form-control" 
-                                                       v-model.number="visit.window" 
-                                                       min="0">
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+
+                        <div v-else class="overflow-x-auto">
+                            <table class="w-full border-collapse border border-gray-200">
+                                <thead>
+                                    <tr>
+                                        <th class="border border-gray-200 px-4 py-2 bg-gray-50">访视次数</th>
+                                        <th class="border border-gray-200 px-4 py-2 bg-gray-50">间隔天数</th>
+                                        <th class="border border-gray-200 px-4 py-2 bg-gray-50">访视窗口(±天数)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(visit, index) in visits" :key="index">
+                                        <td class="border border-gray-200 px-4 py-2">第 {{ index + 2 }} 次访视</td>
+                                        <td class="border border-gray-200 px-4 py-2">
+                                            <input type="number" 
+                                                   class="w-full border rounded py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                                   v-model.number="visit.frequency" 
+                                                   min="1">
+                                        </td>
+                                        <td class="border border-gray-200 px-4 py-2">
+                                            <input type="number" 
+                                                   class="w-full border rounded py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                                   v-model.number="visit.window" 
+                                                   min="0">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100">提交</button>
+                        <button type="submit" 
+                                class="w-full mt-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                            提交
+                        </button>
                     </form>
                 </div>
             </div>
 
             <!-- 批量导入部分 -->
-            <h2 class="mt-5 mb-4 text-center">批量导入受试者信息</h2>
-            <div class="card">
-                <div class="card-body">
+            <h2 class="text-xl font-bold mb-4 text-center">批量导入受试者信息</h2>
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6">
                     <form @submit.prevent="handleBatchImport">
-                        <div class="mb-3">
-                            <label class="form-label">选择Excel文件：</label>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">选择Excel文件：</label>
                             <input type="file" 
-                                   class="form-control" 
+                                   class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                                    @change="handleFileChange" 
                                    accept=".xlsx, .xls" 
                                    required>
                         </div>
-                        <div v-if="columnMappings.length > 0" class="mb-3">
+                        <div v-if="columnMappings.length > 0" class="space-y-4">
                             <div v-for="(mapping, index) in columnMappings" 
-                                 :key="index" 
-                                 class="mb-2">
-                                <label class="form-label">
+                                 :key="index">
+                                <label class="block text-gray-700 text-sm font-bold mb-2">
                                     Excel列 "{{ mapping.header }}" 对应：
                                 </label>
-                                <select class="form-select" v-model="mapping.field">
+                                <select class="w-full border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                        v-model="mapping.field">
                                     <option value="">请选择</option>
                                     <option v-for="field in availableFields" 
                                             :key="field.value" 
@@ -235,8 +224,9 @@
                             </div>
                         </div>
                         <button type="submit" 
-                                class="btn btn-primary w-100" 
-                                :disabled="!excelFile">
+                                class="w-full mt-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                :disabled="!excelFile"
+                                :class="{'opacity-50 cursor-not-allowed': !excelFile}">
                             批量导入
                         </button>
                     </form>
