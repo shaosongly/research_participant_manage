@@ -1,4 +1,5 @@
 import { db, ProjectOperations, CenterOperations, SubjectOperations } from '../common/db-operations.js';
+import { SubjectService } from '../common/subject-service.js';
 
 const { createApp, ref, onMounted, watch } = Vue;
 
@@ -277,68 +278,59 @@ const VisitPlanPage = {
         };
 
         const generateVisitPlan = (subject) => {
-            const firstDate = new Date(subject.firstDate);
-            const totalVisits = parseInt(subject.totalVisits);
-            let frequencies = [];
-            let visitWindows = [];
-
-            // 解析访视间隔
-            if (subject.frequency.includes(',')) {
-                frequencies = subject.frequency.split(',').map(Number);
-                if (frequencies.length !== totalVisits - 1) {
-                    alert('访视间隔数量应该等于总访视次数-1');
+            try {
+                // 使用 SubjectService 计算访视计划
+                const plannedVisits = SubjectService.calculatePlannedVisits(subject);
+                
+                if (!plannedVisits) {
+                    alert('生成访视计划失败，请检查访视间隔和窗口设置');
                     return;
                 }
-            } else {
-                const fixedFrequency = parseInt(subject.frequency);
-                frequencies = Array(totalVisits - 1).fill(fixedFrequency);
-            }
 
-            // 解析访视窗口
-            if (subject.visitWindow && subject.visitWindow.trim() !== '') {
-                const windowValue = subject.visitWindow.trim();
-                if (windowValue.includes(',')) {
-                    visitWindows = windowValue.split(',').map(Number);
-                    if (visitWindows.length !== totalVisits - 1) {
-                        alert('访视窗口数量应该等于总访视次数-1');
-                        return;
+                // 生成访视计划表格数据
+                const plan = [];
+
+                plannedVisits.forEach((visit, index) => {
+                    const visitNum = index + 1;
+                    const window = index === 0 ? 0 : 
+                        Math.ceil((visit.latestDate - visit.earliestDate) / (1000 * 60 * 60 * 24) / 2);
+
+                    if (window === 0) {
+                        // 无窗口期的访视（首次访视或窗口为0）
+                        plan.push(createVisitEntry(visitNum, visit.baseDate, '基准日期', true));
+                    } else {
+                        // 有窗口期的访视
+                        // 添加最早日期
+                        plan.push(createVisitEntry(
+                            visitNum, 
+                            visit.earliestDate, 
+                            `提前${window}天`, 
+                            false
+                        ));
+
+                        // 添加基准日期
+                        plan.push(createVisitEntry(
+                            visitNum, 
+                            visit.baseDate, 
+                            '基准日期', 
+                            true
+                        ));
+
+                        // 添加最晚日期
+                        plan.push(createVisitEntry(
+                            visitNum, 
+                            visit.latestDate, 
+                            `延后${window}天`, 
+                            false
+                        ));
                     }
-                } else {
-                    const fixedWindow = parseInt(windowValue);
-                    visitWindows = Array(totalVisits - 1).fill(fixedWindow);
-                }
-            } else {
-                visitWindows = Array(totalVisits - 1).fill(0);
+                });
+
+                visitPlan.value = plan;
+            } catch (error) {
+                console.error('生成访视计划失败:', error);
+                alert('生成访视计划失败: ' + error.message);
             }
-
-            // 生成访视计划
-            const plan = [];
-            let currentDate = new Date(firstDate);
-
-            // 添加首次访视
-            plan.push(createVisitEntry(1, currentDate, '基准日期', true));
-
-            // 生成后续访视
-            for (let i = 0; i < frequencies.length; i++) {
-                currentDate = new Date(currentDate.getTime() + frequencies[i] * 24 * 60 * 60 * 1000);
-                const visitNum = i + 2;
-                const window = visitWindows[i];
-
-                if (window === 0) {
-                    plan.push(createVisitEntry(visitNum, currentDate, '基准日期', true));
-                } else {
-                    // 添加窗口期访视
-                    for (let offset = -window; offset <= window; offset++) {
-                        const windowDate = new Date(currentDate.getTime() + offset * 24 * 60 * 60 * 1000);
-                        const dateType = offset === 0 ? '基准日期' : 
-                                       offset < 0 ? `提前${Math.abs(offset)}天` : `延后${offset}天`;
-                        const isBaseDate = offset === 0;
-                        plan.push(createVisitEntry(visitNum, windowDate, dateType, isBaseDate));
-                    }
-                }
-            }
-
-            visitPlan.value = plan;
         };
 
         const createVisitEntry = (visitNumber, date, dateType, isBaseDate) => {

@@ -1,4 +1,5 @@
 import { db, ProjectOperations, CenterOperations, SubjectOperations } from '../common/db-operations.js';
+import { SubjectService } from '../common/subject-service.js';
 
 const { createApp, ref, onMounted } = Vue;
 
@@ -189,6 +190,7 @@ const SchedulePage = {
                 error.value = '';
                 scheduleItems.value = [];
 
+                // 获取并筛选受试者
                 let subjects = await SubjectOperations.getAllSubjects();
                 subjects = subjects.filter(subject => {
                     return (!selectedProject.value || subject.project === selectedProject.value) &&
@@ -196,72 +198,36 @@ const SchedulePage = {
                 });
 
                 const items = [];
-                subjects.forEach(subject => {
-                    const firstDate = new Date(subject.firstDate);
-                    const totalVisits = parseInt(subject.totalVisits);
+                
+                // 使用 SubjectService 处理每个受试者的访视计划
+                for (const subject of subjects) {
+                    const plannedVisits = SubjectService.calculatePlannedVisits(subject);
+                    if (!plannedVisits) continue;
 
-                    // 解析访视间隔
-                    let frequencies = [];
-                    if (subject.frequency.includes(',')) {
-                        frequencies = subject.frequency.split(',').map(Number);
-                    } else {
-                        const fixedFrequency = parseInt(subject.frequency);
-                        frequencies = Array(totalVisits - 1).fill(fixedFrequency);
-                    }
-
-                    // 解析访视窗口
-                    let visitWindows = [];
-                    if (subject.visitWindow && subject.visitWindow.trim() !== '') {
-                        const windowValue = subject.visitWindow.trim();
-                        if (windowValue.includes(',')) {
-                            visitWindows = windowValue.split(',').map(Number);
-                        } else {
-                            const fixedWindow = parseInt(windowValue);
-                            visitWindows = Array(totalVisits - 1).fill(fixedWindow);
-                        }
-                    } else {
-                        visitWindows = Array(totalVisits - 1).fill(0);
-                    }
-
-                    // 计算访视日期
-                    let visitDates = [firstDate];
-                    let currentDate = new Date(firstDate);
-
-                    for (let i = 0; i < frequencies.length; i++) {
-                        currentDate = new Date(currentDate.getTime() + frequencies[i] * 24 * 60 * 60 * 1000);
-                        visitDates.push(currentDate);
-                    }
-
-                    visitDates.forEach((baseDate, visitNum) => {
+                    // 为每次访视创建日程项
+                    plannedVisits.forEach((visit, visitNum) => {
                         const scheduleItem = {
                             project: subject.project,
                             center: subject.center,
                             name: subject.name,
                             visitNumber: visitNum + 1,
-                            baseDate: baseDate,
-                            earliestDate: baseDate,
-                            latestDate: baseDate
+                            baseDate: visit.baseDate,
+                            earliestDate: visit.earliestDate,
+                            latestDate: visit.latestDate
                         };
 
-                        if (visitNum > 0 && visitWindows[visitNum - 1] > 0) {
-                            const window = visitWindows[visitNum - 1];
-                            scheduleItem.earliestDate = new Date(baseDate.getTime() - window * 24 * 60 * 60 * 1000);
-                            scheduleItem.latestDate = new Date(baseDate.getTime() + window * 24 * 60 * 60 * 1000);
-                        }
-
-                        const dateToCheck = (visitNum > 0 && visitWindows[visitNum - 1] > 0)
-                            ? scheduleItem.earliestDate
-                            : scheduleItem.baseDate;
-
+                        // 检查访视日期是否在选定的日期范围内
+                        const dateToCheck = visitNum === 0 ? visit.baseDate : visit.earliestDate;
                         const normalizedDateToCheck = new Date(dateToCheck.setHours(0, 0, 0, 0));
                         const normalizedStartDate = new Date(startDate.setHours(0, 0, 0, 0));
                         const normalizedEndDate = new Date(endDate.setHours(23, 59, 59, 999));
 
-                        if (normalizedDateToCheck >= normalizedStartDate && normalizedDateToCheck <= normalizedEndDate) {
+                        if (normalizedDateToCheck >= normalizedStartDate && 
+                            normalizedDateToCheck <= normalizedEndDate) {
                             items.push(scheduleItem);
                         }
                     });
-                });
+                }
 
                 // 排序
                 items.sort((a, b) => {
