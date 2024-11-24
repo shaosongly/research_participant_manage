@@ -95,7 +95,10 @@ const app = Vue.createApp({
 
             // 筛选用的数据
             filterCenters: [],
-            filterSubjects: []
+            filterSubjects: [],
+
+            // 添加 tab 状态管理
+            activeTab: 'single'
         }
     },
 
@@ -424,6 +427,62 @@ const app = Vue.createApp({
 
         toggleSelectAll() {
             this.visitRecords.forEach(record => record.selected = this.selectAll);
+        },
+
+        // 添加表单重置方法
+        resetSingleForm() {
+            this.singleVisit = {
+                subjectName: '',
+                visitNumber: '',
+                visitDate: ''
+            };
+            if (this.datePicker) {
+                this.datePicker.clear();
+            }
+        },
+
+        resetBatchForm() {
+            this.columnMapping = [];
+            this.mappingFields.forEach(field => field.selected = '');
+            // 重置文件输入
+            const fileInput = document.querySelector('input[type="file"]');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+        },
+
+        // 添加 tab 切换处理
+        handleTabChange(newTab) {
+            if (this.activeTab === newTab) return;
+            
+            // 重置相应表单
+            if (newTab === 'single') {
+                this.resetBatchForm();
+            } else if (newTab === 'batch') {
+                this.resetSingleForm();
+            } else if (newTab === 'view') {
+                this.resetSingleForm();
+                this.resetBatchForm();
+                // 刷新记录列表
+                this.loadVisitRecords();
+            }
+            
+            this.activeTab = newTab;
+        }
+    },
+
+    watch: {
+        // 添加 activeTab 监听器
+        activeTab: {
+            immediate: true,
+            handler(newTab) {
+                // 如果切换到查看记录标签，自动加载记录
+                if (newTab === 'view') {
+                    this.$nextTick(() => {
+                        this.loadVisitRecords();
+                    });
+                }
+            }
         }
     }
 });

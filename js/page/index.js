@@ -34,6 +34,40 @@ createApp({
             { value: 'visitWindow', label: '访视窗口' }
         ];
 
+        // 添加 tab 状态管理
+        const activeTab = ref('single');
+        
+        // 添加表单重置功能
+        const resetForm = () => {
+            formData.value = {
+                project: '',
+                center: '',
+                name: '',
+                firstDate: '',
+                totalVisits: 2,
+                frequencyType: 'fixed',
+                fixedDays: 1,
+                fixedWindow: 0,
+            };
+            visits.value = [];
+            updateVisitTable();
+        };
+
+        // 添加批量导入表单重置功能
+        const resetBatchForm = () => {
+            excelFile.value = null;
+            columnMappings.value = [];
+        };
+
+        // 监听 tab 切换，重置相应表单
+        watch(activeTab, (newTab) => {
+            if (newTab === 'single') {
+                resetBatchForm();
+            } else {
+                resetForm();
+            }
+        });
+
         // 方法定义
         const loadProjects = async () => {
             try {
@@ -98,7 +132,8 @@ createApp({
                 };
 
                 await SubjectOperations.addSubject(subjectData);
-                window.location.href = 'view.html';
+                alert('添加成功！');
+                resetForm();
             } catch (error) {
                 console.error('Error saving subject:', error);
                 alert('保存失败，请检查数据是否重复或格式是否正确');
@@ -253,8 +288,8 @@ createApp({
                         SubjectOperations.addSubject(subject)
                     ));
 
-                    alert(`成功导入 ${subjects.length} 条记录`);
-                    window.location.href = 'view.html';
+                    alert(`成功导入 ${subjects.length} 条记录！`);
+                    resetBatchForm();
                 } catch (error) {
                     console.error('批量导入失败:', error);
                     alert('导入失败，请检查数据格式是否正确');
@@ -316,6 +351,7 @@ createApp({
 
         return {
             // 状态
+            activeTab,
             projects,
             centers,
             formData,
@@ -329,7 +365,10 @@ createApp({
             submitForm,
             handleFileChange,
             handleBatchImport,
-            updateVisitTable
+            updateVisitTable,
+            // 添加新的方法
+            resetForm,
+            resetBatchForm
         };
     }
 }).mount('#app');

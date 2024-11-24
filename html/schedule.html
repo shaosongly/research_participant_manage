@@ -29,7 +29,7 @@
         <nav class="fixed top-0 w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg z-50">
             <div class="container mx-auto px-4">
                 <div class="flex justify-between items-center h-16">
-                    <a href="../landing.html" class="text-xl font-bold hover:text-blue-200 transition-colors">受试者管理系统</a>
+                    <a href="../landing.html" class="text-xl font-bold hover:text-blue-200 transition-colors">临床实验管理系统</a>
                     
                     <!-- 移动端菜单按钮 -->
                     <button class="md:hidden p-2 rounded hover:bg-blue-700 transition-colors" id="menuButton">
@@ -40,22 +40,87 @@
 
                     <!-- 导航链接 -->
                     <div class="hidden md:flex space-x-4" id="navMenu">
+                        <!-- 首页 -->
                         <a href="../landing.html" 
-                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">首页</a>
-                        <a href="project_manage.html" 
-                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">项目管理</a>
-                        <a href="index.html" 
-                           class="px-3 py-2 rounded-md bg-blue-700">添加受试者</a>
-                        <a href="view.html" 
-                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">查看受试者</a>
-                        <a href="schedule.html" 
-                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">访视安排</a>
-                        <a href="visit_plan.html" 
-                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">访视计划</a>
-                        <a href="visit_record.html" 
-                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">访视记录</a>
-                        <a href="window_check.html" 
-                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">超窗检查</a>
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                            首页
+                        </a>
+
+                        <!-- 数据管理下拉菜单 -->
+                        <div class="relative group">
+                            <button class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center">
+                                <span>数据管理</span>
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <!-- 添加一个连接区域 -->
+                            <div class="absolute left-0 top-full w-48 pt-2 invisible group-hover:visible">
+                                <div class="bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                                    <div class="py-1">
+                                        <a href="project_manage.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            项目管理
+                                        </a>
+                                        <!-- 受试者管理子菜单 -->
+                                        <div class="relative group/sub">
+                                            <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 inline-flex items-center justify-between">
+                                                <span>受试者管理</span>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </button>
+                                            <!-- 添加连接区域和延迟 -->
+                                            <div class="absolute left-full top-0 w-48 pl-2 invisible group-hover/sub:visible">
+                                                <div class="bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                                                    <a href="index.html" 
+                                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        添加受试者
+                                                    </a>
+                                                    <a href="view.html" 
+                                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        查看受试者
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a href="visit_record.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            录入访视记录
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 访视管理下拉菜单 -->
+                        <div class="relative group">
+                            <button class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center">
+                                <span>访视管理</span>
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <!-- 添加连接区域 -->
+                            <div class="absolute left-0 top-full w-48 pt-2 invisible group-hover:visible">
+                                <div class="bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                                    <div class="py-1">
+                                        <a href="visit_plan.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            生成访视计划
+                                        </a>
+                                        <a href="schedule.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-blue-100">
+                                            查看访视安排
+                                        </a>
+                                        <a href="window_check.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            访视超窗检查
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
