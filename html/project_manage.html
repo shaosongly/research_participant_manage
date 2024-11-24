@@ -20,15 +20,58 @@
 <body>
     <div id="app">
         <!-- 导航栏组件 -->
-        <nav-bar></nav-bar>
+        <nav class="fixed top-0 w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <a href="../landing.html" class="text-xl font-bold hover:text-blue-200 transition-colors">受试者管理系统</a>
+                    
+                    <!-- 移动端菜单按钮 -->
+                    <button class="md:hidden p-2 rounded hover:bg-blue-700 transition-colors" id="menuButton">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
 
-        <div class="container mx-auto px-4 pt-20">
-            <h1 class="text-2xl font-bold mb-4 text-center">项目管理</h1>
+                    <!-- 导航链接 -->
+                    <div class="hidden md:flex space-x-4" id="navMenu">
+                        <a href="../landing.html" 
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">首页</a>
+                        <a href="project_manage.html" 
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">项目管理</a>
+                        <a href="index.html" 
+                           class="px-3 py-2 rounded-md bg-blue-700">添加受试者</a>
+                        <a href="view.html" 
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">查看受试者</a>
+                        <a href="schedule.html" 
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">访视安排</a>
+                        <a href="visit_plan.html" 
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">访视计划</a>
+                        <a href="visit_record.html" 
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">访视记录</a>
+                        <a href="window_check.html" 
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">超窗检查</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mx-auto px-4 pt-24 pb-8">
+            <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">项目管理</h1>
 
             <!-- 新建项目按钮 -->
-            <div class="mb-4">
-                <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 
-                        @click="showNewProjectModal">新建项目</button>
+            <div class="max-w-6xl mx-auto mb-8">
+                <button class="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg
+                               hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 
+                               focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200
+                               hover:scale-[1.02] active:scale-[0.98] shadow-md"
+                        @click="showNewProjectModal">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        新建项目
+                    </span>
+                </button>
             </div>
 
             <!-- 项目列表 -->
@@ -67,13 +110,27 @@
 
     <!-- 组件模板 -->
     <template id="nav-bar-template">
-        <nav class="fixed top-0 w-full bg-blue-600 text-white z-50">
+        <nav class="fixed top-0 w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg z-50">
             <div class="container mx-auto px-4">
-                <div class="flex justify-between items-center h-14">
-                    <a href="../landing.html" class="text-lg font-semibold">受试者管理系统</a>
-                    <div class="flex space-x-4">
-                        <a href="../landing.html" class="hover:text-blue-200">首页</a>
-                        <a href="project_manage.html" class="text-blue-200">项目管理</a>
+                <div class="flex justify-between items-center h-16">
+                    <a href="../landing.html" class="text-xl font-bold hover:text-blue-200 transition-colors">受试者管理系统</a>
+                    
+                    <!-- 移动端菜单按钮 -->
+                    <button class="md:hidden p-2 rounded hover:bg-blue-700 transition-colors" id="menuButton">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+
+                    <!-- 导航链接 -->
+                    <div class="hidden md:flex space-x-4" id="navMenu">
+                        <a href="../landing.html" 
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">首页</a>
+                        <a href="project_manage.html" 
+                           class="px-3 py-2 rounded-md bg-blue-700">项目管理</a>
+                        <a href="index.html" 
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">添加受试者</a>
+                        <!-- ... 其他导航链接 ... -->
                     </div>
                 </div>
             </div>
@@ -113,19 +170,20 @@
         </div>
     </template>
 
-    <!-- 项目模态框模板 -->
+    <!-- 项目模态框模板优化 -->
     <template id="project-modal-template">
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg w-full max-w-md mx-4">
-                <div class="flex justify-between items-center p-4 border-b">
-                    <h5 class="text-lg font-medium">新建项目</h5>
-                    <button @click="$emit('close')" class="text-gray-500 hover:text-gray-700">
+        <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl w-full max-w-md mx-4 shadow-xl transform transition-all">
+                <div class="flex justify-between items-center p-6 border-b">
+                    <h5 class="text-xl font-semibold text-gray-800">新建项目</h5>
+                    <button @click="$emit('close')" 
+                            class="text-gray-400 hover:text-gray-600 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
-                <div class="p-4">
+                <div class="p-6 space-y-4">
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">项目名称</label>
                         <input type="text" 
@@ -139,13 +197,21 @@
                                v-model="centerName" required>
                     </div>
                 </div>
-                <div class="flex justify-end space-x-2 p-4 border-t">
+                <div class="flex justify-end space-x-3 p-6 border-t bg-gray-50 rounded-b-xl">
                     <button type="button" 
-                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300" 
-                            @click="$emit('close')">取消</button>
+                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 
+                                   focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2
+                                   transition-all duration-200"
+                            @click="$emit('close')">
+                        取消
+                    </button>
                     <button type="button" 
-                            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 
-                            @click="handleSave">保存</button>
+                            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                                   transition-all duration-200"
+                            @click="handleSave">
+                        保存
+                    </button>
                 </div>
             </div>
         </div>

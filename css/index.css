@@ -1,0 +1,59 @@
+/* 自定义表单样式 */
+.form-group {
+    @apply relative;
+}
+
+.form-group label {
+    @apply block text-gray-700 text-sm font-semibold mb-2;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select {
+    @apply w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+           transition-all duration-200;
+}
+
+/* 添加输入验证样式 */
+.form-group input:invalid,
+.form-group select:invalid {
+    @apply border-red-300 focus:ring-red-500;
+}
+
+/* 自定义单选按钮样式 */
+input[type="radio"] {
+    @apply w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300;
+}
+
+/* 添加加载状态动画 */
+.loading {
+    @apply opacity-75 pointer-events-none;
+}
+
+/* Flatpickr 日期选择器自定义样式 */
+.flatpickr-calendar {
+    @apply bg-white border border-gray-200 rounded-lg shadow-lg;
+}
+
+.flatpickr-day.selected {
+    @apply bg-blue-500 border-blue-500;
+}
+
+.flatpickr-day:hover {
+    @apply bg-blue-100;
+}
+
+/* 文件上传拖拽区域样式 */
+.file-drop-active {
+    @apply border-blue-500 bg-blue-50;
+}
+
+/* 添加文件拖拽相关的状态样式 */
+.file-drop-zone {
+    @apply transition-all duration-200;
+}
+
+.file-drop-zone.drag-over {
+    @apply border-blue-500 bg-blue-50;
+}

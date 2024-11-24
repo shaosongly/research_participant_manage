@@ -1,10 +1,5 @@
 import { ProjectOperations, CenterOperations, SubjectOperations } from '../common/db-operations.js';
 
-// 导航栏组件
-const NavBar = {
-    template: '#nav-bar-template'
-};
-
 // 项目列表组件
 const ProjectList = {
     props: ['projects', 'centerSubjectCounts'],
@@ -77,7 +72,6 @@ const DeleteConfirmModal = {
 // 主应用
 const app = Vue.createApp({
     components: {
-        NavBar,
         ProjectList,
         ProjectModal,
         CenterModal,
