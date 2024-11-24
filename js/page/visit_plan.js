@@ -1,6 +1,10 @@
 import { ProjectOperations, CenterOperations, SubjectOperations } from '../common/db-operations.js';
 import { SubjectService } from '../common/subject-service.js';
 
+HolidayUtil.fix('202501010120250101202501261020250129202501281120250129202501291120250129202501301120250129202501311120250129202502011120250129202502021120250129202502031120250129202502041120250129202502081020250129202504042120250404202504052120250404202504062120250404202504273020250501202505013120250501202505023120250501202505033120250501202505043120250501202505053120250501202505314120250531202506014120250531202506024120250531202509287020251001202510017120251001202510027120251001202510037120251001202510047120251001202510057120251001202510067120251001202510077120251001202510087120251001202510117020251001');
+HolidayUtil.fix('202312300120240101202312310120240101202401010120240101202402041020240210202402101120240210202402111120240210202402121120240210202402131120240210202402141120240210202402151120240210202402161120240210202402171120240210202402181020240210202404042120240404202404052120240404202404062120240404202404072020240404202404283020240501202405013120240501202405023120240501202405033120240501202405043120240501202405053120240501202405113020240501202406084120240610202406094120240610202406104120240610202409145020240917202409155120240917202409165120240917202409175120240917202409296020241001202410016120241001202410026120241001202410036120241001202410046120241001202410056120241001202410066120241001202410076120241001202410126020241001');
+
+
 const { createApp, ref, onMounted, nextTick, onUnmounted } = Vue;
 
 const VisitPlanPage = {
@@ -83,7 +87,7 @@ const VisitPlanPage = {
                     console.log('Selected project:', selectedProject.value);
                     const centerList = await CenterOperations.getCentersForProject(selectedProject.value);
                     console.log('Center list:', centerList);
-                    
+
                     if (centerList && centerList.length > 0) {
                         centers.value = centerList.map(center => center.centerName);
                     } else {
@@ -110,12 +114,24 @@ const VisitPlanPage = {
             }
 
             const input = subjectInput.value.toLowerCase();
-            filteredSubjects.value = allSubjects.value.filter(subject => 
+            updateFilteredSubjects(input);
+        };
+
+        const updateFilteredSubjects = (input = '') => {
+            filteredSubjects.value = allSubjects.value.filter(subject =>
                 subject.project === selectedProject.value &&
                 subject.center === selectedCenter.value &&
-                subject.name.toLowerCase().includes(input)
+                (!input || subject.name.toLowerCase().includes(input))
             );
             showSuggestions.value = true;
+        };
+
+        const onSubjectInputFocus = () => {
+            if (!selectedProject.value || !selectedCenter.value) {
+                alert('请先选择项目和中心');
+                return;
+            }
+            updateFilteredSubjects();
         };
 
         const selectSubject = (subject) => {
@@ -123,7 +139,7 @@ const VisitPlanPage = {
             currentSubject.value = subject;
             showSuggestions.value = false;
             generateVisitPlan(subject);
-            
+
             // 等待 DOM 更新后初始化日期选择器
             nextTick(() => {
                 initializeDatePicker();
@@ -139,7 +155,7 @@ const VisitPlanPage = {
                 return;
             }
 
-            const subject = allSubjects.value.find(s => 
+            const subject = allSubjects.value.find(s =>
                 s.project === selectedProject.value &&
                 s.center === selectedCenter.value &&
                 s.name === subjectInput.value
@@ -159,7 +175,7 @@ const VisitPlanPage = {
             try {
                 // 使用 SubjectService 计算访视计划
                 const plannedVisits = SubjectService.calculatePlannedVisits(subject);
-                
+
                 if (!plannedVisits) {
                     alert('生成访视计划失败，请检查访视间隔和窗口设置');
                     return;
@@ -170,7 +186,7 @@ const VisitPlanPage = {
 
                 plannedVisits.forEach((visit, index) => {
                     const visitNum = index + 1;
-                    const window = index === 0 ? 0 : 
+                    const window = index === 0 ? 0 :
                         Math.ceil((visit.latestDate - visit.earliestDate) / (1000 * 60 * 60 * 24) / 2);
 
                     if (window === 0) {
@@ -180,25 +196,25 @@ const VisitPlanPage = {
                         // 有窗口期的访视
                         // 添加最早日期
                         plan.push(createVisitEntry(
-                            visitNum, 
-                            visit.earliestDate, 
-                            `提前${window}天`, 
+                            visitNum,
+                            visit.earliestDate,
+                            `提前${window}天`,
                             false
                         ));
 
                         // 添加基准日期
                         plan.push(createVisitEntry(
-                            visitNum, 
-                            visit.baseDate, 
-                            '基准日期', 
+                            visitNum,
+                            visit.baseDate,
+                            '基准日期',
                             true
                         ));
 
                         // 添加最晚日期
                         plan.push(createVisitEntry(
-                            visitNum, 
-                            visit.latestDate, 
-                            `延后${window}天`, 
+                            visitNum,
+                            visit.latestDate,
+                            `延后${window}天`,
                             false
                         ));
                     }
@@ -221,16 +237,20 @@ const VisitPlanPage = {
                 dateType,
                 holidayInfo,
                 rowClasses: {
-                    'visit-group-even': visitNumber % 2 === 0,
-                    'visit-group-odd': visitNumber % 2 !== 0,
                     'visit-base-date': isBaseDate,
-                    'visit-window-date': !isBaseDate
+                    'visit-window-date': !isBaseDate,
+                    'font-medium': isBaseDate,
+                    'text-gray-900': isBaseDate,
+                    'text-gray-600': !isBaseDate,
+                    'holiday-row': isHoliday
                 },
                 dateStyle: {
-                    color: !isBaseDate ? '#666' : 'inherit'
+                    color: !isBaseDate ? '#666' : 'inherit',
+                    fontWeight: isBaseDate ? '500' : 'normal'
                 },
                 holidayStyle: {
-                    color: isHoliday ? (isBaseDate ? 'red' : '#d32f2f') : 'inherit'
+                    color: isHoliday ? (isBaseDate ? '#dc2626' : '#ef4444') : 'inherit',
+                    fontWeight: isHoliday ? '500' : 'normal'
                 }
             };
         };
@@ -256,14 +276,14 @@ const VisitPlanPage = {
                         altFormat: "Y年m月d日",
                         theme: "material_blue",
                         defaultDate: currentSubject.value?.firstDate,
-                        onChange: function(selectedDates, dateStr) {
+                        onChange: function (selectedDates, dateStr) {
                             console.log('Date selected:', dateStr);
                             dateInput.dataset.selectedDate = dateStr;
                         },
-                        onOpen: function() {
+                        onOpen: function () {
                             console.log('Calendar opened');
                         },
-                        onClose: function() {
+                        onClose: function () {
                             console.log('Calendar closed');
                         }
                     });
@@ -278,7 +298,7 @@ const VisitPlanPage = {
         const adjustVisitPlan = () => {
             const dateInput = document.getElementById('adjustDate');
             const newDate = dateInput?.dataset.selectedDate;
-            
+
             if (!newDate) {
                 alert('请选择新的访视日期');
                 return;
@@ -290,7 +310,7 @@ const VisitPlanPage = {
                         ...currentSubject.value,
                         firstDate: new Date(newDate)
                     };
-                    
+
                     generateVisitPlan(adjustedSubject);
                 } catch (error) {
                     console.error('调整访视计划失败:', error);
@@ -344,6 +364,7 @@ const VisitPlanPage = {
             handleProjectChange,
             handleCenterChange,
             handleSubjectInput,
+            onSubjectInputFocus,
             searchSubject,
             selectSubject,
             formatDate,

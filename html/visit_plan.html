@@ -162,10 +162,11 @@
                                        id="subjectInput"
                                        v-model="subjectInput"
                                        @input="handleSubjectInput"
+                                       @focus="onSubjectInputFocus"
                                        class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
                                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                                               transition-all duration-200"
-                                       placeholder="输入受试者姓名">
+                                       placeholder="点击或输入以选择受试者">
                                 
                                 <!-- 建议列表 -->
                                 <div v-if="showSuggestions && filteredSubjects.length > 0"
@@ -176,6 +177,11 @@
                                          class="px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors">
                                         {{ subject.name }}
                                     </div>
+                                </div>
+                                <!-- 添加无数据提示 -->
+                                <div v-if="showSuggestions && filteredSubjects.length === 0"
+                                     class="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-4 text-center text-gray-500">
+                                    暂无受试者数据
                                 </div>
                             </div>
                         </div>
@@ -227,7 +233,14 @@
                         <tbody class="divide-y divide-gray-200">
                             <tr v-for="item in visitPlan" 
                                 :key="`${item.visitNumber}-${item.dateType}`"
-                                :class="[item.rowClasses, 'transition-colors duration-200']">
+                                :class="[
+                                    'transition-colors duration-200',
+                                    item.visitNumber % 2 === 0 
+                                        ? 'bg-blue-50/90 hover:bg-blue-100/90' 
+                                        : 'bg-orange-50/90 hover:bg-orange-100/90',
+                                    item.rowClasses,
+                                    'relative'
+                                ]">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     第 {{ item.visitNumber }} 次访视
                                 </td>
