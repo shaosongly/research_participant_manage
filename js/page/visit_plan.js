@@ -1,7 +1,7 @@
 import { ProjectOperations, CenterOperations, SubjectOperations } from '../common/db-operations.js';
 import { SubjectService } from '../common/subject-service.js';
 
-const { createApp, ref, onMounted } = Vue;
+const { createApp, ref, onMounted, nextTick } = Vue;
 
 const VisitPlanPage = {
     template: '#visit-plan-template',
@@ -48,7 +48,8 @@ const VisitPlanPage = {
         // 方法定义
         const loadProjects = async () => {
             try {
-                projects.value = await ProjectOperations.getAllProjects();
+                const projectList = await ProjectOperations.getAllProjects();
+                projects.value = projectList.map(project => project.projectName);
             } catch (error) {
                 console.error('加载项目列表失败:', error);
                 alert('加载项目列表失败');
@@ -73,10 +74,18 @@ const VisitPlanPage = {
 
             if (selectedProject.value) {
                 try {
-                    centers.value = await CenterOperations.getCentersForProject(selectedProject.value);
+                    console.log('Selected project:', selectedProject.value);
+                    const centerList = await CenterOperations.getCentersForProject(selectedProject.value);
+                    console.log('Center list:', centerList);
+                    
+                    if (centerList && centerList.length > 0) {
+                        centers.value = centerList.map(center => center.centerName);
+                    } else {
+                        console.warn('No centers found for project:', selectedProject.value);
+                    }
                 } catch (error) {
                     console.error('加载中心列表失败:', error);
-                    alert('加载中心列表失败');
+                    alert('加载中心列表失败: ' + error.message);
                 }
             }
         };
@@ -107,6 +116,11 @@ const VisitPlanPage = {
             subjectInput.value = subject.name;
             currentSubject.value = subject;
             showSuggestions.value = false;
+            
+            if (datePicker && subject.firstDate) {
+                datePicker.setDate(new Date(subject.firstDate));
+            }
+            
             generateVisitPlan(subject);
         };
 
@@ -184,7 +198,7 @@ const VisitPlanPage = {
                 visitPlan.value = plan;
             } catch (error) {
                 console.error('生成访视计划失败:', error);
-                alert('生成访视计划失败: ' + error.message);
+                alert('成访视计划失败: ' + error.message);
             }
         };
 
@@ -213,29 +227,49 @@ const VisitPlanPage = {
         };
 
         const initializeDatePicker = () => {
-            datePicker = flatpickr('#adjustDate', {
-                dateFormat: "Y-m-d",
-                locale: "zh",
-                enableTime: false,
-                altInput: true,
-                altFormat: "Y年m月d日",
-                theme: "material_blue"
+            // 使用 nextTick 确保 DOM 已更新
+            Vue.nextTick(() => {
+                const dateInput = document.getElementById('adjustDate');
+                if (dateInput) {
+                    if (datePicker) {
+                        datePicker.destroy(); // 销毁旧的实例
+                    }
+                    datePicker = flatpickr("#adjustDate", {
+                        dateFormat: "Y-m-d",
+                        locale: "zh",
+                        enableTime: false,
+                        altInput: true,
+                        altFormat: "Y年m月d日",
+                        theme: "material_blue",
+                        onChange: function(selectedDates, dateStr) {
+                            dateInput.dataset.selectedDate = dateStr;
+                        }
+                    });
+                }
             });
         };
 
         const adjustVisitPlan = () => {
-            const newDate = document.getElementById('adjustDate').value;
+            const dateInput = document.getElementById('adjustDate');
+            const newDate = dateInput?.dataset.selectedDate;
+            
             if (!newDate) {
                 alert('请选择新的访视日期');
                 return;
             }
 
             if (currentSubject.value) {
-                const adjustedSubject = {
-                    ...currentSubject.value,
-                    firstDate: new Date(newDate)
-                };
-                generateVisitPlan(adjustedSubject);
+                try {
+                    const adjustedSubject = {
+                        ...currentSubject.value,
+                        firstDate: new Date(newDate)
+                    };
+                    
+                    generateVisitPlan(adjustedSubject);
+                } catch (error) {
+                    console.error('调整访视计划失败:', error);
+                    alert('调整访视计划失败: ' + error.message);
+                }
             }
         };
 

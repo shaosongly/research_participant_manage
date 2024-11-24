@@ -82,7 +82,9 @@
                                     v-model="selectedProject" 
                                     @change="handleProjectChange">
                                 <option value="">请选择项目</option>
-                                <option v-for="project in projects" :key="project" :value="project">
+                                <option v-for="project in projects" 
+                                        :key="project" 
+                                        :value="project">
                                     {{ project }}
                                 </option>
                             </select>
@@ -97,7 +99,9 @@
                                     v-model="selectedCenter"
                                     @change="handleCenterChange">
                                 <option value="">请选择中心</option>
-                                <option v-for="center in centers" :key="center" :value="center">
+                                <option v-for="center in centers" 
+                                        :key="center" 
+                                        :value="center">
                                     {{ center }}
                                 </option>
                             </select>
@@ -140,6 +144,8 @@
                                        class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
                                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                                               transition-all duration-200 cursor-pointer bg-white"
+                                       placeholder="点击选择日期"
+                                       data-input
                                        readonly>
                             </div>
                             <div class="md:col-span-2">
