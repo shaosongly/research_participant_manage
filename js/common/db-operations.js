@@ -4,7 +4,7 @@ const Dexie = window.Dexie;
 class ResearchDB extends Dexie {
     constructor() {
         super('ResearchDB');
-        
+
         // 定义数据库结构
         this.version(2).stores({
             projects: 'projectName, createTime',
@@ -50,13 +50,13 @@ const ProjectOperations = {
         return db.transaction('rw', [db.projects, db.centers, db.subjects, db.visitRecords], async () => {
             // 删除相关的访视记录
             await db.visitRecords.where('project').equals(projectName).delete();
-            
+
             // 删除相关的受试者
             await db.subjects.where('project').equals(projectName).delete();
-            
+
             // 删除相关的中心
             await db.centers.where('projectName').equals(projectName).delete();
-            
+
             // 删除项目
             await db.projects.delete(projectName);
         });
@@ -88,13 +88,13 @@ const CenterOperations = {
                 .where(['project', 'center'])
                 .equals([projectName, centerName])
                 .delete();
-            
+
             // 删除相关的受试者
             await db.subjects
                 .where(['project', 'center'])
                 .equals([projectName, centerName])
                 .delete();
-            
+
             // 删除中心
             await db.centers.delete([projectName, centerName]);
         });
@@ -128,12 +128,12 @@ const SubjectOperations = {
 
     async deleteSubject(project, center, name) {
         return db.transaction('rw', [db.subjects, db.visitRecords], async () => {
-            // 删除相��的访视记录
+            // 删除相关的访视记录
             await db.visitRecords
                 .where(['project', 'center', 'subjectName'])
                 .equals([project, center, name])
                 .delete();
-            
+
             // 删除受试者
             await db.subjects.delete([project, center, name]);
         });
@@ -142,27 +142,122 @@ const SubjectOperations = {
 
 // 访视记录相关操作
 const VisitRecordOperations = {
+    // 添加单条访视记录
     async addVisitRecord(visitData) {
-        return db.visitRecords.add(visitData);
+        return db.visitRecords.add({
+            project: visitData.project,
+            center: visitData.center,
+            subjectName: visitData.subjectName,
+            visitNumber: visitData.visitNumber,
+            visitDate: visitData.visitDate,
+            // 添加复合索引
+            projectCenterSubject: [visitData.project, visitData.center, visitData.subjectName]
+        });
     },
 
+    // 批量添加访视记录
+    async batchAddVisitRecords(records) {
+        return db.transaction('rw', db.visitRecords, async () => {
+            for (const record of records) {
+                await db.visitRecords.add({
+                    ...record,
+                    projectCenterSubject: [record.project, record.center, record.subjectName]
+                });
+            }
+        });
+    },
+
+    // 更新访视记录
     async updateVisitRecord(visitData) {
-        return db.visitRecords.put(visitData);
+        return db.visitRecords.put({
+            ...visitData,
+            projectCenterSubject: [visitData.project, visitData.center, visitData.subjectName]
+        });
     },
 
+    // 获取所有访视记录
     async getAllVisitRecords() {
         return db.visitRecords.toArray();
     },
 
+    // 获取特定受试者的访视记录
     async getVisitRecordsForSubject(project, center, subjectName) {
         return db.visitRecords
-            .where(['project', 'center', 'subjectName'])
+            .where('projectCenterSubject')
             .equals([project, center, subjectName])
             .toArray();
     },
 
-    async deleteVisitRecord(project, center, subjectName, visitNumber) {
-        return db.visitRecords.delete([project, center, subjectName, visitNumber]);
+    // 获取筛选后的访视记录
+    async getFilteredVisitRecords(filters = {}) {
+        try {
+            // 如果没有任何筛选条件，返回所有记录
+            if (!filters.project && !filters.center && !filters.subject) {
+                return await db.visitRecords.toArray();
+            }
+
+            // 如果有项目和中心筛选条件
+            if (filters.project && filters.center) {
+                let query = db.visitRecords
+                    .where(['project', 'center'])
+                    .equals([filters.project, filters.center]);
+
+                // 如果还有受试者筛选条件
+                if (filters.subject) {
+                    return query.filter(record => record.subjectName === filters.subject).toArray();
+                }
+
+                return query.toArray();
+            }
+
+            // 如果只有项目筛选
+            if (filters.project) {
+                return await db.visitRecords
+                    .where('project')
+                    .equals(filters.project)
+                    .toArray();
+            }
+
+            // 获取所有记录并在内存中筛选
+            let records = await db.visitRecords.toArray();
+
+            // 应用筛选条件
+            if (filters.center) {
+                records = records.filter(record => record.center === filters.center);
+            }
+            if (filters.subject) {
+                records = records.filter(record => record.subjectName === filters.subject);
+            }
+
+            return records;
+        } catch (error) {
+            console.error('访视记录筛选失败:', error);
+            throw new Error('访视记录筛选失败: ' + error.message);
+        }
+    },
+
+    // 删除单条访视记录
+    async deleteVisitRecord(record) {
+        return db.visitRecords.delete([
+            record.project,
+            record.center,
+            record.subjectName,
+            record.visitNumber
+        ]);
+    },
+
+    // 批量删除访视记录
+    async batchDeleteVisitRecords(records) {
+        return db.transaction('rw', db.visitRecords, async () => {
+            for (const record of records) {
+                await db.visitRecords.delete([
+                    record.project,
+                    record.center,
+                    record.subjectName,
+                    record.visitNumber
+                ]);
+            }
+        });
     }
 };
 

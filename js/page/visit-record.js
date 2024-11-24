@@ -1,650 +1,432 @@
-// 初始化日期选择器
-flatpickr("#visitDate", {
-    dateFormat: "Y-m-d",
-    locale: "zh",
-    allowInput: true,
-    altInput: true,
-    altFormat: "Y年m月d日",
-    disableMobile: true
-});
+import { db, ProjectOperations, CenterOperations, SubjectOperations, VisitRecordOperations } from '../common/db-operations.js';
 
-let db;
-const dbName = "ResearchDB";
-
-// 初始化数据库连接
-const request = indexedDB.open(dbName);
-
-request.onerror = function (event) {
-    console.error("数据库错误:", event.target.error);
-};
-
-request.onsuccess = function (event) {
-    db = event.target.result;
-    loadProjectsAndCenters();
-    loadVisitRecords();
-};
-
-// 加载项目和中心
-async function loadProjectsAndCenters() {
-    try {
-        const transaction = db.transaction(['projects'], 'readonly');
-        const projectStore = transaction.objectStore('projects');
-
-        const projects = await new Promise((resolve) => {
-            projectStore.getAll().onsuccess = (event) => resolve(event.target.result);
-        });
-
-        updateProjectSelects(projects);
-    } catch (error) {
-        console.error('Error loading projects:', error);
-        alert('加载项目列表失败');
-    }
-}
-
-// 更新所有项目选择框
-function updateProjectSelects(projects) {
-    const projectSelects = ['projectSelect', 'filterProject'];
-    projectSelects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        const defaultOption = select.querySelector('option:first-child').cloneNode(true);
-        select.innerHTML = '';
-        select.appendChild(defaultOption);
-        projects.forEach(project => {
-            const option = document.createElement('option');
-            option.value = project.projectName;
-            option.textContent = project.projectName;
-            select.appendChild(option);
-        });
-    });
-}
-
-// 加载中心
-async function loadCentersForProject(projectName) {
-    try {
-        const transaction = db.transaction(['centers'], 'readonly');
-        const centerStore = transaction.objectStore('centers');
-        const centerIndex = centerStore.index('projectName');
-
-        const centers = await new Promise((resolve) => {
-            centerIndex.getAll(projectName).onsuccess = (event) => resolve(event.target.result);
-        });
-
-        updateCenterSelects(centers);
-    } catch (error) {
-        console.error('Error loading centers:', error);
-        alert('加载中心列表失败');
-    }
-}
-
-// 更新所有中心选择框
-function updateCenterSelects(centers) {
-    const centerSelects = ['centerSelect', 'filterCenter'];
-    centerSelects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        const defaultOption = select.querySelector('option:first-child').cloneNode(true);
-        select.innerHTML = '';
-        select.appendChild(defaultOption);
-        centers.forEach(center => {
-            const option = document.createElement('option');
-            option.value = center.centerName;
-            option.textContent = center.centerName;
-            select.appendChild(option);
-        });
-    });
-}
-
-// 加载受试者
-async function loadSubjectsForCenter(projectName, centerName) {
-    try {
-        const transaction = db.transaction(['subjects'], 'readonly');
-        const subjectStore = transaction.objectStore('subjects');
-        const subjects = await new Promise((resolve) => {
-            subjectStore.getAll().onsuccess = (event) => {
-                const allSubjects = event.target.result;
-                resolve(allSubjects.filter(s =>
-                    s.project === projectName && s.center === centerName
-                ));
-            };
-        });
-
-        updateSubjectSelects(subjects);
-    } catch (error) {
-        console.error('Error loading subjects:', error);
-        alert('加载受试者列表失败');
-    }
-}
-
-// 更新所有受试者选择框
-function updateSubjectSelects(subjects) {
-    const subjectSelects = ['subjectSelect', 'filterSubject'];
-    subjectSelects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        const defaultOption = select.querySelector('option:first-child').cloneNode(true);
-        select.innerHTML = '';
-        select.appendChild(defaultOption);
-        subjects.forEach(subject => {
-            const option = document.createElement('option');
-            option.value = subject.name;
-            option.textContent = subject.name;
-            select.appendChild(option);
-        });
-    });
-}
-
-// 加载访视记录
-async function loadVisitRecords(filters = {}) {
-    try {
-        const transaction = db.transaction(['visitRecords'], 'readonly');
-        const visitStore = transaction.objectStore('visitRecords');
-
-        const records = await new Promise((resolve) => {
-            visitStore.getAll().onsuccess = (event) => resolve(event.target.result);
-        });
-
-        // 应用筛选
-        const filteredRecords = records.filter(record => {
-            return (!filters.project || record.project === filters.project) &&
-                (!filters.center || record.center === filters.center) &&
-                (!filters.subject || record.subjectName === filters.subject);
-        });
-
-        // 更新表格
-        updateVisitRecordsTable(filteredRecords);
-    } catch (error) {
-        console.error('Error loading visit records:', error);
-        alert('加载访视记录失败');
-    }
-}
-
-// 更新访视记录表格
-function updateVisitRecordsTable(records) {
-    const tbody = document.getElementById('visitRecordsTableBody');
-    tbody.innerHTML = '';
-
-    records.forEach(record => {
-        const row = tbody.insertRow();
-        row.innerHTML = `
-            <td class="checkbox-column" style="display: none;">
-                <input type="checkbox" class="record-checkbox">
-            </td>
-            <td>${record.project}</td>
-            <td>${record.center}</td>
-            <td>${record.subjectName}</td>
-            <td>${record.visitNumber}</td>
-            <td>${record.visitDate}</td>
-            <td>
-                <button class="btn btn-sm btn-danger delete-record" 
-                        data-project="${record.project}"
-                        data-center="${record.center}"
-                        data-subject="${record.subjectName}"
-                        data-visit="${record.visitNumber}">
-                    删除
-                </button>
-            </td>
-        `;
-    });
-}
-
-// 添加日期解析函数
+// 日期处理函数
 function parseExcelDate(dateValue) {
-    console.log("Original date value:", dateValue);
+    if (!dateValue) return null;
 
-    if (dateValue instanceof Date) {
-        return new Date(Date.UTC(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate()));
-    }
-
+    // 如果是 Excel 数字日期（从1900年开始的天数）
     if (typeof dateValue === 'number') {
-        // Excel的日期数字是从1900年1月1日开始的天数
-        const date = new Date((dateValue - 25569) * 86400 * 1000);
-        return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const excelEpoch = new Date(1899, 11, 30);
+        const resultDate = new Date(excelEpoch.getTime() + dateValue * 24 * 60 * 60 * 1000);
+        return resultDate.toISOString().split('T')[0];
     }
 
+    // 如果是字符串日期
     if (typeof dateValue === 'string') {
-        // 处理 "MMDD" 格式
-        if (/^\d{4}$/.test(dateValue)) {
-            const month = parseInt(dateValue.substr(0, 2)) - 1;
-            const day = parseInt(dateValue.substr(2, 2));
-            const year = new Date().getFullYear();
-            return new Date(Date.UTC(year, month, day));
+        dateValue = dateValue.trim();
+        let date;
+
+        // 处理 YYYY/MM/DD 格式
+        if (dateValue.includes('/')) {
+            date = new Date(dateValue.replace(/\//g, '-'));
+        }
+        // 处理 YYYY-MM-DD 格式
+        else if (dateValue.includes('-')) {
+            date = new Date(dateValue);
+        }
+        // 处理其他可能的格式
+        else {
+            date = new Date(dateValue);
         }
 
-        // 处理 "M/D/YY" 格式
-        const parts = dateValue.split('/');
-        if (parts.length === 3) {
-            const month = parseInt(parts[0]) - 1;
-            const day = parseInt(parts[1]);
-            let year = parseInt(parts[2]);
-
-            if (year < 100) {
-                year += year < 50 ? 2000 : 1900;
-            }
-
-            return new Date(Date.UTC(year, month, day));
+        if (isNaN(date.getTime())) {
+            throw new Error(`无效的日期格式: ${dateValue}`);
         }
 
-        // 尝试使用 Date 构造函数
-        const date = new Date(dateValue);
-        if (!isNaN(date.getTime())) {
-            return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-        }
+        return date.toISOString().split('T')[0];
     }
 
-    return null;
+    throw new Error(`无法解析的日期值: ${dateValue}`);
 }
 
-// 事件监听器设置
-document.addEventListener('DOMContentLoaded', function () {
-    // 项目选择变化
-    document.getElementById('projectSelect').addEventListener('change', function () {
-        const projectName = this.value;
-        if (projectName) {
-            loadCentersForProject(projectName);
+// Vue 应用
+const app = Vue.createApp({
+    data() {
+        return {
+            // 导航项
+            navItems: [
+                { path: 'landing.html', text: '首页' },
+                { path: 'project_manage.html', text: '项目管理' },
+                { path: 'index.html', text: '添加受试者' },
+                { path: 'view.html', text: '查看受试者' },
+                { path: 'schedule.html', text: '访视安排' },
+                { path: 'visit_plan.html', text: '访视计划' },
+                { path: 'visit_record.html', text: '访视记录', active: true },
+                { path: 'window_check.html', text: '超窗检查' }
+            ],
+
+            // 数据列表
+            projects: [],
+            centers: [],
+            subjects: [],
+            visitRecords: [],
+
+            // 选择的值
+            selectedProject: '',
+            selectedCenter: '',
+
+            // 单次访视记录
+            singleVisit: {
+                subjectName: '',
+                visitNumber: '',
+                visitDate: ''
+            },
+
+            // 批量导入
+            columnMapping: [],
+            mappingFields: [
+                { key: 'subjectName', label: '受试者姓名', required: true, selected: '' },
+                { key: 'visitNumber', label: '访视序号', required: true, selected: '' },
+                { key: 'visitDate', label: '访视日期', required: true, selected: '' },
+                { key: 'project', label: '项目名称', required: false, selected: '' },
+                { key: 'center', label: '中心名称', required: false, selected: '' }
+            ],
+
+            // 筛选条件
+            filters: {
+                project: '',
+                center: '',
+                subject: ''
+            },
+
+            // 批量删除相关
+            showBatchDelete: false,
+            selectAll: false,
+
+            // 筛选用的数据
+            filterCenters: [],
+            filterSubjects: []
         }
-    });
+    },
 
-    // 中心选择变化
-    document.getElementById('centerSelect').addEventListener('change', function () {
-        const projectName = document.getElementById('projectSelect').value;
-        const centerName = this.value;
-        if (projectName && centerName) {
-            loadSubjectsForCenter(projectName, centerName);
-        }
-    });
+    mounted() {
+        this.initializePage();
+        this.initializeDatePicker();
+    },
 
-    // 筛选条件变化
-    document.getElementById('filterProject').addEventListener('change', async function () {
-        const projectName = this.value;
-        // 重置中心和受试者选择
-        document.getElementById('filterCenter').innerHTML = '<option value="">全部中心</option>';
-        document.getElementById('filterSubject').innerHTML = '<option value="">全部受试者</option>';
-
-        if (projectName) {
-            await loadCentersForProject(projectName);
-        }
-
-        // 更新访视记录显示
-        const filters = {
-            project: projectName,
-            center: '',
-            subject: ''
-        };
-        loadVisitRecords(filters);
-    });
-
-    document.getElementById('filterCenter').addEventListener('change', async function () {
-        const projectName = document.getElementById('filterProject').value;
-        const centerName = this.value;
-        // 重置受试者选择
-        document.getElementById('filterSubject').innerHTML = '<option value="">全部受试者</option>';
-
-        if (projectName && centerName) {
-            await loadSubjectsForCenter(projectName, centerName);
-        }
-
-        // 更新访视记录显示
-        const filters = {
-            project: projectName,
-            center: centerName,
-            subject: ''
-        };
-        loadVisitRecords(filters);
-    });
-
-    document.getElementById('filterSubject').addEventListener('change', function () {
-        const filters = {
-            project: document.getElementById('filterProject').value,
-            center: document.getElementById('filterCenter').value,
-            subject: this.value
-        };
-        loadVisitRecords(filters);
-    });
-
-    // 单次访视记录提交
-    document.getElementById('singleVisitForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const visitData = {
-            project: document.getElementById('projectSelect').value,
-            center: document.getElementById('centerSelect').value,
-            subjectName: document.getElementById('subjectSelect').value,
-            visitNumber: parseInt(document.getElementById('visitNumber').value),
-            visitDate: document.getElementById('visitDate').value
-        };
-
-        try {
-            const transaction = db.transaction(['visitRecords'], 'readwrite');
-            const visitStore = transaction.objectStore('visitRecords');
-
-            await new Promise((resolve, reject) => {
-                const request = visitStore.add(visitData);
-                request.onsuccess = resolve;
-                request.onerror = reject;
-            });
-
-            alert('访视记录添加成功');
-            this.reset();
-            loadVisitRecords();
-        } catch (error) {
-            console.error('Error saving visit record:', error);
-            alert('保存访视记录失败');
-        }
-    });
-
-    // 批量导入处理
-    document.getElementById('excelFile').addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {
-                type: 'array',
-                cellDates: true,  // 启用日期单元格处理
-                dateNF: 'yyyy-mm-dd'  // 指定日期格式
-            });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const headers = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0];
-
-            // 打印读取到的表头
-            console.log("Headers:", headers);
-
-            const rows = XLSX.utils.sheet_to_json(worksheet);
-
-            // 打印读取到的行数据
-            console.log("Rows:", rows);
-
-            // 生成字段映射选择
-            const mappingHtml = headers.map((header, index) => `
-                <div class="mb-2">
-                    <label class="form-label">Excel列 "${header}" 对应：</label>
-                    <select class="form-select" data-excel-column="${index}">
-                        <option value="">请选择</option>
-                        <option value="subjectName">受试者名称（必填）</option>
-                        <option value="visitNumber">访视序号（必填）</option>
-                        <option value="visitDate">实际访视日期（必填）</option>
-                    </select>
-                </div>
-            `).join('');
-
-            document.getElementById('columnMapping').innerHTML = mappingHtml;
-        };
-
-        reader.readAsArrayBuffer(file);
-    });
-
-    // 批量导入表单提交
-    document.getElementById('batchImportForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const projectName = document.getElementById('projectSelect').value;
-        const centerName = document.getElementById('centerSelect').value;
-
-        if (!projectName || !centerName) {
-            alert('请先选择项目和中心');
-            return;
-        }
-
-        const file = document.getElementById('excelFile').files[0];
-        if (!file) {
-            alert('请选择Excel文件');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = async function (e) {
+    methods: {
+        async initializePage() {
             try {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {
-                    type: 'array',
-                    cellDates: true,
-                    dateNF: 'yyyy-mm-dd'
-                });
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const headers = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0];
-
-                // 验证是否有数据
-                if (!headers || headers.length === 0) {
-                    throw new Error('Excel 文件为空或格式不正确');
-                }
-
-                // 在这里定义 rows
-                const rows = XLSX.utils.sheet_to_json(worksheet);
-
-                if (rows.length === 0) {
-                    throw new Error('Excel 文件没有数据行');
-                }
-
-                // 获取字段映射
-                const columnMapping = {};
-                document.querySelectorAll('#columnMapping select').forEach(select => {
-                    if (select.value) {
-                        columnMapping[select.dataset.excelColumn] = select.value;
-                    }
-                });
-
-                console.log('Column Mapping:', columnMapping); // 调试用
-                console.log('Rows:', rows); // 调试用
-
-                // 验证是否完成了必要的字段映射
-                const requiredFields = ['subjectName', 'visitNumber', 'visitDate'];
-                const mappedFields = Object.values(columnMapping);
-                const missingMappings = requiredFields.filter(field => !mappedFields.includes(field));
-
-                if (missingMappings.length > 0) {
-                    throw new Error(`请完成必要字段的映射：${missingMappings.join('、')}`);
-                }
-
-                // 转换数据
-                const visitRecords = rows.map((row, index) => {
-                    // 确保所有必需的字段都存在
-                    const record = {
-                        project: projectName,
-                        center: centerName,
-                        subjectName: '',
-                        visitNumber: 0,
-                        visitDate: ''
-                    };
-
-                    // 从Excel映射中获取数据
-                    Object.keys(columnMapping).forEach(colIndex => {
-                        const field = columnMapping[colIndex];
-                        const header = headers[colIndex];  // 获取对应的表头
-                        const value = row[header];  // 使用表头作为键名获取值
-
-                        if (field === 'visitNumber') {
-                            record[field] = parseInt(value) || 0;
-                        } else if (field === 'visitDate') {
-                            const parsedDate = parseExcelDate(value);
-                            if (parsedDate) {
-                                record[field] = parsedDate.toISOString().split('T')[0];
-                            } else {
-                                console.error('Invalid date value:', value);
-                                record[field] = '';
-                            }
-                        } else {
-                            record[field] = String(value || '');
-                        }
-                    });
-
-                    // 验证必需字段并提供更详细的错误信息
-                    const missingFields = [];
-                    if (!record.subjectName) missingFields.push('受试者名称');
-                    if (!record.visitNumber) missingFields.push('访视序号');
-                    if (!record.visitDate) missingFields.push('访视日期');
-
-                    if (missingFields.length > 0) {
-                        throw new Error(`第 ${index + 1} 行数据缺少必需字段：${missingFields.join('、')}`);
-                    }
-
-                    return record;
-                });
-
-                try {
-                    const transaction = db.transaction(['visitRecords'], 'readwrite');
-                    const visitStore = transaction.objectStore('visitRecords');
-
-                    // 逐个添加记录，这样可以更好地处理错误
-                    for (const record of visitRecords) {
-                        await new Promise((resolve, reject) => {
-                            const request = visitStore.add(record);
-                            request.onsuccess = resolve;
-                            request.onerror = (event) => {
-                                console.error('Error adding record:', record, event.target.error);
-                                reject(event.target.error);
-                            };
-                        });
-                    }
-
-                    alert('批量导入成功');
-                    document.getElementById('batchImportForm').reset();
-                    document.getElementById('columnMapping').innerHTML = '';
-                    loadVisitRecords();
-                } catch (error) {
-                    console.error('Batch import error:', error);
-                    alert('批量导入失败：' + error.message);
-                }
+                await this.loadProjects();
+                await this.loadVisitRecords();
             } catch (error) {
-                console.error('Error in file processing:', error);
-                alert(error.message);
+                console.error('初始化失败:', error);
+            }
+        },
+
+        initializeDatePicker() {
+            this.datePicker = flatpickr(this.$refs.visitDatePicker, {
+                dateFormat: "Y-m-d",
+                locale: "zh",
+                allowInput: true,
+                altInput: true,
+                altFormat: "Y年m月d日",
+                disableMobile: true,
+                onChange: (selectedDates) => {
+                    if (selectedDates.length > 0) {
+                        this.singleVisit.visitDate = selectedDates[0].toISOString().split('T')[0];
+                    }
+                }
+            });
+        },
+
+        async loadProjects() {
+            try {
+                this.projects = await ProjectOperations.getAllProjects();
+            } catch (error) {
+                console.error('加载项目失败:', error);
+                alert('加载项目列表失败');
+            }
+        },
+
+        async loadCentersForProject(projectName) {
+            try {
+                if (!projectName) {
+                    this.centers = [];
+                    return;
+                }
+                this.centers = await CenterOperations.getCentersForProject(projectName);
+            } catch (error) {
+                console.error('加载中心失败:', error);
+                alert('加载中心列表失败');
+                this.centers = [];
+            }
+        },
+
+        async loadSubjectsForCenter(project, center) {
+            try {
+                if (!project || !center) {
+                    this.subjects = [];
+                    return;
+                }
+                this.subjects = await SubjectOperations.getSubjectsForProjectCenter(project, center);
+            } catch (error) {
+                console.error('加载受试者失败:', error);
+                alert('加载受试者列表失败');
+                this.subjects = [];
+            }
+        },
+
+        async loadVisitRecords() {
+            try {
+                const records = await VisitRecordOperations.getFilteredVisitRecords(this.filters);
+                this.visitRecords = records.map(record => ({
+                    ...record,
+                    selected: false
+                }));
+            } catch (error) {
+                console.error('加载访视记录失败:', error);
+                alert('加载访视记录失败: ' + error.message);
+                this.visitRecords = [];
+            }
+        },
+
+        // 选择变化处理
+        async onProjectChange() {
+            this.selectedCenter = '';
+            this.singleVisit.subjectName = '';
+            if (this.selectedProject) {
+                await this.loadCentersForProject(this.selectedProject);
+            }
+        },
+
+        async onCenterChange() {
+            this.singleVisit.subjectName = '';
+            if (this.selectedProject && this.selectedCenter) {
+                await this.loadSubjectsForCenter(this.selectedProject, this.selectedCenter);
+            }
+        },
+
+        async onFilterProjectChange() {
+            try {
+                this.filters.center = '';
+                this.filters.subject = '';
+                this.filterSubjects = [];
+                this.filterCenters = [];  // 重置中心列表
+
+                if (this.filters.project) {
+                    this.filterCenters = await CenterOperations.getCentersForProject(this.filters.project);
+                }
+                
+                await this.loadVisitRecords();
+            } catch (error) {
+                console.error('项目筛选失败:', error);
+                alert('加载项目相关数据失败');
+                this.filterCenters = [];
+            }
+        },
+
+        async onFilterCenterChange() {
+            try {
+                this.filters.subject = '';
+                this.filterSubjects = [];  // 重置受试者列表
+
+                if (this.filters.project && this.filters.center) {
+                    this.filterSubjects = await SubjectOperations.getSubjectsForProjectCenter(
+                        this.filters.project,
+                        this.filters.center
+                    );
+                }
+                
+                await this.loadVisitRecords();
+            } catch (error) {
+                console.error('中心筛选失败:', error);
+                alert('加载中心相关数据失败');
+                this.filterSubjects = [];
+            }
+        },
+
+        // 表单提交处理
+        async submitSingleVisit() {
+            try {
+                const visitData = {
+                    project: this.selectedProject,
+                    center: this.selectedCenter,
+                    ...this.singleVisit,
+                    projectCenterSubject: [this.selectedProject, this.selectedCenter, this.singleVisit.subjectName]
+                };
+
+                await VisitRecordOperations.addVisitRecord(visitData);
+                alert('访视记录添加成功');
+                
+                // 重置表单
+                this.singleVisit = {
+                    subjectName: '',
+                    visitNumber: '',
+                    visitDate: ''
+                };
+                this.datePicker.clear();
+                
+                await this.loadVisitRecords();
+            } catch (error) {
+                console.error('保存访视记录失败:', error);
+                alert('保存访视记录失败');
+            }
+        },
+
+        // 文件处理
+        async handleFileChange(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                this.columnMapping = [];
                 return;
             }
-        };
 
-        reader.readAsArrayBuffer(file);
-    });
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                // 获取Excel的列名
+                const range = XLSX.utils.decode_range(firstSheet['!ref']);
+                this.columnMapping = [];
+                for (let C = range.s.c; C <= range.e.c; C++) {
+                    const cell = firstSheet[XLSX.utils.encode_cell({ r: 0, c: C })];
+                    this.columnMapping.push(cell ? cell.v : `列 ${C + 1}`);
+                }
+            } catch (error) {
+                console.error('读取Excel文件失败:', error);
+                alert('读取Excel文件失败');
+            }
+        },
 
-    // 删除访视记录
-    document.getElementById('visitRecordsTableBody').addEventListener('click', async function (e) {
-        if (e.target.classList.contains('delete-record')) {
+        async submitBatchImport(event) {
+            if (!this.selectedProject || !this.selectedCenter) {
+                alert('请先选择项目和中心');
+                return;
+            }
+
+            // 构建映射对象
+            const mapping = {};
+            this.mappingFields.forEach(field => {
+                // 确保 selected 值是数字类型
+                mapping[field.key] = field.selected !== '' ? parseInt(field.selected) : null;
+            });
+
+            // 检查必需字段的映射
+            const missingFields = this.mappingFields
+                .filter(field => field.required && mapping[field.key] === null)
+                .map(field => field.label);
+
+            if (missingFields.length > 0) {
+                alert(`请为以下字段选择对应的Excel列：${missingFields.join(', ')}`);
+                return;
+            }
+
+            try {
+                const file = document.querySelector('input[type="file"]').files[0];
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rawData = XLSX.utils.sheet_to_json(firstSheet, { 
+                    header: Array.from(Array(26), (_, i) => i),
+                    raw: true
+                });
+                
+                rawData.shift(); // 移除表头行
+
+                const records = rawData.map((row, index) => {
+                    try {
+                        const rawDate = row[mapping.visitDate];
+                        const parsedDate = parseExcelDate(rawDate);
+                        
+                        if (!parsedDate) {
+                            throw new Error(`第 ${index + 2} 行的日期格式无效`);
+                        }
+
+                        const record = {
+                            project: this.selectedProject, // 使用选择的项目
+                            center: this.selectedCenter,   // 使用选择的中心
+                            subjectName: String(row[mapping.subjectName] || '').trim(),
+                            visitNumber: parseInt(row[mapping.visitNumber]),
+                            visitDate: parsedDate
+                        };
+
+                        if (!record.subjectName) {
+                            throw new Error(`第 ${index + 2} 行: 受试者姓名不能为空`);
+                        }
+
+                        if (isNaN(record.visitNumber) || record.visitNumber <= 0) {
+                            throw new Error(`第 ${index + 2} 行: 访视序号必须是大于0的数字`);
+                        }
+
+                        record.projectCenterSubject = [record.project, record.center, record.subjectName];
+                        return record;
+                    } catch (error) {
+                        throw new Error(`处理第 ${index + 2} 行数据时出错: ${error.message}`);
+                    }
+                });
+
+                await VisitRecordOperations.batchAddVisitRecords(records);
+                alert('批量导入成功');
+                
+                // 重置表单
+                event.target.reset();
+                this.columnMapping = [];
+                this.mappingFields.forEach(field => field.selected = '');
+                
+                await this.loadVisitRecords();
+            } catch (error) {
+                console.error('导入失败:', error);
+                alert('导入失败：' + error.message);
+            }
+        },
+
+        // 删除记录
+        async deleteRecord(record) {
             if (!confirm('确定要删除这条访视记录吗？')) {
                 return;
             }
 
-            const record = {
-                project: e.target.dataset.project,
-                center: e.target.dataset.center,
-                subjectName: e.target.dataset.subject,
-                visitNumber: parseInt(e.target.dataset.visit)
-            };
-
             try {
-                const transaction = db.transaction(['visitRecords'], 'readwrite');
-                const visitStore = transaction.objectStore('visitRecords');
-
-                await new Promise((resolve, reject) => {
-                    const request = visitStore.delete([
-                        record.project,
-                        record.center,
-                        record.subjectName,
-                        record.visitNumber
-                    ]);
-                    request.onsuccess = resolve;
-                    request.onerror = reject;
-                });
-
-                loadVisitRecords();
+                await VisitRecordOperations.deleteVisitRecord(record);
+                await this.loadVisitRecords();
             } catch (error) {
-                console.error('Delete error:', error);
+                console.error('删除失败:', error);
                 alert('删除失败，请重试');
             }
-        }
-    });
+        },
 
-    // 批量删除按钮点击处理
-    document.getElementById('batchDeleteButton').addEventListener('click', function () {
-        // 显示复选框
-        document.querySelectorAll('.checkbox-column').forEach(col => {
-            col.style.display = '';
-        });
-        // 显示确认和取消按钮
-        document.getElementById('confirmBatchDelete').style.display = '';
-        document.getElementById('cancelBatchDelete').style.display = '';
-        // 隐藏批量删除按钮
-        this.style.display = 'none';
-        // 隐藏单个删除按钮
-        document.querySelectorAll('.delete-record').forEach(btn => {
-            btn.style.display = 'none';
-        });
-    });
+        // 批量删除
+        startBatchDelete() {
+            this.showBatchDelete = true;
+            this.visitRecords.forEach(record => record.selected = false);
+        },
 
-    // 取消批量删除
-    document.getElementById('cancelBatchDelete').addEventListener('click', function () {
-        // 隐藏复选框
-        document.querySelectorAll('.checkbox-column').forEach(col => {
-            col.style.display = 'none';
-        });
-        // 隐藏确认和取消按钮
-        document.getElementById('confirmBatchDelete').style.display = 'none';
-        document.getElementById('cancelBatchDelete').style.display = 'none';
-        // 显示批量删除按钮
-        document.getElementById('batchDeleteButton').style.display = '';
-        // 显示单个删除按钮
-        document.querySelectorAll('.delete-record').forEach(btn => {
-            btn.style.display = '';
-        });
-        // 取消所有选中状态
-        document.getElementById('selectAll').checked = false;
-        document.querySelectorAll('.record-checkbox').forEach(checkbox => {
-            checkbox.checked = false;
-        });
-    });
+        cancelBatchDelete() {
+            this.showBatchDelete = false;
+            this.selectAll = false;
+            this.visitRecords.forEach(record => record.selected = false);
+        },
 
-    // 确认批量删除
-    document.getElementById('confirmBatchDelete').addEventListener('click', async function () {
-        const selectedRecords = [];
-        document.querySelectorAll('.record-checkbox:checked').forEach(checkbox => {
-            const row = checkbox.closest('tr');
-            const record = {
-                project: row.cells[1].textContent,
-                center: row.cells[2].textContent,
-                subjectName: row.cells[3].textContent,
-                visitNumber: parseInt(row.cells[4].textContent)
-            };
-            selectedRecords.push(record);
-        });
+        async confirmBatchDelete() {
+            const selectedRecords = this.visitRecords.filter(record => record.selected);
 
-        if (selectedRecords.length === 0) {
-            alert('请至少选择一条记录进行删除');
-            return;
-        }
-
-        if (!confirm('确定要删除选中的记录吗？')) {
-            return;
-        }
-
-        try {
-            const transaction = db.transaction(['visitRecords'], 'readwrite');
-            const visitStore = transaction.objectStore('visitRecords');
-
-            for (const record of selectedRecords) {
-                await new Promise((resolve, reject) => {
-                    const request = visitStore.delete([
-                        record.project,
-                        record.center,
-                        record.subjectName,
-                        record.visitNumber
-                    ]);
-                    request.onsuccess = resolve;
-                    request.onerror = reject;
-                });
+            if (selectedRecords.length === 0) {
+                alert('请至少选择一条记录进行删除');
+                return;
             }
 
-            alert('选中的记录已成功删除');
-            // 恢复原始状态
-            document.getElementById('cancelBatchDelete').click();
-            loadVisitRecords();
-        } catch (error) {
-            console.error('Delete error:', error);
-            alert('删除失败，请重试');
-        }
-    });
+            if (!confirm('确定要删除选中的记录吗？')) {
+                return;
+            }
 
-    // 全选复选框逻辑
-    document.getElementById('selectAll').addEventListener('change', function () {
-        const checkboxes = document.querySelectorAll('#visitRecordsTableBody input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-        });
-    });
+            try {
+                await VisitRecordOperations.batchDeleteVisitRecords(selectedRecords);
+                alert('选中的记录已成功删除');
+                this.cancelBatchDelete();
+                await this.loadVisitRecords();
+            } catch (error) {
+                console.error('批量删除失败:', error);
+                alert('删除失败，请重试');
+            }
+        },
+
+        toggleSelectAll() {
+            this.visitRecords.forEach(record => record.selected = this.selectAll);
+        }
+    }
 });
+
+// 挂载 Vue 应用
+app.mount('#app');
