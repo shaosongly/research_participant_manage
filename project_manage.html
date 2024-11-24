@@ -159,6 +159,135 @@
             </delete-confirm-modal>
         </div>
     </div>
+
+    <!-- 组件模板 -->
+    <template id="nav-bar-template">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="landing.html">首页</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="project_manage.html">项目管理</a>
+                        </li>
+                        <!-- ... 其他导航项 ... -->
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </template>
+
+    <template id="project-list-template">
+        <div id="projectList">
+            <div v-for="[projectName, centers] in projects" :key="projectName" class="card project-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ projectName }}</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-sm" @click="$emit('add-center', projectName)">
+                            添加中心
+                        </button>
+                        <button class="btn btn-danger btn-sm" @click="$emit('delete-project', projectName)">
+                            删除项目
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="center-list">
+                        <div v-for="centerName in centers" :key="centerName" class="center-item">
+                            <span>{{ centerName }} ({{ getCenterSubjectCount(projectName, centerName) }} 名受试者)</span>
+                            <button class="btn btn-danger btn-sm"
+                                    @click="$emit('delete-center', { project: projectName, center: centerName })">
+                                删除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- 项目模态框模板 -->
+    <template id="project-modal-template">
+        <div class="modal show" style="display: block; background: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">新建项目</h5>
+                        <button type="button" class="btn-close" @click="$emit('close')"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">项目名称</label>
+                            <input type="text" class="form-control" v-model="projectName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">中心名称</label>
+                            <input type="text" class="form-control" v-model="centerName" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="$emit('close')">取消</button>
+                        <button type="button" class="btn btn-primary" @click="handleSave">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- 中心模态框模板 -->
+    <template id="center-modal-template">
+        <div class="modal show" style="display: block; background: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">添加中心</h5>
+                        <button type="button" class="btn-close" @click="$emit('close')"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">项目名称</label>
+                            <input type="text" class="form-control" :value="projectName" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">中心名称</label>
+                            <input type="text" class="form-control" v-model="centerName" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="$emit('close')">取消</button>
+                        <button type="button" class="btn btn-primary" @click="handleSave">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- 删除确认模态框模板 -->
+    <template id="delete-confirm-modal-template">
+        <div class="modal show" style="display: block; background: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">确认删除</h5>
+                        <button type="button" class="btn-close" @click="$emit('close')"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>{{ confirmMessage }}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="$emit('close')">取消</button>
+                        <button type="button" class="btn btn-danger" @click="$emit('confirm')">确认删除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
 </body>
 
 </html>

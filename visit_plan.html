@@ -168,5 +168,123 @@
     <div id="app">
         <visit-plan-page></visit-plan-page>
     </div>
+
+    <!-- 访视计划页面模板 -->
+    <template id="visit-plan-template">
+        <!-- 导航栏 -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item" v-for="item in navItems" :key="item.path">
+                            <a class="nav-link" :class="{ active: item.active }" :href="item.path">{{ item.text }}</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <h1 class="mb-4 text-center">访视计划</h1>
+
+            <!-- 搜索区域 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <!-- 项目选择 -->
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">项目:</label>
+                            <select class="form-select" v-model="selectedProject" @change="handleProjectChange">
+                                <option value="">请选择项目</option>
+                                <option v-for="project in projects" :key="project.projectName" :value="project.projectName">
+                                    {{ project.projectName }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- 中心选择 -->
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">中心:</label>
+                            <select class="form-select" v-model="selectedCenter" @change="handleCenterChange">
+                                <option value="">请选择中心</option>
+                                <option v-for="center in centers" :key="center.centerName" :value="center.centerName">
+                                    {{ center.centerName }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- 受试者搜索 -->
+                        <div class="col-md-4 mb-3 position-relative">
+                            <label class="form-label">受试者:</label>
+                            <input type="text" class="form-control" id="subjectInput"
+                                v-model="subjectInput"
+                                @input="handleSubjectInput"
+                                placeholder="输入受试者名称">
+                            <!-- 建议列表 -->
+                            <div class="suggestion-list" :style="{ display: showSuggestions ? 'block' : 'none' }">
+                                <div v-for="subject in filteredSubjects" 
+                                    :key="subject.name"
+                                    class="suggestion-item"
+                                    @click="selectSubject(subject)">
+                                    {{ subject.name }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 搜索按钮 -->
+                        <div class="col-md-2 mb-3 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" @click="searchSubject">搜索</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 访视计划调整 -->
+            <div class="card mb-4" v-if="currentSubject">
+                <div class="card-body">
+                    <div class="row align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label">调整首次访视日期:</label>
+                            <input type="text" class="form-control" id="adjustDate">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" @click="adjustVisitPlan">重新生成计划</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 访视计划表格 -->
+            <div class="card" v-if="visitPlan.length">
+                <div class="card-body">
+                    <table class="table table-visits">
+                        <thead>
+                            <tr>
+                                <th>访视次数</th>
+                                <th>日期类型</th>
+                                <th>日期</th>
+                                <th>节假日信息</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in visitPlan" :key="`${item.visitNumber}-${item.dateType}`"
+                                :class="item.rowClasses">
+                                <td>第 {{ item.visitNumber }} 次访视</td>
+                                <td>{{ item.dateType }}</td>
+                                <td :style="item.dateStyle">{{ formatDate(item.date) }}</td>
+                                <td :style="item.holidayStyle">{{ item.holidayInfo }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 返回按钮 -->
+            <div class="text-center mt-4">
+                <a href="landing.html" class="btn btn-info">返回首页</a>
+            </div>
+        </div>
+    </template>
 </body>
 </html>

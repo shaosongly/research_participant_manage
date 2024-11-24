@@ -81,6 +81,112 @@
     <div id="app">
         <schedule-page></schedule-page>
     </div>
+
+    <!-- 添加 Schedule 页面模板 -->
+    <template id="schedule-page-template">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="landing.html">受试者管理系统</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item" v-for="item in navItems" :key="item.path">
+                            <a class="nav-link" :class="{ active: item.active }" :href="item.path">{{ item.text }}</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <h1 class="mb-4 text-center">今日访视安排</h1>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-end">
+                        <!-- 项目筛选 -->
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label for="projectFilter" class="form-label">项目筛选:</label>
+                            <select class="form-select" id="projectFilter" v-model="selectedProject" @change="onProjectChange">
+                                <option value="">全部项目</option>
+                                <option v-for="project in projects" :key="project.projectName" :value="project.projectName">
+                                    {{ project.projectName }}
+                                </option>
+                            </select>
+                        </div>
+                        <!-- 中心筛选 -->
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label for="centerFilter" class="form-label">中心筛选:</label>
+                            <select class="form-select" id="centerFilter" v-model="selectedCenter" @change="loadSchedule">
+                                <option value="">全部中心</option>
+                                <option v-for="center in centers" :key="center.centerName" :value="center.centerName">
+                                    {{ center.centerName }}
+                                </option>
+                            </select>
+                        </div>
+                        <!-- 日期范围选择 -->
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label for="dateRange" class="form-label">选择日期范围:</label>
+                            <input type="text" class="form-control" id="dateRange" ref="datePickerInput">
+                        </div>
+                        <!-- 刷新按钮 -->
+                        <div class="col-md-2">
+                            <button @click="loadSchedule" class="btn btn-primary w-100">刷新访视安排</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 访视安排表格 -->
+            <div class="card">
+                <div class="card-body">
+                    <table id="scheduleTable" class="table table-visits table-hover">
+                        <thead>
+                            <tr>
+                                <th>项目</th>
+                                <th>中心</th>
+                                <th>受试者名称</th>
+                                <th>访视次数</th>
+                                <th>窗口期最早日期</th>
+                                <th>基准日期</th>
+                                <th>窗口期最晚日期</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template v-if="scheduleItems.length">
+                                <tr v-for="(item, index) in scheduleItems" 
+                                    :key="index"
+                                    :class="getVisitGroupClass(item, index)">
+                                    <td>{{ item.project }}</td>
+                                    <td>{{ item.center }}</td>
+                                    <td>{{ item.name }}</td>
+                                    <td>第 {{ item.visitNumber }} 次访视</td>
+                                    <td :style="getWindowStyle(item)">
+                                        {{ formatWindowDate(item.earliestDate, item.baseDate) }}
+                                    </td>
+                                    <td>{{ formatDate(item.baseDate) }}</td>
+                                    <td :style="getWindowStyle(item)">
+                                        {{ formatWindowDate(item.latestDate, item.baseDate) }}
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr v-else>
+                                <td colspan="7" class="text-center">
+                                    {{ error || '所选日期范围内无访视安排' }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 返回按钮 -->
+            <div class="text-center mt-4">
+                <a href="landing.html" class="btn btn-info">返回首页</a>
+            </div>
+        </div>
+    </template>
 </body>
 
 </html>
