@@ -159,8 +159,17 @@ const SchedulePage = {
         }
 
         function getWindowStyle(item) {
+            const normalizedEarliestDate = new Date(item.earliestDate);
+            normalizedEarliestDate.setHours(0, 0, 0, 0);
+            
+            const normalizedBaseDate = new Date(item.baseDate);
+            normalizedBaseDate.setHours(0, 0, 0, 0);
+            
             return {
-                color: item.earliestDate.getTime() === item.baseDate.getTime() ? '#666' : '#0066cc'
+                color: normalizedEarliestDate.getDate() === normalizedBaseDate.getDate() &&
+                       normalizedEarliestDate.getMonth() === normalizedBaseDate.getMonth() &&
+                       normalizedEarliestDate.getFullYear() === normalizedBaseDate.getFullYear()
+                       ? '#666' : '#0066cc'
             };
         }
 
@@ -169,11 +178,16 @@ const SchedulePage = {
         }
 
         function formatWindowDate(date, baseDate) {
-            // Compare dates by setting time to midnight
-            const normalizedDate = new Date(date.setHours(0, 0, 0, 0));
-            const normalizedBaseDate = new Date(baseDate.setHours(0, 0, 0, 0));
+            const normalizedDate = new Date(date);
+            normalizedDate.setHours(0, 0, 0, 0);
             
-            return normalizedDate.getTime() === normalizedBaseDate.getTime() ? '无窗口期' : formatDate(date);
+            const normalizedBaseDate = new Date(baseDate);
+            normalizedBaseDate.setHours(0, 0, 0, 0);
+            
+            return normalizedDate.getDate() === normalizedBaseDate.getDate() &&
+                   normalizedDate.getMonth() === normalizedBaseDate.getMonth() &&
+                   normalizedDate.getFullYear() === normalizedBaseDate.getFullYear()
+                   ? '无窗口期' : formatDate(date);
         }
 
         return {
