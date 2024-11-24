@@ -5,21 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>访视计划</title>
-    <!-- 引入CSS -->
+    <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
-    <!-- 引入js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
-    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
-    <script type="module" src="./js/page/visit_plan.js"></script>
-    <script>
-        window.Dexie = Dexie;
-    </script>
+     <!-- JS -->
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+     <script type="module" src="./js/page/visit_plan.js"></script>
+     <script>
+         window.Dexie = Dexie;
+     </script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -39,18 +40,22 @@
             padding: 0.2rem 0;
             min-height: 40px;
         }
+
         .navbar-brand {
             padding: 0;
             font-size: 1rem;
         }
+
         .navbar-nav {
             flex-direction: row;
             align-items: center;
         }
+
         .nav-item {
             display: flex;
             align-items: center;
         }
+
         .nav-link {
             padding: 0.2rem 0.5rem;
             font-size: 0.9rem;
@@ -69,41 +74,67 @@
         /* 修改访视次数交替背景色为更高对比度的颜色 */
         .visit-group-even {
             background-color: #dcedc8 !important;
-            /* 绿色背景 */
             border-top: 2px solid #81c784 !important;
-            /* 添加上边框 */
         }
 
         .visit-group-odd {
             background-color: #ffecb3 !important;
-            /* 橙色背景 */
             border-top: 2px solid #ffd54f !important;
-            /* 添加上边框 */
         }
 
-        /* 修改鼠标悬停效果，使用更深的颜色 */
+        /* 修改鼠标悬停效果 */
         .visit-group-even:hover {
             background-color: #aed581 !important;
-            /* 明显的绿色 */
         }
 
         .visit-group-odd:hover {
             background-color: #ffd54f !important;
-            /* 明显的橙色 */
         }
 
-        /* 修改访视组样式 */
+        /* 访视组开始和结束的样式 */
         .visit-group-start {
-            border-top: 2px solid #666 !important;
-            margin-top: 1rem !important;
-            /* 添加上方间距 */
+            border-top: 2px solid rgba(0, 0, 0, 0.2) !important;
         }
 
-        /* 访视组的最后一行添加底部边框 */
         .visit-group-end {
-            border-bottom: 1px solid #666 !important;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* 建议列表样式 */
+        .suggestion-list {
+            position: absolute;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* 表格样式优化 */
+        .table-visits {
+            margin-bottom: 0;
+        }
+
+        .table-visits th,
+        .table-visits td {
+            vertical-align: middle;
+        }
+
+        .card {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             margin-bottom: 1rem !important;
-            /* 添加下方间距 */
         }
 
         /* 调整表格样式 */
@@ -115,7 +146,6 @@
         /* 表格单元格样式 */
         .table-visits td {
             padding: 0.75rem !important;
-            /* 增加单元格内边距 */
         }
 
         /* 表头样式加强 */
@@ -131,202 +161,12 @@
             border-top: 1px solid rgba(0, 0, 0, 0.2) !important;
             border-bottom: 1px solid rgba(0, 0, 0, 0.2) !important;
         }
-
-        /* 窗口期日期行样式 - 使用半透明的相同色系 */
-        .visit-group-even .visit-window-date {
-            background-color: rgba(220, 237, 200, 0.4) !important;
-            /* 浅绿色，更透明 */
-            color: #666 !important;
-            font-size: 0.95em;
-        }
-
-        .visit-group-odd .visit-window-date {
-            background-color: rgba(255, 236, 179, 0.4) !important;
-            /* 浅橙色，更透明 */
-            color: #666 !important;
-            font-size: 0.95em;
-        }
-
-        /* 移除之前的通用窗口期背景色 */
-        .visit-window-date {
-            color: #666 !important;
-            font-size: 0.95em;
-        }
-
-        /* 基准日期行的特殊悬停效果 */
-        .visit-base-date:hover {
-            background-color: rgba(0, 0, 0, 0.05) !important;
-        }
-
-        /* 建议列表样式 */
-        .suggestion-list {
-            position: absolute;
-            width: 100%;
-            max-height: 200px;
-            overflow-y: auto;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            display: none;
-        }
-
-        .suggestion-item {
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-
-        .suggestion-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .suggestion-item.active {
-            background-color: #e9ecef;
-        }
     </style>
 </head>
 
 <body>
-    <!-- 添加导航栏 -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="landing.html">受试者管理系统</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="landing.html">首页</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="project_manage.html">项目管理</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html">添加受试者</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="view.html">查看受试者</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="schedule.html">访视安排</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="visit_plan.html">访视计划</a>
-                    </li>
-                    <li class="nav-item"></li>
-                        <a class="nav-link" href="visit_record.html">访视记录</a>
-                    </li>
-                    <li class="nav-item"></li>
-                        <a class="nav-link" href="window_check.html">超窗检查</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container">
-        <h1 class="mb-4 text-center">访视计划</h1>
-
-        <!-- 搜索卡片 -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="row align-items-end">
-                    <div class="col-md-3 mb-3 mb-md-0">
-                        <label for="projectSelect" class="form-label">选择项目:</label>
-                        <select class="form-select" id="projectSelect">
-                            <option value="">请选择项目</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3 mb-md-0">
-                        <label for="centerSelect" class="form-label">选择中心:</label>
-                        <select class="form-select" id="centerSelect">
-                            <option value="">请先选择项目</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 mb-3 mb-md-0">
-                        <label for="subjectInput" class="form-label">输入受试者:</label>
-                        <input class="form-control" id="subjectInput" type="text" placeholder="请输入受试者姓名"
-                            autocomplete="off">
-                        <div id="subjectSuggestions" class="suggestion-list"></div>
-                    </div>
-                    <div class="col-md-2">
-                        <button id="searchButton" class="btn btn-primary w-100">查询</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 受试者信息卡片 -->
-        <div class="card mb-4" id="subjectInfo" style="display: none;">
-            <div class="card-header">
-                <h5 class="card-title mb-0">受试者基本信息</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <p><strong>姓名：</strong><span id="subjectName"></span></p>
-                    </div>
-                    <div class="col-md-4">
-                        <p><strong>首次访视日期：</strong><span id="firstVisitDate"></span></p>
-                    </div>
-                    <div class="col-md-4">
-                        <p><strong>访视间隔(天)：</strong><span id="visitFrequency"></span></p>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <p><strong>总访视次数：</strong><span id="totalVisits"></span></p>
-                    </div>
-                    <div class="col-md-8">
-                        <p><strong>访视窗口(天)：</strong><span id="visitWindow"></span></p>
-                    </div>
-                </div>
-
-                <!-- 新增计划调整部分 -->
-                <hr>
-                <div class="row">
-                    <div class="col-12">
-                        <h6 class="mb-3">计划调整</h6>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="adjustDate" class="form-label">调整首次访视日期：</label>
-                            <input type="text" class="form-control" id="adjustDate" placeholder="选择日期">
-                        </div>
-                    </div>
-                    <div class="col-md-6 d-flex align-items-end">
-                        <button class="btn btn-primary mb-3" id="adjustButton">更新访视计划</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 访视计划表格 -->
-        <div class="card" id="visitPlanTable" style="display: none;">
-            <div class="card-header">
-                <h5 class="card-title mb-0">访视计划详情</h5>
-            </div>
-            <div class="card-body">
-                <table class="table table-visits">
-                    <thead>
-                        <tr>
-                            <th>访视次数</th>
-                            <th>计划访视日期</th>
-                            <th>节假日信息</th>
-                        </tr>
-                    </thead>
-                    <tbody id="visitTableBody">
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 导航按钮 -->
-        <div class="text-center mt-4">
-            <a href="landing.html" class="btn btn-info">返回首页</a>
-        </div>
+    <div id="app">
+        <visit-plan-page></visit-plan-page>
     </div>
 </body>
+</html>
