@@ -144,15 +144,32 @@ const SubjectOperations = {
 const VisitRecordOperations = {
     // 添加单条访视记录
     async addVisitRecord(visitData) {
-        return db.visitRecords.add({
-            project: visitData.project,
-            center: visitData.center,
-            subjectName: visitData.subjectName,
-            visitNumber: visitData.visitNumber,
-            visitDate: visitData.visitDate,
-            // 添加复合索引
-            projectCenterSubject: [visitData.project, visitData.center, visitData.subjectName]
-        });
+        try {
+            console.log('添加访视记录，数据:', visitData);
+            
+            // 确保必要字段存在
+            if (!visitData.project || !visitData.center || !visitData.subjectName) {
+                throw new Error('缺少必要的访视记录字段');
+            }
+            
+            const record = {
+                project: visitData.project,
+                center: visitData.center,
+                subjectName: visitData.subjectName,
+                visitNumber: visitData.visitNumber,
+                visitDate: visitData.visitDate,
+                projectCenterSubject: [visitData.project, visitData.center, visitData.subjectName]
+            };
+            
+            console.log('格式化后的访视记录:', record);
+            
+            await db.visitRecords.add(record);
+            return record;
+        } catch (error) {
+            console.error('添加访视记录失败:', error);
+            console.error('访视数据:', visitData);
+            throw error;
+        }
     },
 
     // 批量添加访视记录
@@ -182,10 +199,48 @@ const VisitRecordOperations = {
 
     // 获取特定受试者的访视记录
     async getVisitRecordsForSubject(project, center, subjectName) {
-        return db.visitRecords
-            .where('projectCenterSubject')
-            .equals([project, center, subjectName])
-            .toArray();
+        try {
+            console.log('查询访视记录，参数:', { project, center, subjectName });
+            
+            // 先尝试使用复合索引查询
+            let records = await db.visitRecords
+                .where('projectCenterSubject')
+                .equals([project, center, subjectName])
+                .toArray();
+                
+            console.log('通过复合索引查询到的记录:', records);
+            
+            // 如果没有找到记录，使用单独的字段查询作为备份
+            if (!records || records.length === 0) {
+                console.log('使用单独字段进行查询...');
+                records = await db.visitRecords
+                    .where('project').equals(project)
+                    .filter(record => 
+                        record.center === center && 
+                        record.subjectName === subjectName
+                    )
+                    .toArray();
+                console.log('通过单独字段查询到的记录:', records);
+            }
+            
+            // 验证每条记录的完整性
+            records.forEach(record => {
+                console.log('访视记录详情:', {
+                    project: record.project,
+                    center: record.center,
+                    subjectName: record.subjectName,
+                    visitNumber: record.visitNumber,
+                    visitDate: record.visitDate,
+                    projectCenterSubject: record.projectCenterSubject
+                });
+            });
+            
+            return records;
+        } catch (error) {
+            console.error('获取受试者访视记录失败:', error);
+            console.error('查询参数:', { project, center, subjectName });
+            throw error;
+        }
     },
 
     // 获取筛选后的访视记录

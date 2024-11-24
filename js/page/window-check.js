@@ -78,19 +78,26 @@ createApp({
         async checkViolations() {
             try {
                 let subjects = await SubjectOperations.getAllSubjects();
+                console.log('获取到所有受试者:', subjects);
+                
                 if (this.filters.project) {
                     subjects = subjects.filter(subject => subject.project === this.filters.project);
+                    console.log('项目筛选后的受试者:', subjects);
                 }
                 if (this.filters.center) {
                     subjects = subjects.filter(subject => subject.center === this.filters.center);
+                    console.log('中心筛选后的受试者:', subjects);
                 }
 
                 const allViolations = [];
                 for (const subject of subjects) {
+                    console.log('开始检查受试者:', subject.name);
                     const violations = await SubjectService.checkVisitViolations(subject);
+                    console.log('受试者超窗记录:', violations);
                     allViolations.push(...violations);
                 }
 
+                console.log('所有超窗记录:', allViolations);
                 this.violations = allViolations;
             } catch (error) {
                 console.error('检查超窗记录失败:', error);
@@ -132,18 +139,21 @@ createApp({
                         const visitNumber = index + 1;
                         const hasVisitRecord = subjectVisits.some(visit => visit.visitNumber === visitNumber);
 
-                        if (!hasVisitRecord && plannedVisit.latestDate < checkDate) {
-                            const overdueDays = Math.ceil((checkDate - plannedVisit.latestDate) / (1000 * 60 * 60 * 24));
-                            reminders.push({
-                                id: `${subject.project}-${subject.center}-${subject.name}-${visitNumber}`,
-                                project: subject.project,
-                                center: subject.center,
-                                subject: subject.name,
-                                visitNumber: visitNumber,
-                                earliestDate: plannedVisit.earliestDate,
-                                latestDate: plannedVisit.latestDate,
-                                overdueDays: overdueDays
-                            });
+                        if (!hasVisitRecord) {
+                            const latestDate = plannedVisit.latestDate || plannedVisit.baseDate;
+                            if (checkDate > latestDate) {
+                                const overdueDays = Math.ceil((checkDate - latestDate) / (1000 * 60 * 60 * 24));
+                                reminders.push({
+                                    id: `${subject.project}-${subject.center}-${subject.name}-${visitNumber}`,
+                                    project: subject.project,
+                                    center: subject.center,
+                                    subject: subject.name,
+                                    visitNumber: visitNumber,
+                                    earliestDate: plannedVisit.earliestDate || plannedVisit.baseDate,
+                                    latestDate: latestDate,
+                                    overdueDays: overdueDays
+                                });
+                            }
                         }
                     });
                 }

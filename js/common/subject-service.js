@@ -99,25 +99,53 @@ export class SubjectService {
      * @param {Date} checkDate - 检查日期
      * @returns {Promise<Array>} 超窗记录数组
      */
-    static async checkVisitViolations(subject, checkDate) {
+    static async checkVisitViolations(subject) {
         try {
+            console.log('开始检查受试者访视超窗:', subject.name);
             const plannedVisits = this.calculatePlannedVisits(subject);
+            if (!plannedVisits) {
+                console.log('未能计算访视计划');
+                return [];
+            }
+            console.log('计算得到的访视计划:', plannedVisits);
+            
             const subjectVisits = await VisitRecordOperations.getVisitRecordsForSubject(
                 subject.project,
                 subject.center,
                 subject.name
             );
+            console.log('获取到的实际访视记录:', subjectVisits);
 
             const violations = [];
             subjectVisits.forEach(visit => {
+                console.log(`检查第 ${visit.visitNumber} 次访视`);
                 const plannedVisit = plannedVisits[visit.visitNumber - 1];
-                if (!plannedVisit) return;
+                if (!plannedVisit) {
+                    console.log('未找到对应的计划访视');
+                    return;
+                }
 
                 const actualDate = new Date(visit.visitDate);
-                const latestDate = plannedVisit.latestDate;
+                const latestDate = plannedVisit.latestDate || plannedVisit.baseDate;
+                
+                console.log('实际访视日期:', actualDate);
+                console.log('计划最晚日期:', latestDate);
+                console.log('基准日期:', plannedVisit.baseDate);
+
+                if (!(actualDate instanceof Date && !isNaN(actualDate)) || 
+                    !(latestDate instanceof Date && !isNaN(latestDate))) {
+                    console.error('无效的日期比较:', {
+                        actualDate,
+                        latestDate,
+                        visitDate: visit.visitDate,
+                        plannedVisit
+                    });
+                    return;
+                }
 
                 if (actualDate > latestDate) {
                     const overdueDays = Math.ceil((actualDate - latestDate) / (1000 * 60 * 60 * 24));
+                    console.log(`发现超窗: ${overdueDays} 天`);
                     violations.push({
                         id: `${visit.project}-${visit.center}-${visit.subjectName}-${visit.visitNumber}`,
                         project: visit.project,
@@ -125,13 +153,16 @@ export class SubjectService {
                         subject: visit.subjectName,
                         visitNumber: visit.visitNumber,
                         actualDate: actualDate,
-                        earliestDate: plannedVisit.earliestDate,
+                        earliestDate: plannedVisit.earliestDate || plannedVisit.baseDate,
                         latestDate: latestDate,
                         overdueDays: overdueDays
                     });
+                } else {
+                    console.log('未超窗');
                 }
             });
 
+            console.log('检查完成，发现超窗记录:', violations);
             return violations;
         } catch (error) {
             console.error('检查访视超窗失败:', error);
