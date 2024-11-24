@@ -1,27 +1,5 @@
-body {
-    background-color: #f8f9fa;
-}
-
-.hero {
-    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://source.unsplash.com/1600x900/?medical');
+.hero-section {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://source.unsplash.com/1600x900/?medical');
     background-size: cover;
     background-position: center;
-    color: white;
-    padding: 100px 0;
-    margin-bottom: 30px;
-}
-
-.feature-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-}
-
-.card-body {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.card-text {
-    flex-grow: 1;
 }
