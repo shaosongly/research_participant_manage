@@ -217,6 +217,27 @@
                 </div>
             </div>
 
+            <!-- 访视计划统计信息 -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8" 
+                 v-if="visitPlan.length > 0">
+                <div class="p-6">
+                    <div class="text-lg font-medium mb-4">访视计划统计</div>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="border rounded-lg p-4">
+                            <div class="text-gray-600 mb-2">总访视次数</div>
+                            <div class="text-3xl font-semibold text-blue-600">{{ visitStats.totalVisits }}</div>
+                        </div>
+                        <div class="border rounded-lg p-4">
+                            <div class="text-gray-600 mb-2">无法避开节假日的访视</div>
+                            <div class="text-3xl font-semibold" 
+                                 :class="{'text-red-600': visitStats.unavoidableHolidayVisits > 0, 'text-green-600': visitStats.unavoidableHolidayVisits === 0}">
+                                {{ visitStats.unavoidableHolidayVisits }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 访视计划表格 -->
             <div v-if="visitPlan.length > 0" 
                  class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">

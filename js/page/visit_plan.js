@@ -23,6 +23,12 @@ const VisitPlanPage = {
         const allSubjects = ref([]);
         let datePicker = null;
 
+        // 添加新的响应式状态
+        const visitStats = ref({
+            totalVisits: 0,
+            unavoidableHolidayVisits: 0
+        });
+
         // 导航项
         const navItems = [
             { path: 'landing.html', text: '首页', active: false },
@@ -181,49 +187,56 @@ const VisitPlanPage = {
                     return;
                 }
 
-                // 生成访视计划表格数据
                 const plan = [];
+                let unavoidableHolidayCount = 0;
+
+                // 用于临时存储每次访视的所有日期
+                const visitDates = new Map();
 
                 plannedVisits.forEach((visit, index) => {
                     const visitNum = index + 1;
                     const window = index === 0 ? 0 :
                         Math.ceil((visit.latestDate - visit.earliestDate) / (1000 * 60 * 60 * 24) / 2);
 
+                    // 收集这次访视的所有可能日期
+                    const allDatesInWindow = [];
+                    let currentDate = new Date(visit.earliestDate);
+                    while (currentDate <= visit.latestDate) {
+                        allDatesInWindow.push(new Date(currentDate));
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+
+                    // 检查是否所有日期都是节假日
+                    const allHolidays = allDatesInWindow.every(date => {
+                        const holidayInfo = getHolidayInfo(date);
+                        return holidayInfo !== '非节假日';
+                    });
+
+                    if (allHolidays) {
+                        unavoidableHolidayCount++;
+                    }
+
                     if (window === 0) {
                         // 无窗口期的访视（首次访视或窗口为0）
                         plan.push(createVisitEntry(visitNum, visit.baseDate, '基准日期', true));
                     } else {
-                        // 有窗口期的访视
-                        // 添加最早日期
-                        plan.push(createVisitEntry(
-                            visitNum,
-                            visit.earliestDate,
-                            `提前${window}天`,
-                            false
-                        ));
-
-                        // 添加基准日期
-                        plan.push(createVisitEntry(
-                            visitNum,
-                            visit.baseDate,
-                            '基准日期',
-                            true
-                        ));
-
-                        // 添加最晚日期
-                        plan.push(createVisitEntry(
-                            visitNum,
-                            visit.latestDate,
-                            `延后${window}天`,
-                            false
-                        ));
+                        plan.push(createVisitEntry(visitNum, visit.earliestDate, `提前${window}天`, false));
+                        plan.push(createVisitEntry(visitNum, visit.baseDate, '基准日期', true));
+                        plan.push(createVisitEntry(visitNum, visit.latestDate, `延后${window}天`, false));
                     }
                 });
 
                 visitPlan.value = plan;
+                
+                // 更新统计信息
+                visitStats.value = {
+                    totalVisits: plannedVisits.length,
+                    unavoidableHolidayVisits: unavoidableHolidayCount
+                };
+
             } catch (error) {
                 console.error('生成访视计划失败:', error);
-                alert('成访视计划失败: ' + error.message);
+                alert('生成访视计划失败: ' + error.message);
             }
         };
 
@@ -359,6 +372,7 @@ const VisitPlanPage = {
             showSuggestions,
             filteredSubjects,
             navItems,
+            visitStats,
 
             // 方法
             handleProjectChange,
