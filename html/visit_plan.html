@@ -104,6 +104,10 @@
                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                             访视超窗检查
                                         </a>
+                                        <a href="holiday_manage.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            节假日管理
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -217,7 +221,30 @@
                 </div>
             </div>
 
-            <!-- 访视计划统计信息 -->
+        <!-- 节假日管理提醒 -->
+        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8">
+            <div class="p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <div class="text-lg font-semibold text-gray-900">节假日数据来源</div>
+                    <p class="text-sm text-gray-500 mt-1">
+                        默认使用最新的 Lunar JS 节假日信息，可在此基础上手动维护特殊调休或项目自定义假期。
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="holiday_manage.html"
+                       target="_blank"
+                       class="px-4 py-2.5 border border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                        打开节假日管理
+                    </a>
+                    <button @click="refreshHolidayOverrides"
+                            class="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200">
+                        刷新节假日数据
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 访视计划统计信息 -->
             <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8" 
                  v-if="visitPlan.length > 0">
                 <div class="p-6">
