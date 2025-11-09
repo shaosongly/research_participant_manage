@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>访视超窗检查</title>
+    <!-- 移除 Bootstrap，添加 Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/window_check.css">
+    <!-- 引入js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+    <script type="module" src="../js/page/window-check.js"></script>
+    <script>
+        window.Dexie = Dexie;
+    </script>
+</head>
+<body class="bg-gray-50">
+    <div id="app" v-cloak>
+        <!-- 导航栏 -->
+        <nav class="fixed top-0 w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <a href="../landing.html" class="text-xl font-bold hover:text-blue-200 transition-colors">临床实验管理系统</a>
+                    
+                    <!-- 移动端菜单按钮 -->
+                    <button class="md:hidden p-2 rounded hover:bg-blue-700 transition-colors" id="menuButton">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+
+                    <!-- 导航链接 -->
+                    <div class="hidden md:flex space-x-4" id="navMenu">
+                        <!-- 首页 -->
+                        <a href="../landing.html" 
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                            首页
+                        </a>
+
+                        <!-- 数据管理下拉菜单 -->
+                        <div class="relative group">
+                            <button class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center">
+                                <span>数据管理</span>
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <!-- 添加一个连接区域 -->
+                            <div class="absolute left-0 top-full w-48 pt-2 invisible group-hover:visible">
+                                <div class="bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                                    <div class="py-1">
+                                        <a href="project_manage.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            项目管理
+                                        </a>
+                                        <a href="index.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            受试者管理
+                                        </a>
+                                        <a href="visit_record.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            访视记录管理
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 访视管理下拉菜单 -->
+                        <div class="relative group">
+                            <button class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center">
+                                <span>访视管理</span>
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <!-- 添加连接区域 -->
+                            <div class="absolute left-0 top-full w-48 pt-2 invisible group-hover:visible">
+                                <div class="bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                                    <div class="py-1">
+                                        <a href="visit_plan.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            生成访视计划
+                                        </a>
+                                        <a href="schedule.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            查看访视安排
+                                        </a>
+                                        <a href="window_check.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-blue-100">
+                                            访视超窗检查
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mx-auto px-4 pt-24 pb-8">
+            <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">已超窗访视检查</h1>
+            
+            <!-- 超窗检查筛选卡片 -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800">超窗检查</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div class="md:col-span-5">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">项目筛选:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
+                                    v-model="filters.project" 
+                                    @change="onProjectChange('violation')">
+                                <option value="">全部项目</option>
+                                <option v-for="project in projects" :key="project.projectName" :value="project.projectName">
+                                    {{ project.projectName }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-5">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">中心筛选:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
+                                    v-model="filters.center">
+                                <option value="">全部中心</option>
+                                <option v-for="center in centers" :key="center.centerName" :value="center.centerName">
+                                    {{ center.centerName }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2 flex items-end">
+                            <button class="w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 
+                                     text-white rounded-lg hover:from-blue-600 hover:to-blue-700 
+                                     transition-all duration-200 transform hover:scale-[1.02] 
+                                     active:scale-[0.98] focus:outline-none focus:ring-2 
+                                     focus:ring-blue-500 focus:ring-offset-2 shadow-md"
+                                    @click="checkViolations">
+                                检查超窗
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 超窗检查结果表格 -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-12">
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">项目</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">中心</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">受试者</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">访视序号</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">实际访视日期</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">窗口最早日期</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">窗口最晚日期</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">超期天数</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white">
+                                <tr v-if="violations.length === 0">
+                                    <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                                        <div class="flex flex-col items-center justify-center space-y-2">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span>没有发现超窗记录</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr v-for="violation in sortedViolations" 
+                                    :key="violation.id"
+                                    class="hover:bg-blue-50 transition-colors duration-150">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ violation.project }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ violation.center }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ violation.subject }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ violation.visitNumber }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(violation.actualDate) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(violation.earliestDate) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(violation.latestDate) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">{{ violation.overdueDays }}天</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 超窗提醒部分 -->
+            <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">即将超窗访视提醒</h1>
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8">
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div class="md:col-span-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">项目筛选:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
+                                    v-model="reminderFilters.project" 
+                                    @change="onProjectChange('reminder')">
+                                <option value="">全部项目</option>
+                                <option v-for="project in projects" :key="project.projectName" :value="project.projectName">
+                                    {{ project.projectName }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">中心筛选:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
+                                    v-model="reminderFilters.center">
+                                <option value="">全部中心</option>
+                                <option v-for="center in reminderCenters" :key="center.centerName" :value="center.centerName">
+                                    {{ center.centerName }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">截止日期:</label>
+                            <input type="date" class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                     transition-all duration-200"
+                                   v-model="reminderFilters.date">
+                        </div>
+                        <div class="md:col-span-1 flex items-end">
+                            <button class="w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 
+                                     text-white rounded-lg hover:from-blue-600 hover:to-blue-700 
+                                     transition-all duration-200 transform hover:scale-[1.02] 
+                                     active:scale-[0.98] focus:outline-none focus:ring-2 
+                                     focus:ring-blue-500 focus:ring-offset-2 shadow-md"
+                                    @click="checkReminders">
+                                检查
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 超窗提醒表格 -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">项目</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">中心</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">受试者</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">访视序号</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">窗口最早日期</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">窗口最晚日期</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">已超期天数</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white">
+                                <tr v-if="reminders.length === 0">
+                                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                        <div class="flex flex-col items-center justify-center space-y-2">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span>没有发现需要提醒的记录</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr v-for="reminder in sortedReminders" 
+                                    :key="reminder.id"
+                                    class="hover:bg-blue-50 transition-colors duration-150">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ reminder.project }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ reminder.center }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ reminder.subject }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ reminder.visitNumber }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(reminder.earliestDate) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(reminder.latestDate) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">{{ reminder.overdueDays }}天</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

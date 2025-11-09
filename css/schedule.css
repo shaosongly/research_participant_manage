@@ -1,0 +1,49 @@
+/* 访视组样式 */
+.visit-group-even {
+    background-color: white;
+}
+
+.visit-group-odd {
+    background-color: #F9FAFB;
+}
+
+.visit-group-even:hover {
+    background-color: #DBEAFE;
+}
+
+.visit-group-odd:hover {
+    background-color: #FFE4E6;
+}
+
+/* Flatpickr 日期选择器自定义样式 */
+.flatpickr-calendar {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.flatpickr-day.selected {
+    background: #3B82F6;
+    border-color: #3B82F6;
+}
+
+.flatpickr-day:hover {
+    background: #EFF6FF;
+}
+
+/* 添加响应式表格滚动条样式 */
+.overflow-x-auto {
+    scrollbar-width: thin;
+    scrollbar-color: #D1D5DB #F3F4F6;
+}
+
+/* 添加表格悬停效果 */
+tr:hover td {
+    background-color: rgba(current-color, 0.75);
+}
+
+/* 添加表格动画效果 */
+tbody tr {
+    transition: all 0.2s;
+}

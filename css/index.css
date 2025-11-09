@@ -1,0 +1,83 @@
+/* 自定义表单样式 */
+.form-group {
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    color: #374151;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select {
+    width: 100%;
+    border: 1px solid #D1D5DB;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1rem;
+    color: #374151;
+    transition: all 0.2s;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: transparent;
+    box-shadow: 0 0 0 2px #3B82F6;
+}
+
+/* 添加输入验证样式 */
+.form-group input:invalid,
+.form-group select:invalid {
+    border-color: #FCA5A5;
+}
+
+.form-group input:invalid:focus,
+.form-group select:invalid:focus {
+    box-shadow: 0 0 0 2px #EF4444;
+}
+
+/* 自定义单选按钮样式 */
+input[type="radio"] {
+    width: 1rem;
+    height: 1rem;
+    color: #2563EB;
+    border-color: #D1D5DB;
+}
+
+/* 添加加载状态动画 */
+.loading {
+    opacity: 0.75;
+    pointer-events: none;
+}
+
+/* Flatpickr 日期选择器自定义样式 */
+.flatpickr-calendar {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.flatpickr-day.selected {
+    background: #3B82F6;
+    border-color: #3B82F6;
+}
+
+.flatpickr-day:hover {
+    background: #EFF6FF;
+}
+
+/* 文件上传拖拽区域样式 */
+.file-drop-zone {
+    transition: all 0.2s;
+}
+
+.file-drop-zone.drag-over {
+    border-color: #3B82F6;
+    background-color: #EFF6FF;
+}

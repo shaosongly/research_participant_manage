@@ -1,0 +1,8 @@
+[v-cloak] {
+    display: none;
+}
+
+.overdue {
+    color: #DC2626;
+    font-weight: 700;
+}

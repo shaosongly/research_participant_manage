@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生成访视计划</title>
+    <!-- 移除 Bootstrap，添加 Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 保留其他必要的 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <link rel="stylesheet" href="../css/visit_plan.css">
+    <!-- JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/zh.js"></script>
+    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+    <script type="module" src="../js/page/visit_plan.js"></script>
+    <script>
+        window.Dexie = Dexie;
+    </script>
+</head>
+
+<body>
+    <div id="app">
+        <visit-plan-page></visit-plan-page>
+    </div>
+
+    <!-- 访视计划页面模板 -->
+    <template id="visit-plan-template">
+        <!-- 导航栏 -->
+        <nav class="fixed top-0 w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <a href="../landing.html" class="text-xl font-bold hover:text-blue-200 transition-colors">临床实验管理系统</a>
+                    
+                    <!-- 移动端菜单按钮 -->
+                    <button class="md:hidden p-2 rounded hover:bg-blue-700 transition-colors" id="menuButton">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+
+                    <!-- 导航链接 -->
+                    <div class="hidden md:flex space-x-4" id="navMenu">
+                        <!-- 首页 -->
+                        <a href="../landing.html" 
+                           class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                            首页
+                        </a>
+
+                        <!-- 数据管理下拉菜单 -->
+                        <div class="relative group">
+                            <button class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center">
+                                <span>数据管理</span>
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <!-- 添加一个连接区域 -->
+                            <div class="absolute left-0 top-full w-48 pt-2 invisible group-hover:visible">
+                                <div class="bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                                    <div class="py-1">
+                                        <a href="project_manage.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            项目管理
+                                        </a>
+                                        <a href="index.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            受试者管理
+                                        </a>
+                                        <a href="visit_record.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            访视记录管理
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 访视管理下拉菜单 -->
+                        <div class="relative group">
+                            <button class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center">
+                                <span>访视管理</span>
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <!-- 添加连接区域 -->
+                            <div class="absolute left-0 top-full w-48 pt-2 invisible group-hover:visible">
+                                <div class="bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                                    <div class="py-1">
+                                        <a href="visit_plan.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-blue-100">
+                                            生成访视计划
+                                        </a>
+                                        <a href="schedule.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            查看访视安排
+                                        </a>
+                                        <a href="window_check.html" 
+                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            访视超窗检查
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mx-auto px-4 pt-24 pb-8">
+            <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">生成访视计划</h1>
+
+            <!-- 搜索区域 -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8">
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <!-- 项目选择 -->
+                        <div class="md:col-span-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">选择项目:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                         transition-all duration-200"
+                                    v-model="selectedProject" 
+                                    @change="handleProjectChange">
+                                <option value="">请选择项目</option>
+                                <option v-for="project in projects" 
+                                        :key="project" 
+                                        :value="project">
+                                    {{ project }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- 中心选择 -->
+                        <div class="md:col-span-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">选择中心:</label>
+                            <select class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                         transition-all duration-200"
+                                    v-model="selectedCenter"
+                                    @change="handleCenterChange">
+                                <option value="">请选择中心</option>
+                                <option v-for="center in centers" 
+                                        :key="center" 
+                                        :value="center">
+                                    {{ center }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- 受试者搜索 -->
+                        <div class="md:col-span-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-2">受试者姓名:</label>
+                            <div class="relative">
+                                <input type="text"
+                                       id="subjectInput"
+                                       v-model="subjectInput"
+                                       @input="handleSubjectInput"
+                                       @focus="onSubjectInputFocus"
+                                       class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                              transition-all duration-200"
+                                       placeholder="点击或输入以选择受试者">
+                                
+                                <!-- 建议列表 -->
+                                <div v-if="showSuggestions && filteredSubjects.length > 0"
+                                     class="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto">
+                                    <div v-for="subject in filteredSubjects"
+                                         :key="subject.id"
+                                         @click="selectSubject(subject)"
+                                         class="px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors">
+                                        {{ subject.name }}
+                                    </div>
+                                </div>
+                                <!-- 添加无数据提示 -->
+                                <div v-if="showSuggestions && filteredSubjects.length === 0"
+                                     class="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-4 text-center text-gray-500">
+                                    暂无受试者数据
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 日期调整区域 -->
+                    <div v-if="currentSubject" class="mt-6 pt-6 border-t border-gray-200">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                            <div class="md:col-span-4">
+                                <label class="block text-gray-700 text-sm font-semibold mb-2">调整首次访视日期:</label>
+                                <input type="text"
+                                       id="adjustDate"
+                                       class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                              transition-all duration-200 cursor-pointer bg-white"
+                                       placeholder="点击选择日期"
+                                       data-input
+                                       @click="initializeDatePicker"
+                                       readonly>
+                            </div>
+                            <div class="md:col-span-2">
+                                <button @click="adjustVisitPlan"
+                                        class="w-full px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 
+                                               text-white rounded-lg hover:from-green-600 hover:to-green-700 
+                                               transition-all duration-200 transform hover:scale-[1.02] 
+                                               active:scale-[0.98] focus:outline-none focus:ring-2 
+                                               focus:ring-green-500 focus:ring-offset-2">
+                                    重新生成计划
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 访视计划统计信息 -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 mb-8" 
+                 v-if="visitPlan.length > 0">
+                <div class="p-6">
+                    <div class="text-lg font-medium mb-4">访视计划统计</div>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="border rounded-lg p-4">
+                            <div class="text-gray-600 mb-2">总访视次数</div>
+                            <div class="text-3xl font-semibold text-blue-600">{{ visitStats.totalVisits }}</div>
+                        </div>
+                        <div class="border rounded-lg p-4">
+                            <div class="text-gray-600 mb-2">无法避开节假日的访视</div>
+                            <div class="text-3xl font-semibold" 
+                                 :class="{'text-red-600': visitStats.unavoidableHolidayVisits > 0, 'text-green-600': visitStats.unavoidableHolidayVisits === 0}">
+                                {{ visitStats.unavoidableHolidayVisits }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 访视计划表格 -->
+            <div v-if="visitPlan.length > 0" 
+                 class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">访视次数</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">日期类型</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">访视日期</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">节假日信息</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr v-for="item in visitPlan" 
+                                :key="`${item.visitNumber}-${item.dateType}`"
+                                :class="[
+                                    'transition-colors duration-200',
+                                    item.visitNumber % 2 === 0 
+                                        ? 'bg-blue-50/90 hover:bg-blue-100/90' 
+                                        : 'bg-orange-50/90 hover:bg-orange-100/90',
+                                    item.rowClasses,
+                                    'relative'
+                                ]">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    第 {{ item.visitNumber }} 次访视
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ item.dateType }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm" :style="item.dateStyle">
+                                    {{ formatDate(item.date) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm" :style="item.holidayStyle">
+                                    {{ item.holidayInfo }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 空状态提示 -->
+            <div v-else-if="currentSubject" 
+                 class="bg-white rounded-xl shadow-md p-8 text-center text-gray-500">
+                <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p>暂无访视计划数据</p>
+            </div>
+        </div>
+    </template>
+</body>
+</html>
