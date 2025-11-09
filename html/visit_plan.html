@@ -262,6 +262,24 @@
                             </div>
                         </div>
                     </div>
+                    <div class="mt-6 pt-4 border-t border-gray-100" v-if="visitStats.unavoidableHolidayVisits > 0">
+                        <div class="text-sm font-semibold text-gray-700 mb-3">无法避开节假日的访视详情</div>
+                        <div class="space-y-3">
+                            <div v-for="detail in visitStats.unavoidableHolidayDetails"
+                                 :key="`holiday-detail-${detail.visitNumber}`"
+                                 class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <div class="text-sm font-medium text-gray-900 mb-2">
+                                    第 {{ detail.visitNumber }} 次访视
+                                </div>
+                                <ul class="space-y-1 text-sm text-gray-700">
+                                    <li v-for="dateInfo in detail.dates"
+                                        :key="dateInfo.dateISO">
+                                        {{ formatDate(dateInfo.dateISO) }} · {{ dateInfo.holidayInfo }}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

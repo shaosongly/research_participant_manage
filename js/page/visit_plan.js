@@ -27,7 +27,8 @@ const VisitPlanPage = {
         // 添加新的响应式状态
         const visitStats = ref({
             totalVisits: 0,
-            unavoidableHolidayVisits: 0
+            unavoidableHolidayVisits: 0,
+            unavoidableHolidayDetails: []
         });
 
         // 导航项
@@ -204,6 +205,7 @@ const VisitPlanPage = {
 
                 const plan = [];
                 let unavoidableHolidayCount = 0;
+                const unavoidableDetails = [];
 
                 // 用于临时存储每次访视的所有日期
                 const visitDates = new Map();
@@ -221,14 +223,25 @@ const VisitPlanPage = {
                         currentDate.setDate(currentDate.getDate() + 1);
                     }
 
-                    // 检查是否所有日期都是节假日
-                    const allHolidays = allDatesInWindow.every(date => {
-                        const holidayInfo = getHolidayInfo(date);
-                        return holidayInfo !== '非节假日';
+                    const dateInfos = allDatesInWindow.map(date => {
+                        const isoDate = new Date(date);
+                        return {
+                            dateISO: isoDate.toISOString(),
+                            holidayInfo: getHolidayInfo(date)
+                        };
                     });
+                    const holidayOnlyDates = dateInfos.filter(info => info.holidayInfo !== '非节假日');
+
+                    // 检查窗口内是否存在有效日期，且全部属于节假日
+                    const allHolidays = holidayOnlyDates.length > 0 &&
+                        holidayOnlyDates.length === dateInfos.length;
 
                     if (allHolidays) {
                         unavoidableHolidayCount++;
+                        unavoidableDetails.push({
+                            visitNumber: visitNum,
+                            dates: holidayOnlyDates
+                        });
                     }
 
                     if (window === 0) {
@@ -244,9 +257,11 @@ const VisitPlanPage = {
                 visitPlan.value = plan;
                 
                 // 更新统计信息
+                console.log('不可避节假日详情：', unavoidableDetails);
                 visitStats.value = {
                     totalVisits: plannedVisits.length,
-                    unavoidableHolidayVisits: unavoidableHolidayCount
+                    unavoidableHolidayVisits: unavoidableHolidayCount,
+                    unavoidableHolidayDetails: unavoidableDetails
                 };
 
             } catch (error) {
