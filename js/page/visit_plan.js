@@ -1,4 +1,4 @@
-import { ProjectOperations, CenterOperations, SubjectOperations, HolidayOverrideOperations } from '../common/db-operations.js';
+import { ProjectOperations, CenterOperations, SubjectOperations, HolidayOverrideOperations, VisitPlanSnapshotOperations } from '../common/db-operations.js';
 import { SubjectService } from '../common/subject-service.js';
 
 HolidayUtil.fix('202212310120230101202301010120230101202301020120230101202301211120230122202301221120230122202301231120230122202301241120230122202301251120230122202301261120230122202301271120230122202301281020230122202301291020230122202304052120230405202304233020230501202304293120230501202304303120230501202305013120230501202305023120230501202305033120230501202305063020230501202306224120230622202306234120230622202306244120230622202306254020230622202309295120230929202309306120231001202310016120231001202310026120231001202310036120231001202310046120231001202310056120231001202310066120231001202310076020231001202310086020231001');
@@ -41,7 +41,8 @@ const VisitPlanPage = {
             { path: 'schedule.html', text: '访视安排', active: false },
             { path: 'visit_plan.html', text: '访视计划', active: true },
             { path: 'visit_record.html', text: '访视记录', active: false },
-            { path: 'window_check.html', text: '超窗检查', active: false }
+            { path: 'window_check.html', text: '超窗检查', active: false },
+            { path: 'visit_plan_history.html', text: '访视计划记录', active: false }
         ];
 
         // 生命周期钩子
@@ -355,6 +356,7 @@ const VisitPlanPage = {
                         firstDate: new Date(newDate)
                     };
 
+                    currentSubject.value = adjustedSubject;
                     generateVisitPlan(adjustedSubject);
                 } catch (error) {
                     console.error('调整访视计划失败:', error);
@@ -366,6 +368,42 @@ const VisitPlanPage = {
         const formatDate = (date) => {
             const d = new Date(date);
             return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+        };
+
+        const saveVisitPlanSnapshot = async () => {
+            if (!visitPlan.value.length || !currentSubject.value) {
+                alert('请先生成访视计划');
+                return;
+            }
+
+            try {
+                const normalizedDetails = (visitStats.value.unavoidableHolidayDetails || []).map(detail => ({
+                    visitNumber: detail.visitNumber,
+                    dates: (detail.dates || []).map(dateInfo => ({
+                        dateISO: dateInfo.dateISO,
+                        holidayInfo: dateInfo.holidayInfo
+                    }))
+                }));
+
+                const payload = {
+                    project: selectedProject.value,
+                    center: selectedCenter.value,
+                    subjectName: currentSubject.value.name,
+                    frequency: currentSubject.value.frequency || '',
+                    visitWindow: currentSubject.value.visitWindow || '',
+                    firstVisitDate: currentSubject.value.firstDate ? new Date(currentSubject.value.firstDate).toISOString() : null,
+                    totalVisits: visitStats.value.totalVisits,
+                    unavoidableCount: visitStats.value.unavoidableHolidayVisits,
+                    unavoidableDetails: normalizedDetails,
+                    createdAt: new Date()
+                };
+
+                await VisitPlanSnapshotOperations.addSnapshot(payload);
+                alert('访视计划已保存到记录，可在“访视计划记录”页面查看。');
+            } catch (error) {
+                console.error('保存访视计划失败:', error);
+                alert('保存访视计划失败，请稍后重试');
+            }
         };
 
         const getDateKey = (date) => {
@@ -440,6 +478,7 @@ const VisitPlanPage = {
             searchSubject,
             selectSubject,
             formatDate,
+            saveVisitPlanSnapshot,
             adjustVisitPlan,
             initializeDatePicker,
             refreshHolidayOverrides

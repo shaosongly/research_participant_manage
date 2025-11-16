@@ -6,12 +6,13 @@ class ResearchDB extends Dexie {
         super('ResearchDB');
 
         // 定义数据库结构
-        this.version(3).stores({
+        this.version(4).stores({
             projects: 'projectName, createTime',
             centers: '[projectName+centerName], projectName, createTime',
             subjects: '[project+center+name], project, center, name, *projectCenter',
             visitRecords: '[project+center+subjectName+visitNumber], project, center, subjectName, visitDate, *projectCenterSubject',
-            holidayOverrides: 'date, isHoliday'
+            holidayOverrides: 'date, isHoliday',
+            visitPlanSnapshots: '++id, project, center, subjectName, createdAt'
         });
     }
 }
@@ -317,6 +318,26 @@ const VisitRecordOperations = {
     }
 };
 
+// 访视计划快照相关操作
+const VisitPlanSnapshotOperations = {
+    async addSnapshot(snapshot) {
+        const record = {
+            ...snapshot,
+            createdAt: snapshot.createdAt || new Date()
+        };
+        return db.visitPlanSnapshots.add(record);
+    },
+
+    async getAllSnapshots() {
+        return db.visitPlanSnapshots.orderBy('createdAt').reverse().toArray();
+    },
+
+    async deleteSnapshotsByIds(ids = []) {
+        if (!ids.length) return;
+        return db.visitPlanSnapshots.bulkDelete(ids);
+    }
+};
+
 // Holiday override management
 const HolidayOverrideOperations = {
     async upsertOverride(override) {
@@ -344,8 +365,8 @@ export {
     CenterOperations,
     SubjectOperations,
     VisitRecordOperations,
+    VisitPlanSnapshotOperations,
     HolidayOverrideOperations
 }; 
-
 
 
