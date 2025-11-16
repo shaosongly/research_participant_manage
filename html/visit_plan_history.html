@@ -158,7 +158,7 @@
                                 <td class="px-4 py-3 text-sm text-gray-700">
                                     <div v-if="record.unavoidableDetails?.length" class="space-y-1">
                                         <div v-for="detail in record.unavoidableDetails" :key="`detail-${record.id}-${detail.visitNumber}`">
-                                            第 {{ detail.visitNumber }} 次： 
+                                            {{ detail.visitLabel || ('第 ' + detail.visitNumber + ' 次访视') }}： 
                                             <span v-for="dateInfo in detail.dates" :key="dateInfo.dateISO" class="inline-block mr-2">
                                                 {{ formatDate(dateInfo.dateISO) }} · {{ dateInfo.holidayInfo }}
                                             </span>

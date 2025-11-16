@@ -125,11 +125,12 @@ const VisitPlanHistory = {
             const rows = records.map((record) => {
                 const detailMap = new Map();
                 (record.unavoidableDetails || []).forEach((detail) => {
-                    const texts = (detail.dates || []).map(
-                        (d) => `${formatDate(d.dateISO || d)}·${d.holidayInfo || ''}`
-                    );
-                    detailMap.set(detail.visitNumber, texts.join('; '));
-                });
+                const label = detail.visitLabel || `第${detail.visitNumber}次访视`;
+                const texts = (detail.dates || []).map(
+                    (d) => `${formatDate(d.dateISO || d)}·${d.holidayInfo || ''}`
+                );
+                detailMap.set(detail.visitNumber, `${label}: ${texts.join('; ')}`);
+            });
 
                 const detailCells = detailColumns.map((num) => detailMap.get(num) || '');
 

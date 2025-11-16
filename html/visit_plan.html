@@ -220,6 +220,15 @@
                                     重新生成计划
                                 </button>
                             </div>
+                            <div class="md:col-span-4">
+                                <label class="block text-gray-700 text-sm font-semibold mb-2">自定义首次访视名称（可选）:</label>
+                                <input type="text"
+                                       v-model="customVisitLabel"
+                                       class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-gray-700 
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                              transition-all duration-200"
+                                       placeholder="例如 D3 或 F4，后续访视自动 +1">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -273,7 +282,7 @@
                                  :key="`holiday-detail-${detail.visitNumber}`"
                                  class="border border-gray-200 rounded-lg p-4 bg-gray-50">
                                 <div class="text-sm font-medium text-gray-900 mb-2">
-                                    第 {{ detail.visitNumber }} 次访视
+                                    {{ detail.visitLabel || ('第 ' + detail.visitNumber + ' 次访视') }}
                                 </div>
                                 <ul class="space-y-1 text-sm text-gray-700">
                                     <li v-for="dateInfo in detail.dates"
@@ -310,7 +319,7 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
                             <tr>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">访视次数</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">访视名称</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">日期类型</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">访视日期</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">节假日信息</th>
@@ -328,7 +337,7 @@
                                     'relative'
                                 ]">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    第 {{ item.visitNumber }} 次访视
+                                    {{ item.visitLabel }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {{ item.dateType }}

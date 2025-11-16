@@ -22,6 +22,7 @@ const VisitPlanPage = {
         const showSuggestions = ref(false);
         const filteredSubjects = ref([]);
         const allSubjects = ref([]);
+        const customVisitLabel = ref('');
         let datePicker = null;
         const manualHolidayMap = ref(new Map());
 
@@ -242,6 +243,7 @@ const VisitPlanPage = {
                         unavoidableHolidayCount++;
                         unavoidableDetails.push({
                             visitNumber: visitNum,
+                            visitLabel: getVisitLabel(visitNum),
                             dates: holidayOnlyDates
                         });
                     }
@@ -272,6 +274,26 @@ const VisitPlanPage = {
             }
         };
 
+        const getVisitLabel = (visitNumber) => {
+            const base = (customVisitLabel.value || '').trim();
+            if (!base) {
+                return `第 ${visitNumber} 次访视`;
+            }
+
+            const match = base.match(/^([A-Za-z]+)?(\d+)$/);
+            if (!match) {
+                return `第 ${visitNumber} 次访视`;
+            }
+
+            const prefix = match[1] || '';
+            const startNumber = parseInt(match[2], 10);
+            if (Number.isNaN(startNumber)) {
+                return `第 ${visitNumber} 次访视`;
+            }
+
+            return `${prefix}${startNumber + visitNumber - 1}`;
+        };
+
         const createVisitEntry = (visitNumber, date, dateType, isBaseDate) => {
             const holidayInfo = getHolidayInfo(date);
             const isHoliday = holidayInfo !== '非节假日';
@@ -280,6 +302,7 @@ const VisitPlanPage = {
                 visitNumber,
                 date,
                 dateType,
+                visitLabel: getVisitLabel(visitNumber),
                 holidayInfo,
                 rowClasses: {
                     'visit-base-date': isBaseDate,
@@ -379,6 +402,7 @@ const VisitPlanPage = {
             try {
                 const normalizedDetails = (visitStats.value.unavoidableHolidayDetails || []).map(detail => ({
                     visitNumber: detail.visitNumber,
+                    visitLabel: detail.visitLabel || getVisitLabel(detail.visitNumber),
                     dates: (detail.dates || []).map(dateInfo => ({
                         dateISO: dateInfo.dateISO,
                         holidayInfo: dateInfo.holidayInfo
@@ -467,6 +491,7 @@ const VisitPlanPage = {
             visitPlan,
             showSuggestions,
             filteredSubjects,
+            customVisitLabel,
             navItems,
             visitStats,
 
