@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>访视计划记录</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <link rel="stylesheet" href="../css/visit_plan.css">
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/zh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+    <script type="module" src="../js/page/visit_plan_history.js"></script>
+    <script>
+        window.Dexie = Dexie;
+    </script>
+</head>
+
+<body class="bg-gray-50">
+    <div id="app">
+        <visit-plan-history></visit-plan-history>
+    </div>
+
+    <template id="visit-plan-history-template">
+        <!-- 导航栏 -->
+        <nav class="fixed top-0 w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <a href="../landing.html" class="text-xl font-bold hover:text-blue-200 transition-colors">临床实验管理系统</a>
+                    <div class="hidden md:flex space-x-4">
+                        <a href="../landing.html" class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">首页</a>
+                        <div class="relative group">
+                            <button class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center">
+                                <span>数据管理</span>
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div class="absolute left-0 top-full w-48 pt-2 invisible group-hover:visible">
+                                <div class="bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                                    <div class="py-1">
+                                        <a href="project_manage.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">项目管理</a>
+                                        <a href="index.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">受试者管理</a>
+                                        <a href="visit_record.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">访视记录管理</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center">
+                                <span>访视管理</span>
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div class="absolute left-0 top-full w-48 pt-2 invisible group-hover:visible">
+                                <div class="bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                                    <div class="py-1">
+                                        <a href="visit_plan.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">生成访视计划</a>
+                                        <a href="schedule.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">查看访视安排</a>
+                                        <a href="window_check.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">访视超窗检查</a>
+                                        <a href="holiday_manage.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">节假日管理</a>
+                                        <a href="visit_plan_history.html" class="block px-4 py-2 text-sm text-gray-700 bg-blue-100 hover:bg-blue-100">访视计划记录</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mx-auto px-4 pt-24 pb-10">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">访视计划记录</h1>
+                    <p class="text-gray-500 mt-1 text-sm">查看已保存的访视计划快照，支持筛选、批量导出 CSV。</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button @click="exportSelected"
+                            class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            :disabled="!selectedIds.length">
+                        导出选中为 CSV
+                    </button>
+                    <button @click="deleteSelected"
+                            class="px-4 py-2 bg-white text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            :disabled="!selectedIds.length">
+                        删除选中
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">项目</label>
+                        <select v-model="filters.project"
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部</option>
+                            <option v-for="project in projectOptions" :key="project" :value="project">{{ project }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">中心</label>
+                        <select v-model="filters.center"
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部</option>
+                            <option v-for="center in centerOptions" :key="center" :value="center">{{ center }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">受试者</label>
+                        <select v-model="filters.subject"
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部</option>
+                            <option v-for="subject in subjectOptions" :key="subject" :value="subject">{{ subject }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                                    <input type="checkbox" @change="toggleSelectAll" :checked="allSelected" />
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">项目</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">中心</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">受试者</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">访视间隔</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">访视窗口</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">首次访视</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">总访视次数</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">无法避开次数</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">保存时间</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600">无法避开详情</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200" v-if="filteredSnapshots.length">
+                            <tr v-for="record in filteredSnapshots" :key="record.id" class="hover:bg-gray-50 transition-colors">
+                                <td class="px-4 py-3">
+                                    <input type="checkbox" :value="record.id" v-model="selectedIds" />
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ record.project }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ record.center }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ record.subjectName }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">{{ record.frequency || '-' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">{{ record.visitWindow || '-' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">{{ formatDate(record.firstVisitDate) }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">{{ record.totalVisits }}</td>
+                                <td class="px-4 py-3 text-sm" :class="record.unavoidableCount ? 'text-red-600' : 'text-green-600'">{{ record.unavoidableCount }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-500">{{ formatDateTime(record.createdAt) }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">
+                                    <div v-if="record.unavoidableDetails?.length" class="space-y-1">
+                                        <div v-for="detail in record.unavoidableDetails" :key="`detail-${record.id}-${detail.visitNumber}`">
+                                            {{ detail.visitLabel || ('第 ' + detail.visitNumber + ' 次访视') }}： 
+                                            <span v-for="dateInfo in detail.dates" :key="dateInfo.dateISO" class="inline-block mr-2">
+                                                {{ formatDate(dateInfo.dateISO) }} · {{ dateInfo.holidayInfo }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <span v-else class="text-gray-400">-</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tbody v-else>
+                            <tr>
+                                <td colspan="11" class="px-4 py-6 text-center text-gray-500">暂无记录</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </template>
+</body>
+</html>
