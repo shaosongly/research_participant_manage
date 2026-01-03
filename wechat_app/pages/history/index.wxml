@@ -1,0 +1,26 @@
+<view class="container">
+    <view class="card">
+        <view class="card-title">历史记录</view>
+        <view class="field">
+            <text class="field-label">按方案名称搜索</text>
+            <input class="input" placeholder="输入方案名称" value="{{keyword}}" bindinput="handleKeyword" />
+        </view>
+    </view>
+
+    <view class="card">
+        <view class="card-title">记录列表</view>
+        <view wx:if="{{filteredSnapshots.length === 0}}" class="subtle" style="margin-top: 12px;">
+            暂无记录
+        </view>
+        <view wx:for="{{filteredSnapshots}}" wx:key="id" class="list-item">
+            <view>
+                <view style="font-weight: 600;">{{item.planName}}</view>
+                <view class="subtle">首访 {{item.firstVisitDate}} · 保存 {{item.createdAt}}</view>
+            </view>
+            <view class="button-spread" style="margin-top: 12px;">
+                <view class="button secondary inline" data-id="{{item.id}}" bindtap="handleDetail">查看</view>
+                <view class="button danger inline" data-id="{{item.id}}" bindtap="handleDelete">删除</view>
+            </view>
+        </view>
+    </view>
+</view>

@@ -1,0 +1,42 @@
+{
+    "pages": [
+        "pages/plan-list/index",
+        "pages/plan-edit/index",
+        "pages/plan-generate/index",
+        "pages/plan-result/index",
+        "pages/holiday-manage/index",
+        "pages/history/index",
+        "pages/history-detail/index"
+    ],
+    "window": {
+        "navigationBarTitleText": "访视计划工具",
+        "navigationBarBackgroundColor": "#1e3a8a",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#f3f4f6"
+    },
+    "tabBar": {
+        "custom": true,
+        "color": "#64748b",
+        "selectedColor": "#1e3a8a",
+        "backgroundColor": "#ffffff",
+        "borderStyle": "black",
+        "list": [
+            {
+                "pagePath": "pages/plan-list/index",
+                "text": "方案"
+            },
+            {
+                "pagePath": "pages/plan-generate/index",
+                "text": "生成"
+            },
+            {
+                "pagePath": "pages/history/index",
+                "text": "历史"
+            },
+            {
+                "pagePath": "pages/holiday-manage/index",
+                "text": "节假日"
+            }
+        ]
+    }
+}

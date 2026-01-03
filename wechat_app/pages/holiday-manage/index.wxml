@@ -1,0 +1,38 @@
+<view class="container">
+    <view class="card">
+        <view class="card-title">节假日覆盖</view>
+        <view class="subtle">默认使用 Lunar 节假日，可在此覆盖。</view>
+    </view>
+
+    <view class="card">
+        <view class="field">
+            <text class="field-label">日期</text>
+            <picker mode="date" value="{{form.date}}" bindchange="onDateChange">
+                <view class="input">{{form.date || '请选择日期'}}</view>
+            </picker>
+        </view>
+        <view class="field">
+            <text class="field-label">是否节假日</text>
+            <switch class="switch-inline" checked="{{form.isHoliday}}" bindchange="onHolidayChange" />
+        </view>
+        <view class="field">
+            <text class="field-label">节假日名称</text>
+            <input class="input" placeholder="例如 春节调休" value="{{form.holidayName}}" bindinput="onInput" data-field="holidayName" />
+        </view>
+        <view class="button" bindtap="handleSave">保存覆盖</view>
+    </view>
+
+    <view class="card">
+        <view class="card-title">覆盖列表</view>
+        <view wx:if="{{overrides.length === 0}}" class="subtle" style="margin-top: 12px;">暂无覆盖记录</view>
+        <view wx:for="{{overrides}}" wx:key="date" class="list-item">
+            <view class="row">
+                <view>
+                    <view style="font-weight: 600;">{{item.date}}</view>
+                    <view class="subtle">{{item.isHoliday ? '节假日' : '工作日'}} · {{item.holidayName || '无名称'}}</view>
+                </view>
+                <view class="button danger inline" data-date="{{item.date}}" bindtap="handleDelete">删除</view>
+            </view>
+        </view>
+    </view>
+</view>

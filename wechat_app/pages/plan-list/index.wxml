@@ -1,0 +1,35 @@
+<view class="container">
+    <view class="card">
+        <view class="card-title">实验方案</view>
+        <view class="subtle">维护访视规则，作为计划生成入口。</view>
+    </view>
+
+    <view class="card">
+        <view class="row">
+            <view class="card-title">方案列表</view>
+            <view class="tag">{{plans.length}} 个</view>
+        </view>
+        <view wx:if="{{plans.length === 0}}" class="subtle" style="margin-top: 12px;">
+            暂无方案，点击下方按钮新建。
+        </view>
+        <view wx:for="{{plans}}" wx:key="id" class="list-item">
+            <view class="row">
+                <view>
+                    <view style="font-size: 15px; font-weight: 600;">{{item.name}}</view>
+                    <view class="subtle">访视次数 {{item.totalVisits}} · 频率 {{item.frequency}} · 窗口 {{item.visitWindow}}</view>
+                </view>
+                <view class="tag">{{item.updatedAt}}</view>
+            </view>
+            <view class="button-spread" style="margin-top: 12px;">
+                <view class="button secondary inline" data-id="{{item.id}}" bindtap="handleEdit">编辑</view>
+                <view class="button inline" data-id="{{item.id}}" bindtap="handleGenerate">生成</view>
+                <view class="button danger inline" data-id="{{item.id}}" bindtap="handleDelete">删除</view>
+            </view>
+        </view>
+    </view>
+
+    <view class="footer-actions">
+        <view class="button" bindtap="handleCreate">新建方案</view>
+    </view>
+    <view class="footer-spacer"></view>
+</view>

@@ -1,0 +1,58 @@
+<view class="container">
+    <view wx:if="{{!plan}}" class="card">
+        <view class="card-title">暂无计划</view>
+        <view class="subtle">请先在生成页面创建计划。</view>
+    </view>
+
+    <block wx:if="{{plan}}">
+        <view class="card">
+            <view class="card-title">计划摘要</view>
+            <view class="subtle">方案 {{plan.name}} · 首访 {{firstVisitDate}}</view>
+            <view style="margin-top: 12px;" class="row">
+                <view class="tag">总访视 {{plan.totalVisits}}</view>
+                <view class="tag {{unavoidableCount > 0 ? 'alert' : ''}}">不可避 {{unavoidableCount}}</view>
+            </view>
+        </view>
+
+        <view class="card" wx:if="{{unavoidableDetails.length > 0}}">
+            <view class="card-title">不可避节假日详情</view>
+            <view wx:for="{{unavoidableDetails}}" wx:for-item="detail" wx:key="visitNumber" class="list-item">
+                <view style="font-weight: 600;">{{detail.visitLabel || ('第 ' + detail.visitNumber + ' 次访视')}}</view>
+                <view class="subtle" wx:for="{{detail.dates}}" wx:for-item="dateItem" wx:key="date">
+                    {{dateItem.date}} · {{dateItem.holidayInfo}}
+                </view>
+            </view>
+        </view>
+
+        <view class="card">
+            <view class="card-title">调整首访日期</view>
+            <view class="field">
+                <picker mode="date" value="{{firstVisitDate}}" bindchange="handleAdjustDate">
+                    <view class="input">{{firstVisitDate}}</view>
+                </picker>
+            </view>
+            <view class="button secondary inline" bindtap="handleRegenerate">重新生成</view>
+        </view>
+
+        <view class="card">
+            <view class="card-title">访视计划</view>
+            <view wx:for="{{items}}" wx:key="index" class="list-item {{item.groupClass}}">
+                <view class="row">
+                    <view>
+                        <view style="font-weight: 600;">{{item.visitLabel}}</view>
+                        <view class="subtle">{{item.dateTypeLabel}} · {{item.date}}</view>
+                    </view>
+                    <view class="tag {{item.isHoliday ? 'alert' : ''}}">{{item.holidayInfo}}</view>
+                </view>
+            </view>
+        </view>
+        <view class="footer-spacer detail"></view>
+    </block>
+</view>
+
+<cover-view wx:if="{{plan}}" class="footer-actions detail">
+    <cover-view class="button-spread">
+        <cover-view class="button secondary inline" bindtap="handleSave">保存历史</cover-view>
+        <cover-view class="button inline" bindtap="handleExport">导出</cover-view>
+    </cover-view>
+</cover-view>

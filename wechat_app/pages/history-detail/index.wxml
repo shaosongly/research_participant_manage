@@ -1,0 +1,45 @@
+<view class="container">
+    <view wx:if="{{!snapshot}}" class="card">
+        <view class="card-title">记录不存在</view>
+        <view class="subtle">请返回历史列表。</view>
+    </view>
+
+    <block wx:if="{{snapshot}}">
+        <view class="card">
+            <view class="card-title">计划摘要</view>
+            <view class="subtle">方案 {{snapshot.planName}} · 首访 {{snapshot.firstVisitDate}}</view>
+            <view style="margin-top: 12px;" class="row">
+                <view class="tag">总访视 {{snapshot.totalVisits}}</view>
+                <view class="tag {{snapshot.unavoidableCount > 0 ? 'alert' : ''}}">不可避 {{snapshot.unavoidableCount}}</view>
+            </view>
+        </view>
+
+        <view class="card" wx:if="{{snapshot.unavoidableDetails && snapshot.unavoidableDetails.length > 0}}">
+            <view class="card-title">不可避节假日详情</view>
+            <view wx:for="{{snapshot.unavoidableDetails}}" wx:for-item="detail" wx:key="visitNumber" class="list-item">
+                <view style="font-weight: 600;">{{detail.visitLabel || ('第 ' + detail.visitNumber + ' 次访视')}}</view>
+                <view class="subtle" wx:for="{{detail.dates}}" wx:for-item="dateItem" wx:key="date">
+                    {{dateItem.date}} · {{dateItem.holidayInfo}}
+                </view>
+            </view>
+        </view>
+
+        <view class="card">
+            <view class="card-title">访视计划</view>
+            <view wx:for="{{snapshot.items}}" wx:key="index" class="list-item {{item.groupClass}}">
+                <view class="row">
+                    <view>
+                        <view style="font-weight: 600;">{{item.visitLabel}}</view>
+                        <view class="subtle">{{item.dateTypeLabel}} · {{item.date}}</view>
+                    </view>
+                    <view class="tag {{item.isHoliday ? 'alert' : ''}}">{{item.holidayInfo}}</view>
+                </view>
+            </view>
+        </view>
+        <view class="footer-spacer detail"></view>
+    </block>
+</view>
+
+<cover-view wx:if="{{snapshot}}" class="footer-actions detail">
+    <cover-view class="button" bindtap="handleExport">导出</cover-view>
+</cover-view>

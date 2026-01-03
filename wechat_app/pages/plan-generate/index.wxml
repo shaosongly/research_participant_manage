@@ -1,0 +1,27 @@
+<view class="container">
+    <view class="card">
+        <view class="card-title">生成访视计划</view>
+        <view class="subtle">选择方案与首访日期即可生成。</view>
+    </view>
+
+    <view class="card">
+        <view class="field">
+            <text class="field-label">选择方案</text>
+            <picker mode="selector" range="{{planNames}}" value="{{selectedIndex}}" bindchange="handlePlanChange">
+                <view class="input">{{selectedPlanName || '请选择方案'}}</view>
+            </picker>
+        </view>
+        <view class="field">
+            <text class="field-label">首访日期</text>
+            <picker mode="date" value="{{firstVisitDate}}" bindchange="handleDateChange">
+                <view class="input">{{firstVisitDate || '请选择日期'}}</view>
+            </picker>
+        </view>
+        <view wx:if="{{selectedPlan}}" class="subtle">
+            访视次数 {{selectedPlan.totalVisits}} · 频率 {{selectedPlan.frequency}} · 窗口 {{selectedPlan.visitWindow || '0'}}
+        </view>
+        <view style="margin-top: 16px;">
+            <view class="button" bindtap="handleGenerate">生成计划</view>
+        </view>
+    </view>
+</view>
