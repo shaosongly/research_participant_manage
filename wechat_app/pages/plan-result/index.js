@@ -119,6 +119,9 @@ Page({
         }
         const rows = [
             ['方案名称', plan.name],
+            ['访视次数', plan.totalVisits],
+            ['访视频率', plan.frequency],
+            ['访视窗口', plan.visitWindow || '0'],
             ['首访日期', firstVisitDate],
             ['导出时间', new Date().toLocaleString()],
             [],

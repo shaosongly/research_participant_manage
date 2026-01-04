@@ -5,37 +5,69 @@
     </view>
 
     <block wx:if="{{snapshot}}">
-        <view class="card">
-            <view class="card-title">计划摘要</view>
-            <view class="subtle">方案 {{snapshot.planName}} · 首访 {{snapshot.firstVisitDate}}</view>
-            <view style="margin-top: 12px;" class="row">
-                <view class="tag">总访视 {{snapshot.totalVisits}}</view>
-                <view class="tag {{snapshot.unavoidableCount > 0 ? 'alert' : ''}}">不可避 {{snapshot.unavoidableCount}}</view>
-            </view>
-        </view>
-
-        <view class="card" wx:if="{{snapshot.unavoidableDetails && snapshot.unavoidableDetails.length > 0}}">
-            <view class="card-title">不可避节假日详情</view>
-            <view wx:for="{{snapshot.unavoidableDetails}}" wx:for-item="detail" wx:key="visitNumber" class="list-item">
-                <view style="font-weight: 600;">{{detail.visitLabel || ('第 ' + detail.visitNumber + ' 次访视')}}</view>
-                <view class="subtle" wx:for="{{detail.dates}}" wx:for-item="dateItem" wx:key="date">
-                    {{dateItem.date}} · {{dateItem.holidayInfo}}
+        <block wx:if="{{snapshot.type === 'batch'}}">
+            <view class="card">
+                <view class="card-title">批量摘要</view>
+                <view class="subtle">方案 {{snapshot.planName}} · 范围 {{snapshot.rangeStart}} - {{snapshot.rangeEnd}}</view>
+                <view style="margin-top: 12px;" class="row">
+                    <view class="tag">总访视 {{snapshot.totalVisits}}</view>
+                    <view class="tag {{snapshot.bestFirstVisitDate ? 'alert' : ''}}">最优 {{snapshot.bestFirstVisitDate || '-'}}</view>
                 </view>
             </view>
-        </view>
 
-        <view class="card">
-            <view class="card-title">访视计划</view>
-            <view wx:for="{{snapshot.items}}" wx:key="index" class="list-item {{item.groupClass}}">
-                <view class="row">
-                    <view>
-                        <view style="font-weight: 600;">{{item.visitLabel}}</view>
-                        <view class="subtle">{{item.dateTypeLabel}} · {{item.date}}</view>
+            <view class="card">
+                <view class="card-title">结果列表</view>
+                <view wx:for="{{snapshot.results}}" wx:key="firstVisitDate" class="list-item">
+                    <view class="row">
+                        <view>
+                            <view style="font-weight: 600;">首访 {{item.firstVisitDate}}</view>
+                            <view class="subtle">不可避 {{item.unavoidableCount}}</view>
+                        </view>
+                        <view class="tag {{item.isBest ? 'alert' : ''}}">{{item.isBest ? '最优' : '计划'}}</view>
                     </view>
-                    <view class="tag {{item.isHoliday ? 'alert' : ''}}">{{item.holidayInfo}}</view>
+                    <view wx:if="{{item.detailText}}" class="subtle" style="margin-top: 8px;">
+                        {{item.detailText}}
+                    </view>
+                    <view class="button-spread" style="margin-top: 12px;">
+                        <view class="button secondary inline" data-index="{{index}}" bindtap="handleViewResult">查看计划</view>
+                    </view>
                 </view>
             </view>
-        </view>
+        </block>
+
+        <block wx:else>
+            <view class="card">
+                <view class="card-title">计划摘要</view>
+                <view class="subtle">方案 {{snapshot.planName}} · 首访 {{snapshot.firstVisitDate}}</view>
+                <view style="margin-top: 12px;" class="row">
+                    <view class="tag">总访视 {{snapshot.totalVisits}}</view>
+                    <view class="tag {{snapshot.unavoidableCount > 0 ? 'alert' : ''}}">不可避 {{snapshot.unavoidableCount}}</view>
+                </view>
+            </view>
+
+            <view class="card" wx:if="{{snapshot.unavoidableDetails && snapshot.unavoidableDetails.length > 0}}">
+                <view class="card-title">不可避节假日详情</view>
+                <view wx:for="{{snapshot.unavoidableDetails}}" wx:for-item="detail" wx:key="visitNumber" class="list-item">
+                    <view style="font-weight: 600;">{{detail.visitLabel || ('第 ' + detail.visitNumber + ' 次访视')}}</view>
+                    <view class="subtle" wx:for="{{detail.dates}}" wx:for-item="dateItem" wx:key="date">
+                        {{dateItem.date}} · {{dateItem.holidayInfo}}
+                    </view>
+                </view>
+            </view>
+
+            <view class="card">
+                <view class="card-title">访视计划</view>
+                <view wx:for="{{snapshot.items}}" wx:key="index" class="list-item {{item.groupClass}}">
+                    <view class="row">
+                        <view>
+                            <view style="font-weight: 600;">{{item.visitLabel}}</view>
+                            <view class="subtle">{{item.dateTypeLabel}} · {{item.date}}</view>
+                        </view>
+                        <view class="tag {{item.isHoliday ? 'alert' : ''}}">{{item.holidayInfo}}</view>
+                    </view>
+                </view>
+            </view>
+        </block>
         <view class="footer-spacer detail"></view>
     </block>
 </view>

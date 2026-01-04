@@ -12,16 +12,82 @@
             </picker>
         </view>
         <view class="field">
-            <text class="field-label">首访日期</text>
-            <picker mode="date" value="{{firstVisitDate}}" bindchange="handleDateChange">
-                <view class="input">{{firstVisitDate || '请选择日期'}}</view>
-            </picker>
+            <view class="field-header">
+                <text class="field-label">生成模式</text>
+                <view class="mode-toggle">
+                    <view class="mode-option {{mode === 'single' ? 'active' : ''}}" bindtap="handleModeChange" data-mode="single">单次</view>
+                    <view class="mode-option {{mode === 'batch' ? 'active' : ''}}" bindtap="handleModeChange" data-mode="batch">批量</view>
+                </view>
+            </view>
+        </view>
+        <view class="field">
+            <block wx:if="{{mode === 'single'}}">
+                <text class="field-label">首访日期</text>
+                <picker mode="date" value="{{firstVisitDate}}" bindchange="handleDateChange">
+                    <view class="input">{{firstVisitDate || '请选择日期'}}</view>
+                </picker>
+            </block>
+            <block wx:else>
+                <text class="field-label">起止日期</text>
+                <view class="range-row">
+                    <picker mode="date" value="{{rangeStart}}" bindchange="handleRangeStartChange">
+                        <view class="input">{{rangeStart || '开始日期'}}</view>
+                    </picker>
+                    <view class="range-sep">至</view>
+                    <picker mode="date" value="{{rangeEnd}}" bindchange="handleRangeEndChange">
+                        <view class="input">{{rangeEnd || '结束日期'}}</view>
+                    </picker>
+                </view>
+            </block>
         </view>
         <view wx:if="{{selectedPlan}}" class="subtle">
             访视次数 {{selectedPlan.totalVisits}} · 频率 {{selectedPlan.frequency}} · 窗口 {{selectedPlan.visitWindow || '0'}}
         </view>
         <view style="margin-top: 16px;">
-            <view class="button" bindtap="handleGenerate">生成计划</view>
+            <view wx:if="{{mode === 'single'}}" class="button" bindtap="handleGenerate">生成计划</view>
+            <view wx:else class="button" bindtap="handleBatchGenerate">批量生成</view>
+        </view>
+    </view>
+
+    <view class="card" wx:if="{{mode === 'batch' && bestResult}}">
+        <view class="card-title">最优方案</view>
+        <view class="row" style="margin-top: 8px;">
+            <view class="tag">首访 {{bestResult.firstVisitDate}}</view>
+            <view class="tag {{bestResult.unavoidableCount > 0 ? 'alert' : ''}}">不可避 {{bestResult.unavoidableCount}}</view>
+        </view>
+        <view wx:if="{{bestResult.unavoidableDetails && bestResult.unavoidableDetails.length > 0}}" style="margin-top: 12px;">
+            <view class="subtle">无法避开节假日详情</view>
+            <view wx:for="{{bestResult.unavoidableDetails}}" wx:for-item="detail" wx:key="visitNumber" class="list-item">
+                <view style="font-weight: 600;">{{detail.visitLabel || ('第 ' + detail.visitNumber + ' 次访视')}}</view>
+                <view class="subtle">
+                    <block wx:for="{{detail.dates}}" wx:for-item="info" wx:key="date">
+                        {{info.date}} · {{info.holidayInfo}}
+                    </block>
+                </view>
+            </view>
+        </view>
+        <view class="button-spread" style="margin-top: 12px;">
+            <view class="button secondary inline" data-index="best" bindtap="handleViewBatchResult">查看计划</view>
+            <view class="button inline" bindtap="handleSaveBatch">保存批量结果</view>
+        </view>
+    </view>
+
+    <view class="card" wx:if="{{mode === 'batch' && batchResults.length > 0}}">
+        <view class="card-title">结果列表</view>
+        <view class="subtle" style="margin-top: 8px;">按首访日期排序展示，最优方案已高亮。</view>
+        <view wx:for="{{batchResults}}" wx:key="firstVisitDate" class="list-item">
+            <view class="row">
+                <view>
+                    <view style="font-weight: 600;">首访 {{item.firstVisitDate}}</view>
+                    <view class="subtle">不可避 {{item.unavoidableCount}}</view>
+                </view>
+                <view class="tag {{item.firstVisitDate === bestResult.firstVisitDate ? 'alert' : ''}}">
+                    {{item.firstVisitDate === bestResult.firstVisitDate ? '最优' : '查看'}}
+                </view>
+            </view>
+            <view class="button-spread" style="margin-top: 12px;">
+                <view class="button secondary inline" data-index="{{index}}" bindtap="handleViewBatchResult">查看</view>
+            </view>
         </view>
     </view>
 </view>

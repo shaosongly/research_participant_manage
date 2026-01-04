@@ -5,21 +5,51 @@
             <text class="field-label">按方案名称搜索</text>
             <input class="input" placeholder="输入方案名称" value="{{keyword}}" bindinput="handleKeyword" />
         </view>
+        <view class="field">
+            <text class="field-label">记录类型</text>
+            <view class="mode-toggle">
+                <view class="mode-option {{typeFilter === 'all' ? 'active' : ''}}" bindtap="handleTypeFilter" data-type="all">全部</view>
+                <view class="mode-option {{typeFilter === 'single' ? 'active' : ''}}" bindtap="handleTypeFilter" data-type="single">单次</view>
+                <view class="mode-option {{typeFilter === 'batch' ? 'active' : ''}}" bindtap="handleTypeFilter" data-type="batch">批量</view>
+            </view>
+        </view>
     </view>
 
     <view class="card">
         <view class="card-title">记录列表</view>
-        <view wx:if="{{filteredSnapshots.length === 0}}" class="subtle" style="margin-top: 12px;">
+        <view wx:if="{{groupedSnapshots.length === 0}}" class="subtle" style="margin-top: 12px;">
             暂无记录
         </view>
-        <view wx:for="{{filteredSnapshots}}" wx:key="id" class="list-item">
-            <view>
+        <view wx:for="{{groupedSnapshots}}" wx:key="planName" class="list-item history-group">
+            <view class="row history-group-header">
                 <view style="font-weight: 600;">{{item.planName}}</view>
-                <view class="subtle">首访 {{item.firstVisitDate}} · 保存 {{item.createdAt}}</view>
+                <view class="tag">{{item.total}} 条</view>
             </view>
-            <view class="button-spread" style="margin-top: 12px;">
-                <view class="button secondary inline" data-id="{{item.id}}" bindtap="handleDetail">查看</view>
-                <view class="button danger inline" data-id="{{item.id}}" bindtap="handleDelete">删除</view>
+            <view wx:if="{{item.singleList.length > 0}}" class="history-section">
+                <view class="history-section-title">单次记录</view>
+                <view wx:for="{{item.singleList}}" wx:key="id" class="history-record">
+                    <view class="history-record-body">
+                        <view class="history-record-title">首访 {{item.firstVisitDate}}</view>
+                        <view class="subtle">保存 {{item.createdAt}}</view>
+                    </view>
+                    <view class="button-spread history-actions">
+                        <view class="button secondary inline" data-id="{{item.id}}" bindtap="handleDetail">查看</view>
+                        <view class="button danger inline" data-id="{{item.id}}" bindtap="handleDelete">删除</view>
+                    </view>
+                </view>
+            </view>
+            <view wx:if="{{item.batchList.length > 0}}" class="history-section">
+                <view class="history-section-title">批量记录</view>
+                <view wx:for="{{item.batchList}}" wx:key="id" class="history-record batch">
+                    <view class="history-record-body">
+                        <view class="history-record-title">范围 {{item.rangeStart}} - {{item.rangeEnd}}</view>
+                        <view class="subtle">最优 {{item.bestFirstVisitDate || '-'}} · 保存 {{item.createdAt}}</view>
+                    </view>
+                    <view class="button-spread history-actions">
+                        <view class="button secondary inline" data-id="{{item.id}}" bindtap="handleDetail">查看</view>
+                        <view class="button danger inline" data-id="{{item.id}}" bindtap="handleDelete">删除</view>
+                    </view>
+                </view>
             </view>
         </view>
     </view>

@@ -3,7 +3,6 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "lunar-javascript": "^1.7.4",
-        "xlsx": "^0.18.5"
+        "lunar-javascript": "^1.7.4"
     }
 }

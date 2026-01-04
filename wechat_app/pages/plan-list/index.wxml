@@ -21,7 +21,6 @@
                 <view class="tag">{{item.updatedAt}}</view>
             </view>
             <view class="button-spread" style="margin-top: 12px;">
-                <view class="button secondary inline" data-id="{{item.id}}" bindtap="handleEdit">编辑</view>
                 <view class="button inline" data-id="{{item.id}}" bindtap="handleGenerate">生成</view>
                 <view class="button danger inline" data-id="{{item.id}}" bindtap="handleDelete">删除</view>
             </view>

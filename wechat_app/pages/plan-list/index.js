@@ -35,13 +35,10 @@ Page({
     handleCreate() {
         wx.navigateTo({ url: '/pages/plan-edit/index' });
     },
-    handleEdit(event) {
-        const { id } = event.currentTarget.dataset;
-        wx.navigateTo({ url: `/pages/plan-edit/index?id=${id}` });
-    },
     handleGenerate(event) {
         const { id } = event.currentTarget.dataset;
-        wx.navigateTo({ url: `/pages/plan-generate/index?planId=${id}` });
+        wx.setStorageSync('selectedPlanId', id);
+        wx.switchTab({ url: '/pages/plan-generate/index' });
     },
     handleDelete(event) {
         const { id } = event.currentTarget.dataset;

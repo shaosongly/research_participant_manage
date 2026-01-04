@@ -1,7 +1,7 @@
 <view class="container">
     <view class="card">
         <view class="card-title">方案信息</view>
-        <view class="subtle">支持固定或按次列表输入，逗号分隔。</view>
+        <view class="subtle">支持固定或按次列表输入。</view>
     </view>
 
     <view class="card">
@@ -14,21 +14,61 @@
             <input class="input" type="number" placeholder="例如 6" value="{{form.totalVisits}}" bindinput="onInput" data-field="totalVisits" />
         </view>
         <view class="field">
-            <text class="field-label">访视频率（天）</text>
-            <input class="input" placeholder="固定 28 或 28,28,56" value="{{form.frequency}}" bindinput="onInput" data-field="frequency" />
+            <view class="field-header">
+                <text class="field-label">访视频率（天）</text>
+                <view class="mode-toggle">
+                    <view class="mode-option {{frequencyMode === 'fixed' ? 'active' : ''}}" bindtap="onModeChange" data-field="frequency" data-mode="fixed">固定</view>
+                    <view class="mode-option {{frequencyMode === 'list' ? 'active' : ''}}" bindtap="onModeChange" data-field="frequency" data-mode="list">按次</view>
+                </view>
+            </view>
+            <view wx:if="{{frequencyMode === 'fixed'}}">
+                <input class="input" type="number" placeholder="例如 28" value="{{form.frequency}}" bindinput="onInput" data-field="frequency" />
+            </view>
+            <view wx:else>
+                <view class="hint">需填写 {{intervalCount}} 项</view>
+                <view class="interval-list">
+                    <view class="interval-item" wx:for="{{frequencyList}}" wx:key="index">
+                        <input class="input interval-input" type="number" placeholder="第 {{index + 1}} 次间隔" value="{{item}}" bindinput="onIntervalInput" data-type="frequency" data-index="{{index}}" />
+                        <view class="button inline secondary" bindtap="removeIntervalItem" data-type="frequency" data-index="{{index}}">删除</view>
+                    </view>
+                </view>
+                <view class="interval-actions">
+                    <view class="button inline secondary" bindtap="addIntervalItem" data-type="frequency">添加间隔</view>
+                </view>
+            </view>
         </view>
         <view class="field">
-            <text class="field-label">访视窗口（天）</text>
-            <input class="input" placeholder="固定 7 或 7,7,14" value="{{form.visitWindow}}" bindinput="onInput" data-field="visitWindow" />
+            <view class="field-header">
+                <text class="field-label">访视窗口（天）</text>
+                <view class="mode-toggle">
+                    <view class="mode-option {{visitWindowMode === 'fixed' ? 'active' : ''}}" bindtap="onModeChange" data-field="visitWindow" data-mode="fixed">固定</view>
+                    <view class="mode-option {{visitWindowMode === 'list' ? 'active' : ''}}" bindtap="onModeChange" data-field="visitWindow" data-mode="list">按次</view>
+                </view>
+            </view>
+            <view wx:if="{{visitWindowMode === 'fixed'}}">
+                <input class="input" type="number" placeholder="例如 7（可不填）" value="{{form.visitWindow}}" bindinput="onInput" data-field="visitWindow" />
+            </view>
+            <view wx:else>
+                <view class="hint">需填写 {{intervalCount}} 项</view>
+                <view class="interval-list">
+                    <view class="interval-item" wx:for="{{visitWindowList}}" wx:key="index">
+                        <input class="input interval-input" type="number" placeholder="第 {{index + 1}} 次窗口" value="{{item}}" bindinput="onIntervalInput" data-type="visitWindow" data-index="{{index}}" />
+                        <view class="button inline secondary" bindtap="removeIntervalItem" data-type="visitWindow" data-index="{{index}}">删除</view>
+                    </view>
+                </view>
+                <view class="interval-actions">
+                    <view class="button inline secondary" bindtap="addIntervalItem" data-type="visitWindow">添加窗口</view>
+                </view>
+            </view>
         </view>
         <view class="field">
-            <text class="field-label">访视命名规则（可选）</text>
+            <text class="field-label">首次用药访视名称（可选）</text>
             <input class="input" placeholder="例如 D3 或 F4" value="{{form.visitLabelRule}}" bindinput="onInput" data-field="visitLabelRule" />
         </view>
     </view>
 
-    <view class="footer-actions">
+    <view class="footer-actions detail">
         <view class="button" bindtap="handleSave">保存方案</view>
     </view>
-    <view class="footer-spacer"></view>
+    <view class="footer-spacer detail"></view>
 </view>

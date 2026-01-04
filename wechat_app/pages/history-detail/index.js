@@ -7,9 +7,35 @@ const DATE_TYPE_LABELS = {
     latest: '延后'
 };
 
+const WEEKDAY_LABELS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
 Page({
     data: {
         snapshot: null
+    },
+    formatDetailText(details) {
+        if (!details || !details.length) {
+            return '';
+        }
+        return details
+            .map((detail) => {
+                const label = detail.visitLabel || `第 ${detail.visitNumber} 次访视`;
+                const dates = (detail.dates || [])
+                    .map((item) => `${item.date} ${item.holidayInfo}`)
+                    .join(' | ');
+                return `${label}: ${dates}`;
+            })
+            .join('; ');
+    },
+    formatWeekday(dateValue) {
+        if (!dateValue) {
+            return '';
+        }
+        const date = new Date(`${dateValue}T00:00:00`);
+        if (Number.isNaN(date.getTime())) {
+            return '';
+        }
+        return WEEKDAY_LABELS[date.getDay()] || '';
     },
     onLoad(query) {
         this.loadSnapshot(query.id || '');
@@ -21,6 +47,25 @@ Page({
             this.setData({ snapshot: null });
             return;
         }
+        const type = snapshot.type || 'single';
+        if (type === 'batch') {
+            const results = (snapshot.results || [])
+                .slice()
+                .sort((a, b) => (a.firstVisitDate < b.firstVisitDate ? -1 : 1))
+                .map((item) => ({
+                    ...item,
+                    detailText: this.formatDetailText(item.unavoidableDetails || []),
+                    isBest: item.firstVisitDate === snapshot.bestFirstVisitDate
+                }));
+            this.setData({
+                snapshot: {
+                    ...snapshot,
+                    type,
+                    results
+                }
+            });
+            return;
+        }
         const decorated = (snapshot.items || []).map((item) => ({
             ...item,
             dateTypeLabel: DATE_TYPE_LABELS[item.dateType] || item.dateType,
@@ -30,35 +75,92 @@ Page({
         this.setData({
             snapshot: {
                 ...snapshot,
+                type,
                 items: decorated
             }
         });
+    },
+    handleViewResult(event) {
+        const { index } = event.currentTarget.dataset;
+        const { snapshot } = this.data;
+        if (!snapshot || snapshot.type !== 'batch') {
+            return;
+        }
+        const item = snapshot.results[index];
+        if (!item) {
+            return;
+        }
+        wx.setStorageSync('currentPlanResult', {
+            plan: {
+                id: snapshot.planId,
+                name: snapshot.planName,
+                totalVisits: snapshot.totalVisits,
+                frequency: snapshot.frequency,
+                visitWindow: snapshot.visitWindow,
+                visitLabelRule: snapshot.visitLabelRule
+            },
+            firstVisitDate: item.firstVisitDate,
+            result: {
+                items: item.items || [],
+                unavoidableCount: item.unavoidableCount || 0,
+                unavoidableDetails: item.unavoidableDetails || []
+            }
+        });
+        wx.navigateTo({ url: '/pages/plan-result/index' });
     },
     async handleExport() {
         const { snapshot } = this.data;
         if (!snapshot) {
             return;
         }
-        const rows = [
-            ['方案名称', snapshot.planName],
-            ['首访日期', snapshot.firstVisitDate],
-            ['导出时间', new Date().toLocaleString()],
-            [],
-            ['访视序号', '访视名称', '日期类型', '计划日期', '节假日信息']
-        ];
-        snapshot.items.forEach((item) => {
-            rows.push([
-                item.visitNumber,
-                item.visitLabel,
-                item.dateTypeLabel,
-                item.date,
-                item.holidayInfo
-            ]);
-        });
+        let rows = [];
+        if (snapshot.type === 'batch') {
+            rows = [
+                ['方案名称', snapshot.planName],
+                ['访视次数', snapshot.totalVisits],
+                ['访视频率', snapshot.frequency],
+                ['访视窗口', snapshot.visitWindow || '0'],
+                ['日期范围', `${snapshot.rangeStart} ~ ${snapshot.rangeEnd}`],
+                ['导出时间', new Date().toLocaleString()],
+                [],
+                ['首访日期', '星期', '不可避次数', '不可避详情']
+            ];
+            (snapshot.results || []).forEach((item) => {
+                rows.push([
+                    item.firstVisitDate,
+                    this.formatWeekday(item.firstVisitDate),
+                    item.unavoidableCount,
+                    this.formatDetailText(item.unavoidableDetails || [])
+                ]);
+            });
+        } else {
+            rows = [
+                ['方案名称', snapshot.planName],
+                ['访视次数', snapshot.totalVisits],
+                ['访视频率', snapshot.frequency],
+                ['访视窗口', snapshot.visitWindow || '0'],
+                ['首访日期', snapshot.firstVisitDate],
+                ['导出时间', new Date().toLocaleString()],
+                [],
+                ['访视序号', '访视名称', '日期类型', '计划日期', '节假日信息']
+            ];
+            snapshot.items.forEach((item) => {
+                rows.push([
+                    item.visitNumber,
+                    item.visitLabel,
+                    item.dateTypeLabel,
+                    item.date,
+                    item.holidayInfo
+                ]);
+            });
+        }
         try {
             const result = await exportPlanFile({
                 rows,
-                fileName: `visit_plan_${snapshot.planName}`
+                fileName:
+                    snapshot.type === 'batch'
+                        ? `visit_plan_batch_${snapshot.planName}`
+                        : `visit_plan_${snapshot.planName}`
             });
             if (wx.canIUse && wx.canIUse('shareFileMessage')) {
                 wx.showModal({

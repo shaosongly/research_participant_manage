@@ -72,6 +72,14 @@ page {
     color: #475569;
 }
 
+.field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
 .input {
     width: 100%;
     background: #ffffff;
@@ -102,6 +110,140 @@ page {
     justify-content: space-between;
     align-items: center;
     gap: 12px;
+}
+
+.mode-toggle {
+    display: inline-flex;
+    gap: 6px;
+    padding: 4px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.mode-option {
+    padding: 4px 10px;
+    border-radius: 999px;
+    color: #475569;
+}
+
+.mode-option.active {
+    background: #1e3a8a;
+    color: #ffffff;
+}
+
+.hint {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.interval-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.interval-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.interval-input {
+    flex: 1;
+}
+
+.interval-actions {
+    margin-top: 10px;
+}
+
+.range-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.range-row .input {
+    min-width: 0;
+}
+
+.range-sep {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.history-group {
+    padding: 18px 16px 10px;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+    background: #f8fafc;
+    margin-bottom: 12px;
+}
+
+.history-group-header {
+    padding-bottom: 6px;
+}
+
+.history-section {
+    margin-top: 14px;
+    padding-top: 10px;
+}
+
+.history-section-title {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-section-title::before {
+    content: '';
+    width: 4px;
+    height: 12px;
+    border-radius: 999px;
+    background: #cbd5f5;
+}
+
+.history-record {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 12px 12px 12px;
+    margin-bottom: 12px;
+    border: 1px solid #e5e9f0;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+}
+
+.history-record:last-child {
+    margin-bottom: 2px;
+}
+
+.history-record.batch {
+    border-left: 4px solid #1e3a8a;
+}
+
+.history-record-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.history-actions {
+    margin-top: 10px;
+}
+
+.history-record-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.history-group .tag {
+    background: #eef2f6;
+    color: #64748b;
+    font-weight: 500;
+    font-size: 11px;
 }
 
 .tag {

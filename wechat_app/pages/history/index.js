@@ -19,7 +19,9 @@ Page({
     data: {
         keyword: '',
         snapshots: [],
-        filteredSnapshots: []
+        filteredSnapshots: [],
+        groupedSnapshots: [],
+        typeFilter: 'all'
     },
     onShow() {
         if (this.getTabBar) {
@@ -30,26 +32,61 @@ Page({
     loadSnapshots() {
         const snapshots = getList(STORAGE_KEYS.SNAPSHOTS).map((item) => ({
             ...item,
+            type: item.type || 'single',
             createdAt: formatDateTime(item.createdAt)
         }));
         this.setData({ snapshots });
-        this.applyFilter(this.data.keyword, snapshots);
+        this.applyFilter(this.data.keyword, this.data.typeFilter, snapshots);
     },
-    applyFilter(keyword, snapshots) {
+    applyFilter(keyword, typeFilter, snapshots) {
         const term = String(keyword || '').trim().toLowerCase();
-        if (!term) {
-            this.setData({ filteredSnapshots: snapshots });
-            return;
+        let filtered = snapshots;
+        if (typeFilter !== 'all') {
+            filtered = filtered.filter((item) => item.type === typeFilter);
         }
-        const filtered = snapshots.filter((item) =>
-            String(item.planName || '').toLowerCase().includes(term)
+        if (term) {
+            filtered = filtered.filter((item) =>
+                String(item.planName || '').toLowerCase().includes(term)
+            );
+        }
+        const grouped = this.groupByPlan(filtered);
+        this.setData({ filteredSnapshots: filtered, groupedSnapshots: grouped });
+    },
+    groupByPlan(snapshots) {
+        const map = {};
+        snapshots.forEach((item) => {
+            const key = item.planName || '未命名方案';
+            if (!map[key]) {
+                map[key] = {
+                    planName: key,
+                    total: 0,
+                    singleList: [],
+                    batchList: []
+                };
+            }
+            map[key].total += 1;
+            if (item.type === 'batch') {
+                map[key].batchList.push(item);
+            } else {
+                map[key].singleList.push(item);
+            }
+        });
+        return Object.values(map).sort((a, b) =>
+            a.planName.localeCompare(b.planName)
         );
-        this.setData({ filteredSnapshots: filtered });
     },
     handleKeyword(event) {
         const value = event.detail.value;
         this.setData({ keyword: value });
-        this.applyFilter(value, this.data.snapshots);
+        this.applyFilter(value, this.data.typeFilter, this.data.snapshots);
+    },
+    handleTypeFilter(event) {
+        const { type } = event.currentTarget.dataset;
+        if (type === this.data.typeFilter) {
+            return;
+        }
+        this.setData({ typeFilter: type });
+        this.applyFilter(this.data.keyword, type, this.data.snapshots);
     },
     handleDetail(event) {
         const { id } = event.currentTarget.dataset;
