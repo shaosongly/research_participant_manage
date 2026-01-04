@@ -106,9 +106,17 @@ Page({
             createdAt: new Date().toISOString()
         };
         const list = getList(STORAGE_KEYS.SNAPSHOTS);
+        if (list.length >= 500) {
+            wx.showModal({
+                title: '历史记录已满',
+                content: '最多可保存 500 条记录，请先删除再保存。',
+                showCancel: false
+            });
+            return;
+        }
         list.unshift(snapshot);
         setList(STORAGE_KEYS.SNAPSHOTS, list);
-        pruneList(STORAGE_KEYS.SNAPSHOTS, 100);
+        pruneList(STORAGE_KEYS.SNAPSHOTS, 500);
         wx.showToast({ title: '已保存', icon: 'success' });
     },
     async handleExport() {
