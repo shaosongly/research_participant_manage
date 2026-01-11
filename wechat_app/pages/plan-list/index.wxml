@@ -29,6 +29,7 @@
 
     <view class="footer-actions">
         <view class="button" bindtap="handleCreate">新建方案</view>
+        <view class="privacy-link" bindtap="handlePrivacy">隐私与免责声明</view>
     </view>
     <view class="footer-spacer"></view>
 </view>

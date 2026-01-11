@@ -23,6 +23,12 @@ Page({
             this.loadPlan(id);
         }
     },
+    onShow() {
+        const app = getApp();
+        if (app && app.ensurePrivacyConsent) {
+            app.ensurePrivacyConsent();
+        }
+    },
     loadPlan(id) {
         const plans = getList(STORAGE_KEYS.PLANS);
         const plan = plans.find((item) => item.id === id);

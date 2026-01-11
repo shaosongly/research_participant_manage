@@ -26,6 +26,10 @@ Page({
         this.loadPlans(query.planId || '');
     },
     onShow() {
+        const app = getApp();
+        if (app && app.ensurePrivacyConsent) {
+            app.ensurePrivacyConsent();
+        }
         if (this.getTabBar) {
             this.getTabBar().setSelected(1);
         }

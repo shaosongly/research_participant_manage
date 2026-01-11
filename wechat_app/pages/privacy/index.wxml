@@ -1,0 +1,6 @@
+<view class="container">
+    <view class="card">
+        <view class="card-title">隐私与免责声明</view>
+        <text class="privacy-text">{{content}}</text>
+    </view>
+</view>

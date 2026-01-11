@@ -20,6 +20,10 @@ Page({
         plans: []
     },
     onShow() {
+        const app = getApp();
+        if (app && app.ensurePrivacyConsent) {
+            app.ensurePrivacyConsent();
+        }
         if (this.getTabBar) {
             this.getTabBar().setSelected(0);
         }
@@ -52,5 +56,8 @@ Page({
                 }
             }
         });
+    },
+    handlePrivacy() {
+        wx.navigateTo({ url: '/pages/privacy/index' });
     }
 });

@@ -297,6 +297,9 @@ page {
     background: #ffffff;
     border-top: 1px solid #e2e8f0;
     z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .footer-spacer {
@@ -312,4 +315,17 @@ page {
 
 .footer-spacer.detail {
     height: 96px;
+}
+
+.privacy-link {
+    text-align: center;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.privacy-text {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.6;
+    white-space: pre-wrap;
 }

@@ -40,6 +40,12 @@ Page({
     onLoad(query) {
         this.loadSnapshot(query.id || '');
     },
+    onShow() {
+        const app = getApp();
+        if (app && app.ensurePrivacyConsent) {
+            app.ensurePrivacyConsent();
+        }
+    },
     loadSnapshot(id) {
         const snapshots = getList(STORAGE_KEYS.SNAPSHOTS);
         const snapshot = snapshots.find((item) => item.id === id);

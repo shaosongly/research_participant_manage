@@ -24,6 +24,10 @@ Page({
         unavoidableDetails: []
     },
     onShow() {
+        const app = getApp();
+        if (app && app.ensurePrivacyConsent) {
+            app.ensurePrivacyConsent();
+        }
         this.loadResult();
     },
     loadResult() {
